@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { ApiService } from './api.service';
-import { Category, CurrentUser, Expense, PaymentMethod } from './api.types';
+import { Category, CurrentUser, Expense, PaymentMethod, ReceiptExtraction } from './api.types';
 
 type CurrencyOption = {
   code: string;
@@ -61,6 +61,7 @@ export class AppStore {
   readonly paymentMethods = signal<PaymentMethod[]>([]);
   readonly statusMessage = signal('Ready to connect your expense manager.');
   readonly isSubmitting = signal(false);
+  readonly latestReceiptExtraction = signal<ReceiptExtraction | null>(null);
 
   readonly userName = computed(() => this.currentUser()?.name ?? 'Guest');
   readonly preferredCurrency = computed(() => this.currentUser()?.preferredCurrency ?? 'USD');
@@ -231,6 +232,45 @@ export class AppStore {
       error: (error) => {
         this.isSubmitting.set(false);
         this.statusMessage.set(error.error?.message ?? 'Could not delete the expense.');
+      }
+    });
+  }
+
+  processReceipt(
+    payload: {
+      categoryId: string;
+      expenseDate?: string;
+      title?: string;
+      merchantName?: string;
+      notes?: string;
+      paymentMethod?: string;
+      rawText?: string;
+      receiptFile?: File | null;
+    },
+    onDone?: () => void
+  ) {
+    if (!this.token()) {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.statusMessage.set('Processing receipt and extracting total...');
+
+    this.api.processReceipt(this.token(), payload).subscribe({
+      next: ({ extraction }) => {
+        this.loadExpenses();
+        this.latestReceiptExtraction.set(extraction);
+        this.isSubmitting.set(false);
+        this.statusMessage.set(
+          extraction.needsReview
+            ? 'Receipt processed. The expense was created, but the amount may need review.'
+            : 'Receipt processed and expense created successfully.'
+        );
+        onDone?.();
+      },
+      error: (error) => {
+        this.isSubmitting.set(false);
+        this.statusMessage.set(error.error?.message ?? 'Could not process receipt.');
       }
     });
   }

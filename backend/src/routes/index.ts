@@ -4,6 +4,7 @@ import { authRouter } from "../modules/auth/auth.routes";
 import { categoriesRouter } from "../modules/categories/categories.routes";
 import { expensesRouter } from "../modules/expenses/expenses.routes";
 import { paymentMethodsRouter } from "../modules/payment-methods/payment-methods.routes";
+import { receiptsRouter } from "../modules/receipts/receipts.routes";
 import { usersRouter } from "../modules/users/users.routes";
 
 export const apiRouter = Router();
@@ -20,4 +21,5 @@ apiRouter.use("/auth", authRouter);
 apiRouter.use("/categories", categoriesRouter);
 apiRouter.use("/expenses", expensesRouter);
 apiRouter.use("/payment-methods", paymentMethodsRouter);
+apiRouter.use("/receipts", receiptsRouter);
 apiRouter.use("/users", usersRouter);

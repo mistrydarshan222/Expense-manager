@@ -34,6 +34,18 @@ export class DashboardPageComponent {
     name: ['', [Validators.required, Validators.minLength(2)]]
   });
 
+  protected readonly receiptForm = this.fb.nonNullable.group({
+    categoryId: ['', [Validators.required]],
+    expenseDate: [new Date().toISOString().slice(0, 10)],
+    title: [''],
+    merchantName: [''],
+    paymentMethod: [''],
+    notes: [''],
+    rawText: ['']
+  });
+
+  protected readonly selectedReceiptFile = signal<File | null>(null);
+
   protected readonly expenseForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
     categoryId: ['', [Validators.required]],
@@ -50,12 +62,20 @@ export class DashboardPageComponent {
       if (!this.expenseForm.value.categoryId && categories.length > 0) {
         this.expenseForm.patchValue({ categoryId: categories[0].id });
       }
+
+      if (!this.receiptForm.value.categoryId && categories.length > 0) {
+        this.receiptForm.patchValue({ categoryId: categories[0].id });
+      }
     });
 
     effect(() => {
       const methods = this.store.paymentMethods();
       if (!this.expenseForm.value.paymentMethod && methods.length > 0) {
         this.expenseForm.patchValue({ paymentMethod: methods[0].name });
+      }
+
+      if (!this.receiptForm.value.paymentMethod && methods.length > 0) {
+        this.receiptForm.patchValue({ paymentMethod: methods[0].name });
       }
     });
   }
@@ -130,6 +150,36 @@ export class DashboardPageComponent {
     this.store.createExpense(payload, () => this.resetExpenseForm());
   }
 
+  protected onReceiptFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.selectedReceiptFile.set(file);
+  }
+
+  protected processReceipt() {
+    const formValue = this.receiptForm.getRawValue();
+    const hasReceiptText = formValue.rawText.trim().length >= 10;
+    const hasReceiptFile = this.selectedReceiptFile() !== null;
+
+    if (!hasReceiptText && !hasReceiptFile) {
+      this.store.statusMessage.set('Upload a receipt image or paste receipt text first.');
+      return;
+    }
+
+    if (this.receiptForm.invalid) {
+      this.receiptForm.markAllAsTouched();
+      return;
+    }
+
+    this.store.processReceipt(
+      {
+        ...formValue,
+        receiptFile: this.selectedReceiptFile()
+      },
+      () => this.resetReceiptForm()
+    );
+  }
+
   protected startEditExpense(expense: Expense) {
     this.editingExpenseId.set(expense.id);
     this.expenseForm.patchValue({
@@ -193,6 +243,19 @@ export class DashboardPageComponent {
       merchantName: '',
       paymentMethod: this.store.paymentMethods()[0]?.name ?? '',
       notes: ''
+    });
+  }
+
+  protected resetReceiptForm() {
+    this.selectedReceiptFile.set(null);
+    this.receiptForm.patchValue({
+      categoryId: this.store.categories()[0]?.id ?? '',
+      expenseDate: new Date().toISOString().slice(0, 10),
+      title: '',
+      merchantName: '',
+      paymentMethod: this.store.paymentMethods()[0]?.name ?? '',
+      notes: '',
+      rawText: ''
     });
   }
 }

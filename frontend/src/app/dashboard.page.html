@@ -191,6 +191,85 @@
       </article>
     </section>
 
+    <section class="panel receipt-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Receipt Upload</p>
+          <h3>Upload a receipt and auto-add the total</h3>
+        </div>
+        <div class="panel-tip">The app saves the receipt total first, then subtotal + tax if needed.</div>
+      </div>
+
+      <form [formGroup]="receiptForm" (ngSubmit)="processReceipt()" class="form-grid">
+        <label>
+          <span>Category</span>
+          <select formControlName="categoryId">
+            <option value="" disabled>Select a category</option>
+            @for (category of store.categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Date override</span>
+          <input type="date" formControlName="expenseDate" />
+        </label>
+        <label>
+          <span>Optional title</span>
+          <input type="text" formControlName="title" placeholder="Leave blank to use merchant name" />
+        </label>
+        <label>
+          <span>Payment method</span>
+          <select formControlName="paymentMethod">
+            <option value="" disabled>Select a payment method</option>
+            @for (method of store.paymentMethods(); track method.id) {
+              <option [value]="method.name">{{ method.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Optional merchant</span>
+          <input type="text" formControlName="merchantName" placeholder="Merchant name if you want to override it" />
+        </label>
+        <label>
+          <span>Receipt file</span>
+          <input type="file" accept=".png,.jpg,.jpeg,.webp,.bmp,.txt,.csv,.json,.log,image/png,image/jpeg,image/webp,image/bmp,text/plain,text/csv,application/json" (change)="onReceiptFileSelected($event)" />
+        </label>
+        <label class="full-width">
+          <span>Receipt text or OCR text</span>
+          <textarea
+            rows="6"
+            formControlName="rawText"
+            placeholder="Optional: paste receipt text here. Example: Subtotal 100.00 Tax 18.00 Total 118.00"
+          ></textarea>
+        </label>
+        <label class="full-width">
+          <span>Notes</span>
+          <textarea rows="3" formControlName="notes" placeholder="Optional note saved with the expense"></textarea>
+        </label>
+        <div class="form-actions full-width">
+          <button type="submit">Process receipt</button>
+          @if (selectedReceiptFile()) {
+            <span class="file-helper">Selected file: {{ selectedReceiptFile()?.name }}</span>
+          } @else {
+            <span class="file-helper">Tip: upload a receipt image or paste receipt text. The app will use the total amount from the receipt first.</span>
+          }
+        </div>
+      </form>
+
+      @if (store.latestReceiptExtraction(); as extraction) {
+        <div class="receipt-result">
+          <span class="receipt-result-title">Latest extraction</span>
+          <span>{{ extraction.currency }} {{ store.formatCurrency(extraction.finalAmount, extraction.currency) }}</span>
+          @if (extraction.needsReview) {
+            <span class="receipt-review-pill">Needs review</span>
+          } @else {
+            <span class="receipt-success-pill">Ready</span>
+          }
+        </div>
+      }
+    </section>
+
     <section class="panel recent-panel">
       <div class="panel-heading">
         <div>

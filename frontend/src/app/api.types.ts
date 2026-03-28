@@ -46,7 +46,19 @@ export type Expense = {
   currency: string;
   notes: string | null;
   paymentMethod: string | null;
+  receiptUrl?: string | null;
+  isAutoExtracted?: boolean;
+  needsReview?: boolean;
   category?: Category | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type ReceiptExtraction = {
+  subtotal: number | null;
+  tax: number | null;
+  total: number | null;
+  finalAmount: number;
+  currency: string;
+  needsReview: boolean;
 };

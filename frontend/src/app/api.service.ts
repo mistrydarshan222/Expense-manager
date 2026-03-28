@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AuthResponse, Category, CurrentUser, Expense, PaymentMethod } from './api.types';
+import { AuthResponse, Category, CurrentUser, Expense, PaymentMethod, ReceiptExtraction } from './api.types';
 
 type RegisterPayload = {
   name: string;
@@ -143,6 +143,57 @@ export class ApiService {
     return this.http.patch<{ message: string; user: CurrentUser }>(
       `${this.baseUrl}/users/me`,
       payload,
+      { headers: this.authHeaders(token) }
+    );
+  }
+
+  processReceipt(
+    token: string,
+    payload: {
+      categoryId: string;
+      expenseDate?: string;
+      title?: string;
+      merchantName?: string;
+      notes?: string;
+      paymentMethod?: string;
+      rawText?: string;
+      receiptFile?: File | null;
+    }
+  ): Observable<{ message: string; expense: Expense; extraction: ReceiptExtraction }> {
+    const formData = new FormData();
+    formData.append('categoryId', payload.categoryId);
+
+    if (payload.expenseDate) {
+      formData.append('expenseDate', payload.expenseDate);
+    }
+
+    if (payload.title) {
+      formData.append('title', payload.title);
+    }
+
+    if (payload.merchantName) {
+      formData.append('merchantName', payload.merchantName);
+    }
+
+    if (payload.notes) {
+      formData.append('notes', payload.notes);
+    }
+
+    if (payload.paymentMethod) {
+      formData.append('paymentMethod', payload.paymentMethod);
+    }
+
+    if (payload.rawText) {
+      formData.append('rawText', payload.rawText);
+    }
+
+    if (payload.receiptFile) {
+      formData.append('receipt', payload.receiptFile);
+    }
+
+    return this.http.post<{ message: string; expense: Expense; extraction: ReceiptExtraction }>(
+      `${this.baseUrl}/receipts/process`,
+      formData,
       { headers: this.authHeaders(token) }
     );
   }

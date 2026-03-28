@@ -33,8 +33,7 @@
 .dashboard-top-grid,
 .dashboard-main-grid,
 .summary-grid,
-.workspace-grid,
-.panel {
+.workspace-grid {
   max-width: 1180px;
   margin-inline: auto;
 }
@@ -196,6 +195,7 @@
 .recent-panel,
 .form-panel,
 .side-panel,
+.receipt-panel,
 .profile-panel {
   background: linear-gradient(177deg, rgba(244, 248, 255, 0.9) 0%, rgba(255, 255, 255, 1) 100%);
 }
@@ -476,6 +476,13 @@ button:hover,
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.file-helper {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .credential {
@@ -624,6 +631,46 @@ button:hover,
   border: 1px dashed var(--border-strong);
   border-radius: 18px;
   background: #f8fbff;
+}
+
+.receipt-result {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #f8fbff;
+  border: 1px solid var(--border-soft);
+  color: #35527f;
+  font-weight: 700;
+}
+
+.receipt-result-title {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.receipt-success-pill,
+.receipt-review-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.receipt-success-pill {
+  background: #edf9f3;
+  color: #5ca786;
+}
+
+.receipt-review-pill {
+  background: #fff8e8;
+  color: #c49a3d;
 }
 
 @media (max-width: 1100px) {
