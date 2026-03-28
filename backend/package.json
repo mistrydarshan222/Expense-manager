@@ -4,11 +4,13 @@
   "description": "Expense management backend API",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon --watch src --ext ts --exec ts-node src/server.ts",
+    "dev": "ts-node src/server.ts",
+    "dev:watch": "nodemon --watch src --ext ts --exec ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "seed": "ts-node prisma/seed.ts",
     "test": "echo \"Add tests here\""
   },
   "keywords": [
