@@ -1,0 +1,72 @@
+@if (!store.token()) {
+  <section class="panel profile-panel">
+    <p class="eyebrow">Profile</p>
+    <h2>Sign in to manage your profile</h2>
+    <p class="profile-copy">Login first, then come back here to update your name, email, password, and default currency.</p>
+  </section>
+} @else {
+  <section class="panel profile-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Profile Settings</p>
+        <h2>Manage your account</h2>
+        <p class="profile-copy">Update your personal details and choose the default currency for new expenses.</p>
+      </div>
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="profile-form">
+      <label>
+        <span>Name</span>
+        <input type="text" formControlName="name" placeholder="Your name" />
+      </label>
+      <label>
+        <span>Email</span>
+        <input type="email" formControlName="email" placeholder="you@example.com" />
+      </label>
+      <label>
+        <span>Default currency</span>
+        <select formControlName="preferredCurrency">
+          @for (currency of store.currencyOptions; track currency.code) {
+            <option [value]="currency.code">{{ currency.code }} - {{ currency.label }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span>Current password</span>
+        <input type="password" formControlName="currentPassword" placeholder="Required only to change password" />
+      </label>
+      <label>
+        <span>New password</span>
+        <input type="password" formControlName="newPassword" placeholder="Leave blank to keep current password" />
+      </label>
+      <button type="submit">Save profile</button>
+    </form>
+  </section>
+
+  <section class="panel profile-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Payment Methods</p>
+        <h2>Manage how you pay</h2>
+        <p class="profile-copy">Add methods like Cash, Visa, Mastercard, HDFC Credit Card, or any custom payment source.</p>
+      </div>
+    </div>
+
+    <form [formGroup]="paymentMethodForm" (ngSubmit)="addPaymentMethod()" class="payment-method-form">
+      <label>
+        <span>Payment method name</span>
+        <input type="text" formControlName="name" placeholder="Cash, Visa, Amex, HDFC Credit Card" />
+      </label>
+      <button type="submit">Add payment method</button>
+    </form>
+
+    <div class="payment-method-list">
+      @for (method of store.paymentMethods(); track method.id) {
+        <article class="payment-method-card">
+          <strong>{{ method.name }}</strong>
+          <button type="button" class="danger-button" (click)="deletePaymentMethod(method.id)">Delete</button>
+        </article>
+      }
+    </div>
+  </section>
+}

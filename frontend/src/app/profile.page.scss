@@ -1,0 +1,64 @@
+:host {
+  display: block;
+}
+
+.profile-panel {
+  max-width: 1180px;
+  margin: 0 auto 24px;
+}
+
+.profile-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+  max-width: 860px;
+}
+
+.profile-copy {
+  margin-top: 10px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.payment-method-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  margin-top: 24px;
+  max-width: 860px;
+  align-items: end;
+}
+
+.payment-method-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  max-width: 860px;
+}
+
+.payment-method-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+@media (max-width: 900px) {
+  .profile-form {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-method-form {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-method-card {
+    align-items: start;
+    flex-direction: column;
+  }
+}

@@ -26,6 +26,7 @@ export async function register(req: Request, res: Response) {
         id: user.id,
         name: user.name,
         email: user.email,
+        preferredCurrency: user.preferredCurrency,
       },
     });
   } catch (error) {
@@ -55,6 +56,7 @@ export async function login(req: Request, res: Response) {
         id: user.id,
         name: user.name,
         email: user.email,
+        preferredCurrency: user.preferredCurrency,
       },
     });
   } catch (error) {

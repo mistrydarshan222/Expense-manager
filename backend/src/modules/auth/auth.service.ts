@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 
 import { prisma } from "../../config/db";
 import { createDefaultCategoriesForUser } from "../categories/category-defaults";
+import { createDefaultPaymentMethodForUser } from "../payment-methods/payment-methods.service";
 import { LoginInput, RegisterInput } from "./auth.validation";
 
 export async function registerUser(input: RegisterInput) {
@@ -20,10 +21,12 @@ export async function registerUser(input: RegisterInput) {
       name: input.name,
       email: input.email,
       passwordHash,
+      preferredCurrency: "USD",
     },
   });
 
   await createDefaultCategoriesForUser(user.id);
+  await createDefaultPaymentMethodForUser(user.id);
 
   return user;
 }
@@ -53,6 +56,7 @@ export async function getCurrentUser(userId: string) {
       id: true,
       name: true,
       email: true,
+      preferredCurrency: true,
       createdAt: true,
       updatedAt: true,
     },

@@ -82,6 +82,11 @@
   transform: translateY(-1px);
 }
 
+.topnav a.active-link {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
 .topbar-actions {
   display: flex;
   align-items: center;
@@ -172,7 +177,7 @@ h3 {
 }
 
 .summary-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .workspace-grid {
@@ -372,6 +377,22 @@ button:hover,
   font-weight: 600;
 }
 
+.settings-panel {
+  margin-top: 4px;
+}
+
+.settings-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+  max-width: 420px;
+}
+
+.settings-copy {
+  color: #6b7280;
+  line-height: 1.6;
+}
+
 .chip-list {
   display: flex;
   flex-wrap: wrap;
@@ -424,10 +445,64 @@ button:hover,
   margin-top: 6px;
 }
 
+.expense-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.method-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.method-badge-cash {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.method-badge-card {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4338ca;
+}
+
+.method-badge-bank {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.method-badge-default {
+  background: rgba(107, 114, 128, 0.12);
+  color: #4b5563;
+}
+
 .expense-side {
   display: grid;
   justify-items: end;
   gap: 10px;
+}
+
+.expense-amount-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.currency-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.1);
+  color: #4338ca;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .expense-actions {

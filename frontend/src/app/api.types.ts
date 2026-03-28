@@ -5,10 +5,28 @@ export type AuthResponse = {
     id: string;
     name: string;
     email: string;
+    preferredCurrency: string;
   };
 };
 
+export type CurrentUser = {
+  id: string;
+  name: string;
+  email: string;
+  preferredCurrency: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Category = {
+  id: string;
+  name: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PaymentMethod = {
   id: string;
   name: string;
   userId: string;

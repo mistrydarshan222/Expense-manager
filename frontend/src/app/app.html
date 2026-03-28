@@ -9,230 +9,26 @@
     </div>
 
     <nav class="topnav" aria-label="Primary">
-      <a href="#overview">Overview</a>
-      <a href="#categories">Categories</a>
-      <a href="#expenses">Expenses</a>
+      <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+      <a routerLink="/profile" routerLinkActive="active-link">Profile</a>
     </nav>
 
     <div class="topbar-actions">
       <div class="profile-chip">
         <div class="profile-avatar">
-          {{ token() ? (userName().slice(0, 1) || 'U') : 'G' }}
+          {{ store.token() ? (store.userName().slice(0, 1) || 'U') : 'G' }}
         </div>
         <div class="profile-copy">
-          <strong>{{ token() ? userName() : 'Guest' }}</strong>
-          <span>{{ token() ? 'Active session' : 'Not signed in' }}</span>
+          <strong>{{ store.userName() }}</strong>
+          <span>{{ store.token() ? store.currentUser()?.email : 'Not signed in' }}</span>
         </div>
       </div>
 
-      @if (token()) {
-        <button type="button" class="secondary-button" (click)="logout()">Logout</button>
+      @if (store.token()) {
+        <button type="button" class="secondary-button" (click)="store.logout()">Logout</button>
       }
     </div>
   </header>
 
-  @if (!token()) {
-    <section class="auth-grid">
-      <article class="panel auth-panel">
-        <div class="tab-row">
-          <button type="button" [ngClass]="{ active: activeTab() === 'login' }" (click)="setActiveTab('login')">Login</button>
-          <button type="button" [ngClass]="{ active: activeTab() === 'register' }" (click)="setActiveTab('register')">Register</button>
-        </div>
-
-        @if (activeTab() === 'login') {
-          <form [formGroup]="loginForm" (ngSubmit)="login()" class="form-grid">
-            <label>
-              <span>Email</span>
-              <input type="email" formControlName="email" placeholder="demo@example.com" />
-            </label>
-            <label>
-              <span>Password</span>
-              <input type="password" formControlName="password" placeholder="Demo@123" />
-            </label>
-            <button type="submit">Login</button>
-          </form>
-        } @else {
-          <form [formGroup]="registerForm" (ngSubmit)="register()" class="form-grid">
-            <label>
-              <span>Name</span>
-              <input type="text" formControlName="name" placeholder="Your name" />
-            </label>
-            <label>
-              <span>Email</span>
-              <input type="email" formControlName="email" placeholder="you@example.com" />
-            </label>
-            <label>
-              <span>Password</span>
-              <input type="password" formControlName="password" placeholder="Minimum 6 characters" />
-            </label>
-            <button type="submit">Create account</button>
-          </form>
-        }
-      </article>
-
-      <article class="panel auth-help">
-        <h2>Quick local test</h2>
-        <p>Use the seeded demo account or create your own user.</p>
-        <div class="credential">
-          <span>Email</span>
-          <strong>demo@example.com</strong>
-        </div>
-        <div class="credential">
-          <span>Password</span>
-          <strong>Demo@123</strong>
-        </div>
-        <div class="help-note">
-          Login to open the dashboard, load categories, and start adding daily expenses.
-        </div>
-      </article>
-    </section>
-  } @else {
-    <section class="dashboard-head" id="overview">
-      <div>
-        <p class="eyebrow">Overview</p>
-        <h2>{{ userName() }}</h2>
-        <p class="dashboard-copy">{{ statusMessage() }}</p>
-      </div>
-    </section>
-
-    <section class="summary-grid">
-      <article class="panel summary-card">
-        <p>Total categories</p>
-        <strong>{{ categories().length }}</strong>
-      </article>
-      <article class="panel summary-card">
-        <p>Total expenses</p>
-        <strong>{{ expenses().length }}</strong>
-      </article>
-      <article class="panel summary-card">
-        <p>Total spent</p>
-        @if (totalsByCurrency().length <= 1) {
-          <strong>{{ formatCurrency(totalSpent(), totalsByCurrency()[0]?.currency || expenseForm.getRawValue().currency) }}</strong>
-        } @else {
-          <strong>Mixed currencies</strong>
-        }
-        @for (total of totalsByCurrency(); track total.currency) {
-          <span class="summary-note">{{ total.currency }}: {{ formatCurrency(total.amount, total.currency) }}</span>
-        }
-      </article>
-    </section>
-
-    <section class="workspace-grid">
-      <article class="panel" id="categories">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Categories</p>
-            <h3>Manage expense buckets</h3>
-          </div>
-        </div>
-
-        <form [formGroup]="categoryForm" (ngSubmit)="addCategory()" class="inline-form">
-          <input type="text" formControlName="name" placeholder="Add a category like Utilities" />
-          <button type="submit">Add category</button>
-        </form>
-
-        <div class="chip-list">
-          @for (category of categories(); track category.id) {
-            <span class="chip">{{ category.name }}</span>
-          }
-        </div>
-      </article>
-
-      <article class="panel" id="expenses">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Add Expense</p>
-            <h3>{{ isEditingExpense() ? 'Edit expense details' : "Save today's spending" }}</h3>
-          </div>
-          <div class="panel-tip">Use the total amount including tax.</div>
-        </div>
-
-        <form [formGroup]="expenseForm" (ngSubmit)="addExpense()" class="form-grid">
-          <label>
-            <span>Title</span>
-            <input type="text" formControlName="title" placeholder="Lunch with team" />
-          </label>
-          <label>
-            <span>Category</span>
-            <select formControlName="categoryId">
-              <option value="" disabled>Select a category</option>
-              @for (category of categories(); track category.id) {
-                <option [value]="category.id">{{ category.name }}</option>
-              }
-            </select>
-          </label>
-          <label>
-            <span>Date</span>
-            <input type="date" formControlName="expenseDate" />
-          </label>
-          <label>
-            <span>Total amount</span>
-            <input type="number" step="0.01" formControlName="finalAmount" placeholder="250" />
-          </label>
-          <label>
-            <span>Currency</span>
-            <select formControlName="currency">
-              @for (currency of currencyOptions; track currency.code) {
-                <option [value]="currency.code">{{ currency.code }} - {{ currency.label }}</option>
-              }
-            </select>
-          </label>
-          <label>
-            <span>Merchant</span>
-            <input type="text" formControlName="merchantName" placeholder="Cafe or store name" />
-          </label>
-          <label>
-            <span>Payment method</span>
-            <input type="text" formControlName="paymentMethod" placeholder="Cash, UPI, Card" />
-          </label>
-          <label class="full-width">
-            <span>Notes</span>
-            <textarea rows="3" formControlName="notes" placeholder="Optional note"></textarea>
-          </label>
-          <div class="form-actions full-width">
-            <button type="submit">{{ isEditingExpense() ? 'Update expense' : 'Save expense' }}</button>
-            @if (isEditingExpense()) {
-              <button type="button" class="ghost-button" (click)="cancelEditExpense()">Cancel edit</button>
-            }
-          </div>
-        </form>
-      </article>
-    </section>
-
-    <section class="panel">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Recent Expenses</p>
-          <h3>Everything currently stored in PostgreSQL</h3>
-        </div>
-      </div>
-
-      @if (expenses().length === 0) {
-        <p class="empty-state">No expenses yet. Add your first daily expense from the form above.</p>
-      } @else {
-        <div class="expense-list">
-          @for (expense of expenses(); track expense.id) {
-            <article class="expense-card">
-              <div>
-                <p class="expense-title">{{ expense.title }}</p>
-                <p class="expense-meta">
-                  {{ expense.category?.name || 'Uncategorized' }} - {{ expense.expenseDate | date:'mediumDate' }}
-                </p>
-                @if (expense.merchantName) {
-                  <p class="expense-note">Merchant: {{ expense.merchantName }}</p>
-                }
-              </div>
-              <div class="expense-side">
-                <strong>{{ formatCurrency(expense.finalAmount, expense.currency) }}</strong>
-                <div class="expense-actions">
-                  <button type="button" class="ghost-button" (click)="startEditExpense(expense)">Edit</button>
-                  <button type="button" class="danger-button" (click)="deleteExpense(expense.id)">Delete</button>
-                </div>
-              </div>
-            </article>
-          }
-        </div>
-      }
-    </section>
-  }
+  <router-outlet />
 </main>

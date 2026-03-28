@@ -1,0 +1,213 @@
+@if (!store.token()) {
+  <section class="auth-grid">
+    <article class="panel auth-panel">
+      <div class="tab-row">
+        <button type="button" [ngClass]="{ active: activeTab() === 'login' }" (click)="setActiveTab('login')">Login</button>
+        <button type="button" [ngClass]="{ active: activeTab() === 'register' }" (click)="setActiveTab('register')">Register</button>
+      </div>
+
+      @if (activeTab() === 'login') {
+        <form [formGroup]="loginForm" (ngSubmit)="login()" class="form-grid">
+          <label>
+            <span>Email</span>
+            <input type="email" formControlName="email" placeholder="demo@example.com" />
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" formControlName="password" placeholder="Demo@123" />
+          </label>
+          <button type="submit">Login</button>
+        </form>
+      } @else {
+        <form [formGroup]="registerForm" (ngSubmit)="register()" class="form-grid">
+          <label>
+            <span>Name</span>
+            <input type="text" formControlName="name" placeholder="Your name" />
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" formControlName="email" placeholder="you@example.com" />
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" formControlName="password" placeholder="Minimum 6 characters" />
+          </label>
+          <button type="submit">Create account</button>
+        </form>
+      }
+    </article>
+
+    <article class="panel auth-help">
+      <h2>Quick local test</h2>
+      <p>Use the seeded demo account or create your own user.</p>
+      <div class="credential">
+        <span>Email</span>
+        <strong>demo@example.com</strong>
+      </div>
+      <div class="credential">
+        <span>Password</span>
+        <strong>Demo@123</strong>
+      </div>
+      <div class="help-note">
+        Login to open the dashboard, load categories, and start adding daily expenses.
+      </div>
+    </article>
+  </section>
+} @else {
+  <section class="dashboard-head" id="overview">
+    <div>
+      <p class="eyebrow">Overview</p>
+      <h2>{{ store.userName() }}</h2>
+      <p class="dashboard-copy">{{ store.statusMessage() }}</p>
+    </div>
+  </section>
+
+  <section class="summary-grid">
+    <article class="panel summary-card">
+      <p>Total categories</p>
+      <strong>{{ store.categories().length }}</strong>
+    </article>
+    <article class="panel summary-card">
+      <p>Total expenses</p>
+      <strong>{{ store.expenses().length }}</strong>
+    </article>
+    <article class="panel summary-card">
+      <p>Profile currency</p>
+      <strong>{{ store.preferredCurrency() }}</strong>
+    </article>
+    <article class="panel summary-card">
+      <p>Total spent</p>
+      @if (store.totalsByCurrency().length <= 1) {
+        <strong>{{ store.formatCurrency(store.totalSpent(), store.totalsByCurrency()[0]?.currency || store.preferredCurrency()) }}</strong>
+      } @else {
+        <strong>Mixed currencies</strong>
+      }
+      @for (total of store.totalsByCurrency(); track total.currency) {
+        <span class="summary-note">{{ total.currency }}: {{ store.formatCurrency(total.amount, total.currency) }}</span>
+      }
+    </article>
+  </section>
+
+  <section class="workspace-grid">
+    <article class="panel" id="categories">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Categories</p>
+          <h3>Manage expense buckets</h3>
+        </div>
+      </div>
+
+      <form [formGroup]="categoryForm" (ngSubmit)="addCategory()" class="inline-form">
+        <input type="text" formControlName="name" placeholder="Add a category like Utilities" />
+        <button type="submit">Add category</button>
+      </form>
+
+      <div class="chip-list">
+        @for (category of store.categories(); track category.id) {
+          <span class="chip">{{ category.name }}</span>
+        }
+      </div>
+    </article>
+
+    <article class="panel" id="expenses">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Add Expense</p>
+          <h3>{{ isEditingExpense() ? 'Edit expense details' : "Save today's spending" }}</h3>
+        </div>
+        <div class="panel-tip">Default currency: {{ store.preferredCurrency() }}</div>
+      </div>
+
+      <form [formGroup]="expenseForm" (ngSubmit)="addExpense()" class="form-grid">
+        <label>
+          <span>Title</span>
+          <input type="text" formControlName="title" placeholder="Lunch with team" />
+        </label>
+        <label>
+          <span>Category</span>
+          <select formControlName="categoryId">
+            <option value="" disabled>Select a category</option>
+            @for (category of store.categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Date</span>
+          <input type="date" formControlName="expenseDate" />
+        </label>
+        <label>
+          <span>Total amount</span>
+          <input type="number" step="0.01" formControlName="finalAmount" placeholder="250" />
+        </label>
+        <label>
+          <span>Merchant</span>
+          <input type="text" formControlName="merchantName" placeholder="Cafe or store name" />
+        </label>
+        <label>
+          <span>Payment method</span>
+          <select formControlName="paymentMethod">
+            <option value="" disabled>Select a payment method</option>
+            @for (method of store.paymentMethods(); track method.id) {
+              <option [value]="method.name">{{ method.name }}</option>
+            }
+          </select>
+        </label>
+        <label class="full-width">
+          <span>Notes</span>
+          <textarea rows="3" formControlName="notes" placeholder="Optional note"></textarea>
+        </label>
+        <div class="form-actions full-width">
+          <button type="submit">{{ isEditingExpense() ? 'Update expense' : 'Save expense' }}</button>
+          @if (isEditingExpense()) {
+            <button type="button" class="ghost-button" (click)="cancelEditExpense()">Cancel edit</button>
+          }
+        </div>
+      </form>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Recent Expenses</p>
+        <h3>Everything currently stored in PostgreSQL</h3>
+      </div>
+    </div>
+
+    @if (store.expenses().length === 0) {
+      <p class="empty-state">No expenses yet. Add your first daily expense from the form above.</p>
+    } @else {
+      <div class="expense-list">
+        @for (expense of store.expenses(); track expense.id) {
+          <article class="expense-card">
+              <div>
+                <p class="expense-title">{{ expense.title }}</p>
+                <p class="expense-meta">
+                  {{ expense.category?.name || 'Uncategorized' }} - {{ expense.expenseDate | date:'mediumDate' }}
+                </p>
+                @if (expense.merchantName) {
+                  <p class="expense-note">Merchant: {{ expense.merchantName }}</p>
+                }
+                @if (expense.paymentMethod) {
+                  <div class="expense-meta-row">
+                    <span class="method-badge" [ngClass]="paymentMethodClass(expense.paymentMethod)">{{ expense.paymentMethod }}</span>
+                  </div>
+                }
+              </div>
+            <div class="expense-side">
+              <div class="expense-amount-group">
+                <span class="currency-badge">{{ expense.currency }}</span>
+                <strong>{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
+              </div>
+              <div class="expense-actions">
+                <button type="button" class="ghost-button" (click)="startEditExpense(expense)">Edit</button>
+                <button type="button" class="danger-button" (click)="deleteExpense(expense.id)">Delete</button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+}

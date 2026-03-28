@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AuthResponse, Category, Expense } from './api.types';
+import { AuthResponse, Category, CurrentUser, Expense, PaymentMethod } from './api.types';
 
 type RegisterPayload = {
   name: string;
@@ -39,6 +39,12 @@ export class ApiService {
 
   login(payload: LoginPayload): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/auth/login`, payload);
+  }
+
+  getCurrentUser(token: string): Observable<{ user: CurrentUser }> {
+    return this.http.get<{ user: CurrentUser }>(`${this.baseUrl}/auth/me`, {
+      headers: this.authHeaders(token)
+    });
   }
 
   getCategories(token: string): Observable<{ categories: Category[] }> {
@@ -88,6 +94,57 @@ export class ApiService {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/expenses/${expenseId}`, {
       headers: this.authHeaders(token)
     });
+  }
+
+  getPaymentMethods(token: string): Observable<{ paymentMethods: PaymentMethod[] }> {
+    return this.http.get<{ paymentMethods: PaymentMethod[] }>(`${this.baseUrl}/payment-methods`, {
+      headers: this.authHeaders(token)
+    });
+  }
+
+  createPaymentMethod(
+    token: string,
+    name: string
+  ): Observable<{ message: string; paymentMethod: PaymentMethod }> {
+    return this.http.post<{ message: string; paymentMethod: PaymentMethod }>(
+      `${this.baseUrl}/payment-methods`,
+      { name },
+      { headers: this.authHeaders(token) }
+    );
+  }
+
+  deletePaymentMethod(token: string, id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.baseUrl}/payment-methods/${id}`, {
+      headers: this.authHeaders(token)
+    });
+  }
+
+  updatePreferences(
+    token: string,
+    preferredCurrency: string
+  ): Observable<{ message: string; user: CurrentUser }> {
+    return this.http.patch<{ message: string; user: CurrentUser }>(
+      `${this.baseUrl}/users/preferences`,
+      { preferredCurrency },
+      { headers: this.authHeaders(token) }
+    );
+  }
+
+  updateProfile(
+    token: string,
+    payload: {
+      name?: string;
+      email?: string;
+      preferredCurrency?: string;
+      currentPassword?: string;
+      newPassword?: string;
+    }
+  ): Observable<{ message: string; user: CurrentUser }> {
+    return this.http.patch<{ message: string; user: CurrentUser }>(
+      `${this.baseUrl}/users/me`,
+      payload,
+      { headers: this.authHeaders(token) }
+    );
   }
 
   private authHeaders(token: string): HttpHeaders {
