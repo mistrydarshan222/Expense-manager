@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  categories   Category[]
+  expenses     Expense[]
+  receipts     Receipt[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Expense {
+  id              String    @id @default(uuid())
+  userId          String
+  categoryId      String?
+  title           String
+  merchantName    String?
+  expenseDate     DateTime
+  subtotal        Decimal?  @db.Decimal(10, 2)
+  tax             Decimal?  @db.Decimal(10, 2)
+  total           Decimal?  @db.Decimal(10, 2)
+  finalAmount     Decimal   @db.Decimal(10, 2)
+  currency        String    @default("INR")
+  paymentMethod   String?
+  notes           String?
+  receiptUrl      String?
+  isAutoExtracted Boolean   @default(false)
+  needsReview     Boolean   @default(false)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  receipt         Receipt?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Receipt {
+  id                String    @id @default(uuid())
+  userId            String
+  expenseId         String?   @unique
+  originalFileName  String
+  storedFileName    String
+  mimeType          String
+  filePath          String
+  ocrRawText        String?
+  extractedSubtotal Decimal?  @db.Decimal(10, 2)
+  extractedTax      Decimal?  @db.Decimal(10, 2)
+  extractedTotal    Decimal?  @db.Decimal(10, 2)
+  parserConfidence  Float?
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expense           Expense?  @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
