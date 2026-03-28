@@ -87,7 +87,7 @@
       </article>
     </section>
   } @else {
-    <section class="dashboard-head">
+    <section class="dashboard-head" id="overview">
       <div>
         <p class="eyebrow">Overview</p>
         <h2>{{ userName() }}</h2>
@@ -142,7 +142,7 @@
         <div class="panel-heading">
           <div>
             <p class="eyebrow">Add Expense</p>
-            <h3>Save today’s spending</h3>
+            <h3>{{ isEditingExpense() ? 'Edit expense details' : "Save today's spending" }}</h3>
           </div>
           <div class="panel-tip">Use the total amount including tax.</div>
         </div>
@@ -189,7 +189,12 @@
             <span>Notes</span>
             <textarea rows="3" formControlName="notes" placeholder="Optional note"></textarea>
           </label>
-          <button type="submit">Save expense</button>
+          <div class="form-actions full-width">
+            <button type="submit">{{ isEditingExpense() ? 'Update expense' : 'Save expense' }}</button>
+            @if (isEditingExpense()) {
+              <button type="button" class="ghost-button" (click)="cancelEditExpense()">Cancel edit</button>
+            }
+          </div>
         </form>
       </article>
     </section>
@@ -211,7 +216,7 @@
               <div>
                 <p class="expense-title">{{ expense.title }}</p>
                 <p class="expense-meta">
-                  {{ expense.category?.name || 'Uncategorized' }} · {{ expense.expenseDate | date:'mediumDate' }}
+                  {{ expense.category?.name || 'Uncategorized' }} - {{ expense.expenseDate | date:'mediumDate' }}
                 </p>
                 @if (expense.merchantName) {
                   <p class="expense-note">Merchant: {{ expense.merchantName }}</p>
@@ -219,7 +224,10 @@
               </div>
               <div class="expense-side">
                 <strong>{{ formatCurrency(expense.finalAmount, expense.currency) }}</strong>
-                <button type="button" class="danger-button" (click)="deleteExpense(expense.id)">Delete</button>
+                <div class="expense-actions">
+                  <button type="button" class="ghost-button" (click)="startEditExpense(expense)">Edit</button>
+                  <button type="button" class="danger-button" (click)="deleteExpense(expense.id)">Delete</button>
+                </div>
               </div>
             </article>
           }

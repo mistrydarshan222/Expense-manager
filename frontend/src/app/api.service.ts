@@ -72,6 +72,18 @@ export class ApiService {
     );
   }
 
+  updateExpense(
+    token: string,
+    expenseId: string,
+    payload: ExpensePayload
+  ): Observable<{ expense: Expense; message: string }> {
+    return this.http.put<{ expense: Expense; message: string }>(
+      `${this.baseUrl}/expenses/${expenseId}`,
+      payload,
+      { headers: this.authHeaders(token) }
+    );
+  }
+
   deleteExpense(token: string, expenseId: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/expenses/${expenseId}`, {
       headers: this.authHeaders(token)

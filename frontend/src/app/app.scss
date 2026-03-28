@@ -269,10 +269,25 @@ button {
   box-shadow: 0 12px 24px rgba(16, 185, 129, 0.2);
 }
 
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 button:hover,
 .secondary-button:hover,
 .danger-button:hover {
   transform: translateY(-1px);
+}
+
+.ghost-button {
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-weight: 700;
+  box-shadow: none;
 }
 
 .secondary-button {
@@ -412,6 +427,12 @@ button:hover,
 .expense-side {
   display: grid;
   justify-items: end;
+  gap: 10px;
+}
+
+.expense-actions {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 

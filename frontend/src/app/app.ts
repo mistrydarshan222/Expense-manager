@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -10,9 +10,47 @@ type CurrencyOption = {
   label: string;
 };
 
+const fallbackCurrencyOptions: CurrencyOption[] = [
+  { code: 'USD', label: 'US Dollar' },
+  { code: 'EUR', label: 'Euro' },
+  { code: 'GBP', label: 'British Pound' },
+  { code: 'INR', label: 'Indian Rupee' },
+  { code: 'AED', label: 'UAE Dirham' },
+  { code: 'CAD', label: 'Canadian Dollar' },
+  { code: 'AUD', label: 'Australian Dollar' },
+  { code: 'JPY', label: 'Japanese Yen' },
+  { code: 'SGD', label: 'Singapore Dollar' },
+  { code: 'ZAR', label: 'South African Rand' }
+];
+
+function getCurrencyOptions(): CurrencyOption[] {
+  if (typeof Intl === 'undefined' || typeof Intl.DisplayNames === 'undefined') {
+    return fallbackCurrencyOptions;
+  }
+
+  const supportedValuesOf = (Intl as typeof Intl & {
+    supportedValuesOf?: (key: string) => string[];
+  }).supportedValuesOf;
+
+  if (!supportedValuesOf) {
+    return fallbackCurrencyOptions;
+  }
+
+  const displayNames = new Intl.DisplayNames([navigator.language || 'en'], {
+    type: 'currency'
+  });
+
+  return supportedValuesOf('currency')
+    .map((code) => ({
+      code,
+      label: displayNames.of(code) ?? code
+    }))
+    .sort((left, right) => left.code.localeCompare(right.code));
+}
+
 @Component({
   selector: 'app-root',
-  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, NgClass],
+  imports: [ReactiveFormsModule, DatePipe, NgClass],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -20,24 +58,14 @@ export class App {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
 
-  protected readonly currencyOptions: CurrencyOption[] = [
-    { code: 'USD', label: 'US Dollar' },
-    { code: 'EUR', label: 'Euro' },
-    { code: 'GBP', label: 'British Pound' },
-    { code: 'INR', label: 'Indian Rupee' },
-    { code: 'AED', label: 'UAE Dirham' },
-    { code: 'CAD', label: 'Canadian Dollar' },
-    { code: 'AUD', label: 'Australian Dollar' },
-    { code: 'JPY', label: 'Japanese Yen' },
-    { code: 'SGD', label: 'Singapore Dollar' },
-    { code: 'ZAR', label: 'South African Rand' }
-  ];
+  protected readonly currencyOptions: CurrencyOption[] = getCurrencyOptions();
 
   protected readonly token = signal(localStorage.getItem('expense-token') ?? '');
   protected readonly userName = signal(localStorage.getItem('expense-user-name') ?? '');
   protected readonly activeTab = signal<'login' | 'register'>('login');
   protected readonly categories = signal<Category[]>([]);
   protected readonly expenses = signal<Expense[]>([]);
+  protected readonly editingExpenseId = signal<string | null>(null);
   protected readonly statusMessage = signal('Ready to connect your expense manager.');
   protected readonly isSubmitting = signal(false);
 
@@ -70,6 +98,8 @@ export class App {
   protected readonly totalSpent = computed(() =>
     this.expenses().reduce((sum, expense) => sum + Number(expense.finalAmount), 0)
   );
+
+  protected readonly isEditingExpense = computed(() => this.editingExpenseId() !== null);
 
   protected readonly totalsByCurrency = computed(() => {
     const totals = new Map<string, number>();
@@ -177,31 +207,49 @@ export class App {
     this.statusMessage.set('Saving the expense...');
 
     const formValue = this.expenseForm.getRawValue();
-
-    this.api.createExpense(this.token(), {
+    const payload = {
       ...formValue,
       finalAmount: Number(formValue.finalAmount)
-    }).subscribe({
+    };
+    const editingExpenseId = this.editingExpenseId();
+    const request = editingExpenseId
+      ? this.api.updateExpense(this.token(), editingExpenseId, payload)
+      : this.api.createExpense(this.token(), payload);
+
+    request.subscribe({
       next: () => {
-        this.expenseForm.patchValue({
-          title: '',
-          categoryId: '',
-          finalAmount: 0,
-          currency: 'USD',
-          merchantName: '',
-          paymentMethod: 'Cash',
-          notes: '',
-          expenseDate: new Date().toISOString().slice(0, 10)
-        });
+        this.resetExpenseForm();
         this.loadExpenses();
         this.isSubmitting.set(false);
-        this.statusMessage.set('Expense saved successfully.');
+        this.statusMessage.set(editingExpenseId ? 'Expense updated successfully.' : 'Expense saved successfully.');
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not save the expense.');
+        this.statusMessage.set(
+          error.error?.message ?? (editingExpenseId ? 'Could not update the expense.' : 'Could not save the expense.')
+        );
       }
     });
+  }
+
+  protected startEditExpense(expense: Expense) {
+    this.editingExpenseId.set(expense.id);
+    this.expenseForm.patchValue({
+      title: expense.title,
+      categoryId: expense.categoryId ?? '',
+      expenseDate: expense.expenseDate.slice(0, 10),
+      finalAmount: Number(expense.finalAmount),
+      currency: expense.currency || 'USD',
+      merchantName: expense.merchantName ?? '',
+      paymentMethod: expense.paymentMethod ?? 'Cash',
+      notes: expense.notes ?? ''
+    });
+    this.statusMessage.set(`Editing "${expense.title}". Update any field and save.`);
+  }
+
+  protected cancelEditExpense() {
+    this.resetExpenseForm();
+    this.statusMessage.set('Edit cancelled. You can add a new expense now.');
   }
 
   protected deleteExpense(expenseId: string) {
@@ -232,6 +280,7 @@ export class App {
     this.userName.set('');
     this.categories.set([]);
     this.expenses.set([]);
+    this.editingExpenseId.set(null);
     this.statusMessage.set('Logged out. You can sign in again anytime.');
   }
 
@@ -243,6 +292,20 @@ export class App {
       currency,
       maximumFractionDigits: 2
     }).format(Number.isFinite(numericAmount) ? numericAmount : 0);
+  }
+
+  private resetExpenseForm() {
+    this.editingExpenseId.set(null);
+    this.expenseForm.patchValue({
+      title: '',
+      categoryId: this.categories()[0]?.id ?? '',
+      expenseDate: new Date().toISOString().slice(0, 10),
+      finalAmount: 0,
+      currency: 'USD',
+      merchantName: '',
+      paymentMethod: 'Cash',
+      notes: ''
+    });
   }
 
   private finishAuth(token: string, name: string) {
