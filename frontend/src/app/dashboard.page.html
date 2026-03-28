@@ -54,160 +54,185 @@
     </article>
   </section>
 } @else {
-  <section class="dashboard-head" id="overview">
-    <div>
-      <p class="eyebrow">Overview</p>
-      <h2>{{ store.userName() }}</h2>
-      <p class="dashboard-copy">{{ store.statusMessage() }}</p>
-    </div>
-  </section>
+  <section class="dashboard-shell" id="overview">
+    <section class="dashboard-top-grid">
+      <article class="panel overview-panel">
+        <p class="eyebrow">Overview</p>
+        <h2>{{ store.userName() }}</h2>
+        <p class="dashboard-copy">{{ store.statusMessage() }}</p>
 
-  <section class="summary-grid">
-    <article class="panel summary-card">
-      <p>Total categories</p>
-      <strong>{{ store.categories().length }}</strong>
-    </article>
-    <article class="panel summary-card">
-      <p>Total expenses</p>
-      <strong>{{ store.expenses().length }}</strong>
-    </article>
-    <article class="panel summary-card">
-      <p>Profile currency</p>
-      <strong>{{ store.preferredCurrency() }}</strong>
-    </article>
-    <article class="panel summary-card">
-      <p>Total spent</p>
-      @if (store.totalsByCurrency().length <= 1) {
-        <strong>{{ store.formatCurrency(store.totalSpent(), store.totalsByCurrency()[0]?.currency || store.preferredCurrency()) }}</strong>
-      } @else {
-        <strong>Mixed currencies</strong>
-      }
-      @for (total of store.totalsByCurrency(); track total.currency) {
-        <span class="summary-note">{{ total.currency }}: {{ store.formatCurrency(total.amount, total.currency) }}</span>
-      }
-    </article>
-  </section>
-
-  <section class="workspace-grid">
-    <article class="panel" id="categories">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Categories</p>
-          <h3>Manage expense buckets</h3>
+        <div class="overview-pill-row">
+          <span class="head-note-pill">Default currency: {{ store.preferredCurrency() }}</span>
+          <span class="head-note-pill muted-pill">{{ store.paymentMethods().length }} payment methods</span>
         </div>
-      </div>
 
-      <form [formGroup]="categoryForm" (ngSubmit)="addCategory()" class="inline-form">
-        <input type="text" formControlName="name" placeholder="Add a category like Utilities" />
-        <button type="submit">Add category</button>
-      </form>
-
-      <div class="chip-list">
-        @for (category of store.categories(); track category.id) {
-          <span class="chip">{{ category.name }}</span>
-        }
-      </div>
-    </article>
-
-    <article class="panel" id="expenses">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Add Expense</p>
-          <h3>{{ isEditingExpense() ? 'Edit expense details' : "Save today's spending" }}</h3>
+        <div class="overview-stats">
+          <div class="overview-stat">
+            <span>Profile Currency</span>
+            <strong>{{ store.preferredCurrency() }}</strong>
+          </div>
+          <div class="overview-stat">
+            <span>Categories</span>
+            <strong>{{ store.categories().length }}</strong>
+          </div>
+          <div class="overview-stat">
+            <span>Expenses</span>
+            <strong>{{ store.expenses().length }}</strong>
+          </div>
         </div>
-        <div class="panel-tip">Default currency: {{ store.preferredCurrency() }}</div>
-      </div>
+      </article>
 
-      <form [formGroup]="expenseForm" (ngSubmit)="addExpense()" class="form-grid">
-        <label>
-          <span>Title</span>
-          <input type="text" formControlName="title" placeholder="Lunch with team" />
-        </label>
-        <label>
-          <span>Category</span>
-          <select formControlName="categoryId">
-            <option value="" disabled>Select a category</option>
-            @for (category of store.categories(); track category.id) {
-              <option [value]="category.id">{{ category.name }}</option>
+      <section class="summary-grid">
+        <article class="panel summary-card">
+          <p>Total categories</p>
+          <strong>{{ store.categories().length }}</strong>
+          <span class="summary-caption">Organized buckets for daily tracking</span>
+        </article>
+        <article class="panel summary-card">
+          <p>Total expenses</p>
+          <strong>{{ store.expenses().length }}</strong>
+          <span class="summary-caption">Saved records across your timeline</span>
+        </article>
+        <article class="panel summary-card">
+          <p>Payment methods</p>
+          <strong>{{ store.paymentMethods().length }}</strong>
+          <span class="summary-caption">Cash, cards, transfers and more</span>
+        </article>
+        <article class="panel summary-card summary-card-strong">
+          <p>Total spent</p>
+          @if (store.totalsByCurrency().length <= 1) {
+            <strong>{{ store.formatCurrency(store.totalSpent(), store.totalsByCurrency()[0]?.currency || store.preferredCurrency()) }}</strong>
+          } @else {
+            <strong>Mixed currencies</strong>
+          }
+          @for (total of store.totalsByCurrency(); track total.currency) {
+            <span class="summary-note">{{ total.currency }}: {{ store.formatCurrency(total.amount, total.currency) }}</span>
+          }
+        </article>
+      </section>
+    </section>
+
+    <section class="dashboard-main-grid">
+      <article class="panel form-panel" id="expenses">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Expense Form</p>
+            <h3>{{ isEditingExpense() ? 'Edit expense details' : 'Add a new expense' }}</h3>
+          </div>
+          <div class="panel-tip">Profile currency: {{ store.preferredCurrency() }}</div>
+        </div>
+
+        <form [formGroup]="expenseForm" (ngSubmit)="addExpense()" class="form-grid">
+          <label>
+            <span>Title</span>
+            <input type="text" formControlName="title" placeholder="Lunch with team" />
+          </label>
+          <label>
+            <span>Category</span>
+            <select formControlName="categoryId">
+              <option value="" disabled>Select a category</option>
+              @for (category of store.categories(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            <span>Date</span>
+            <input type="date" formControlName="expenseDate" />
+          </label>
+          <label>
+            <span>Total amount</span>
+            <input type="number" step="0.01" formControlName="finalAmount" placeholder="250" />
+          </label>
+          <label>
+            <span>Merchant</span>
+            <input type="text" formControlName="merchantName" placeholder="Cafe or store name" />
+          </label>
+          <label>
+            <span>Payment method</span>
+            <select formControlName="paymentMethod">
+              <option value="" disabled>Select a payment method</option>
+              @for (method of store.paymentMethods(); track method.id) {
+                <option [value]="method.name">{{ method.name }}</option>
+              }
+            </select>
+          </label>
+          <label class="full-width">
+            <span>Notes</span>
+            <textarea rows="3" formControlName="notes" placeholder="Optional note"></textarea>
+          </label>
+          <div class="form-actions full-width">
+            <button type="submit">{{ isEditingExpense() ? 'Update expense' : 'Save expense' }}</button>
+            @if (isEditingExpense()) {
+              <button type="button" class="ghost-button" (click)="cancelEditExpense()">Cancel edit</button>
             }
-          </select>
-        </label>
-        <label>
-          <span>Date</span>
-          <input type="date" formControlName="expenseDate" />
-        </label>
-        <label>
-          <span>Total amount</span>
-          <input type="number" step="0.01" formControlName="finalAmount" placeholder="250" />
-        </label>
-        <label>
-          <span>Merchant</span>
-          <input type="text" formControlName="merchantName" placeholder="Cafe or store name" />
-        </label>
-        <label>
-          <span>Payment method</span>
-          <select formControlName="paymentMethod">
-            <option value="" disabled>Select a payment method</option>
-            @for (method of store.paymentMethods(); track method.id) {
-              <option [value]="method.name">{{ method.name }}</option>
-            }
-          </select>
-        </label>
-        <label class="full-width">
-          <span>Notes</span>
-          <textarea rows="3" formControlName="notes" placeholder="Optional note"></textarea>
-        </label>
-        <div class="form-actions full-width">
-          <button type="submit">{{ isEditingExpense() ? 'Update expense' : 'Save expense' }}</button>
-          @if (isEditingExpense()) {
-            <button type="button" class="ghost-button" (click)="cancelEditExpense()">Cancel edit</button>
+          </div>
+        </form>
+      </article>
+
+      <article class="panel side-panel" id="categories">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Categories</p>
+            <h3>Manage expense buckets</h3>
+          </div>
+        </div>
+
+        <form [formGroup]="categoryForm" (ngSubmit)="addCategory()" class="inline-form">
+          <input type="text" formControlName="name" placeholder="Add a category like Utilities" />
+          <button type="submit">Add category</button>
+        </form>
+
+        <div class="chip-list">
+          @for (category of store.categories(); track category.id) {
+            <span class="chip">{{ category.name }}</span>
           }
         </div>
-      </form>
-    </article>
-  </section>
+      </article>
+    </section>
 
-  <section class="panel">
-    <div class="panel-heading">
-      <div>
-        <p class="eyebrow">Recent Expenses</p>
-        <h3>Everything currently stored in PostgreSQL</h3>
+    <section class="panel recent-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Recent Expenses</p>
+          <h3>Everything currently stored in PostgreSQL</h3>
+        </div>
       </div>
-    </div>
 
-    @if (store.expenses().length === 0) {
-      <p class="empty-state">No expenses yet. Add your first daily expense from the form above.</p>
-    } @else {
-      <div class="expense-list">
-        @for (expense of store.expenses(); track expense.id) {
-          <article class="expense-card">
-              <div>
-                <p class="expense-title">{{ expense.title }}</p>
+      @if (store.expenses().length === 0) {
+        <p class="empty-state">No expenses yet. Add your first daily expense from the form above.</p>
+      } @else {
+        <div class="expense-list">
+          @for (expense of store.expenses(); track expense.id) {
+            <article class="expense-card">
+              <div class="expense-main">
+                <div class="expense-title-row">
+                  <p class="expense-title">{{ expense.title }}</p>
+                  <span class="currency-badge">{{ expense.currency }}</span>
+                </div>
                 <p class="expense-meta">
                   {{ expense.category?.name || 'Uncategorized' }} - {{ expense.expenseDate | date:'mediumDate' }}
                 </p>
-                @if (expense.merchantName) {
-                  <p class="expense-note">Merchant: {{ expense.merchantName }}</p>
-                }
-                @if (expense.paymentMethod) {
-                  <div class="expense-meta-row">
+                <div class="expense-meta-row">
+                  @if (expense.merchantName) {
+                    <p class="expense-note">Merchant: {{ expense.merchantName }}</p>
+                  }
+                  @if (expense.paymentMethod) {
                     <span class="method-badge" [ngClass]="paymentMethodClass(expense.paymentMethod)">{{ expense.paymentMethod }}</span>
-                  </div>
-                }
+                  }
+                </div>
               </div>
-            <div class="expense-side">
-              <div class="expense-amount-group">
-                <span class="currency-badge">{{ expense.currency }}</span>
+              <div class="expense-side">
                 <strong>{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
+                <div class="expense-actions">
+                  <button type="button" class="ghost-button" (click)="startEditExpense(expense)">Edit</button>
+                  <button type="button" class="danger-button" (click)="deleteExpense(expense.id)">Delete</button>
+                </div>
               </div>
-              <div class="expense-actions">
-                <button type="button" class="ghost-button" (click)="startEditExpense(expense)">Edit</button>
-                <button type="button" class="danger-button" (click)="deleteExpense(expense.id)">Delete</button>
-              </div>
-            </div>
-          </article>
-        }
-      </div>
-    }
+            </article>
+          }
+        </div>
+      }
+    </section>
   </section>
 }
