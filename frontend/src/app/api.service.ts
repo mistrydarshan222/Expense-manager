@@ -20,6 +20,7 @@ type ExpensePayload = {
   categoryId: string;
   expenseDate: string;
   finalAmount: number;
+  currency: string;
   merchantName?: string;
   notes?: string;
   paymentMethod?: string;

@@ -10,6 +10,7 @@ export const createExpenseSchema = z.object({
   categoryId: z.string().uuid("Category is required"),
   expenseDate: z.string().min(1, "Expense date is required"),
   finalAmount: amountField,
+  currency: z.string().trim().length(3, "Currency must be a 3-letter code").transform((value) => value.toUpperCase()),
   merchantName: z.string().trim().optional().default(""),
   notes: z.string().trim().optional().default(""),
   paymentMethod: z.string().trim().optional().default(""),

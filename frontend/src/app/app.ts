@@ -5,6 +5,11 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from './api.service';
 import { Category, Expense } from './api.types';
 
+type CurrencyOption = {
+  code: string;
+  label: string;
+};
+
 @Component({
   selector: 'app-root',
   imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, NgClass],
@@ -14,6 +19,19 @@ import { Category, Expense } from './api.types';
 export class App {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
+
+  protected readonly currencyOptions: CurrencyOption[] = [
+    { code: 'USD', label: 'US Dollar' },
+    { code: 'EUR', label: 'Euro' },
+    { code: 'GBP', label: 'British Pound' },
+    { code: 'INR', label: 'Indian Rupee' },
+    { code: 'AED', label: 'UAE Dirham' },
+    { code: 'CAD', label: 'Canadian Dollar' },
+    { code: 'AUD', label: 'Australian Dollar' },
+    { code: 'JPY', label: 'Japanese Yen' },
+    { code: 'SGD', label: 'Singapore Dollar' },
+    { code: 'ZAR', label: 'South African Rand' }
+  ];
 
   protected readonly token = signal(localStorage.getItem('expense-token') ?? '');
   protected readonly userName = signal(localStorage.getItem('expense-user-name') ?? '');
@@ -43,6 +61,7 @@ export class App {
     categoryId: ['', [Validators.required]],
     expenseDate: [new Date().toISOString().slice(0, 10), [Validators.required]],
     finalAmount: [0, [Validators.required, Validators.min(0.01)]],
+    currency: ['USD', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
     merchantName: [''],
     paymentMethod: ['Cash'],
     notes: ['']
@@ -51,6 +70,20 @@ export class App {
   protected readonly totalSpent = computed(() =>
     this.expenses().reduce((sum, expense) => sum + Number(expense.finalAmount), 0)
   );
+
+  protected readonly totalsByCurrency = computed(() => {
+    const totals = new Map<string, number>();
+
+    for (const expense of this.expenses()) {
+      const currency = expense.currency || 'USD';
+      totals.set(currency, (totals.get(currency) ?? 0) + Number(expense.finalAmount));
+    }
+
+    return Array.from(totals.entries()).map(([currency, amount]) => ({
+      currency,
+      amount
+    }));
+  });
 
   constructor() {
     if (this.token()) {
@@ -154,6 +187,7 @@ export class App {
           title: '',
           categoryId: '',
           finalAmount: 0,
+          currency: 'USD',
           merchantName: '',
           paymentMethod: 'Cash',
           notes: '',
@@ -199,6 +233,16 @@ export class App {
     this.categories.set([]);
     this.expenses.set([]);
     this.statusMessage.set('Logged out. You can sign in again anytime.');
+  }
+
+  protected formatCurrency(amount: number | string, currency: string) {
+    const numericAmount = Number(amount);
+
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 2
+    }).format(Number.isFinite(numericAmount) ? numericAmount : 0);
   }
 
   private finishAuth(token: string, name: string) {

@@ -25,6 +25,7 @@ export type Expense = {
   expenseDate: string;
   finalAmount: string;
   total: string | null;
+  currency: string;
   notes: string | null;
   paymentMethod: string | null;
   category?: Category | null;
