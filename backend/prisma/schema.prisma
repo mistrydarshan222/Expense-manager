@@ -61,6 +61,14 @@ model Receipt {
   id                String    @id @default(uuid())
   userId            String
   expenseId         String?   @unique
+  status            String    @default("queued")
+  categoryId        String?
+  title             String?
+  merchantName      String?
+  expenseDate       DateTime?
+  currency          String?
+  paymentMethod     String?
+  notes             String?
   originalFileName  String
   storedFileName    String
   mimeType          String
@@ -70,6 +78,8 @@ model Receipt {
   extractedTax      Decimal?  @db.Decimal(10, 2)
   extractedTotal    Decimal?  @db.Decimal(10, 2)
   parserConfidence  Float?
+  processingError   String?
+  processedAt       DateTime?
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   expense           Expense?  @relation(fields: [expenseId], references: [id], onDelete: SetNull)
   createdAt         DateTime  @default(now())

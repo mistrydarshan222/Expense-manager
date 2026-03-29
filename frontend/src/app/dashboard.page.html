@@ -248,26 +248,14 @@
           <textarea rows="3" formControlName="notes" placeholder="Optional note saved with the expense"></textarea>
         </label>
         <div class="form-actions full-width">
-          <button type="submit">Process receipt</button>
+          <button type="submit">Send to queue</button>
           @if (selectedReceiptFile()) {
             <span class="file-helper">Selected file: {{ selectedReceiptFile()?.name }}</span>
           } @else {
-            <span class="file-helper">Tip: upload a receipt image or paste receipt text. The app will use the total amount from the receipt first.</span>
+            <span class="file-helper">Tip: upload a receipt image or paste receipt text. The request goes to the queue first, then you review it before creating the expense.</span>
           }
         </div>
       </form>
-
-      @if (store.latestReceiptExtraction(); as extraction) {
-        <div class="receipt-result">
-          <span class="receipt-result-title">Latest extraction</span>
-          <span>{{ extraction.currency }} {{ store.formatCurrency(extraction.finalAmount, extraction.currency) }}</span>
-          @if (extraction.needsReview) {
-            <span class="receipt-review-pill">Needs review</span>
-          } @else {
-            <span class="receipt-success-pill">Ready</span>
-          }
-        </div>
-      }
     </section>
 
     <section class="panel recent-panel">

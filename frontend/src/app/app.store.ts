@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { ApiService } from './api.service';
-import { Category, CurrentUser, Expense, PaymentMethod, ReceiptExtraction } from './api.types';
+import { Category, CurrentUser, Expense, PaymentMethod, Receipt } from './api.types';
 
 type CurrencyOption = {
   code: string;
@@ -59,9 +59,11 @@ export class AppStore {
   readonly categories = signal<Category[]>([]);
   readonly expenses = signal<Expense[]>([]);
   readonly paymentMethods = signal<PaymentMethod[]>([]);
+  readonly receipts = signal<Receipt[]>([]);
+  readonly currentReceipt = signal<Receipt | null>(null);
   readonly statusMessage = signal('Ready to connect your expense manager.');
   readonly isSubmitting = signal(false);
-  readonly latestReceiptExtraction = signal<ReceiptExtraction | null>(null);
+  private receiptPollTimer: number | null = null;
 
   readonly userName = computed(() => this.currentUser()?.name ?? 'Guest');
   readonly preferredCurrency = computed(() => this.currentUser()?.preferredCurrency ?? 'USD');
@@ -236,7 +238,7 @@ export class AppStore {
     });
   }
 
-  processReceipt(
+  queueReceipt(
     payload: {
       categoryId: string;
       expenseDate?: string;
@@ -254,23 +256,101 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Processing receipt and extracting total...');
+    this.statusMessage.set('Adding receipt to the processing queue...');
 
-    this.api.processReceipt(this.token(), payload).subscribe({
-      next: ({ extraction }) => {
-        this.loadExpenses();
-        this.latestReceiptExtraction.set(extraction);
+    this.api.queueReceipt(this.token(), payload).subscribe({
+      next: ({ receipt }) => {
+        this.loadReceipts();
+        this.currentReceipt.set(receipt);
+        this.startReceiptPolling(receipt.id);
         this.isSubmitting.set(false);
-        this.statusMessage.set(
-          extraction.needsReview
-            ? 'Receipt processed. The expense was created, but the amount may need review.'
-            : 'Receipt processed and expense created successfully.'
-        );
+        this.statusMessage.set('Receipt queued successfully. It will appear in review once processing finishes.');
         onDone?.();
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not process receipt.');
+        this.statusMessage.set(error.error?.message ?? 'Could not queue receipt.');
+      }
+    });
+  }
+
+  loadReceipts() {
+    if (!this.token()) {
+      return;
+    }
+
+    this.api.getReceipts(this.token()).subscribe({
+      next: ({ receipts }) => {
+        this.receipts.set(receipts);
+      },
+      error: () => {
+        this.statusMessage.set('Could not load receipts.');
+      }
+    });
+  }
+
+  loadReceipt(receiptId: string) {
+    if (!this.token()) {
+      return;
+    }
+
+    this.api.getReceipt(this.token(), receiptId).subscribe({
+      next: ({ receipt }) => {
+        this.currentReceipt.set(receipt);
+        this.receipts.update((current) => {
+          const existing = current.findIndex((item) => item.id === receipt.id);
+          if (existing === -1) {
+            return [receipt, ...current];
+          }
+
+          const next = [...current];
+          next[existing] = receipt;
+          return next;
+        });
+
+        if (receipt.status === 'queued' || receipt.status === 'processing') {
+          this.startReceiptPolling(receipt.id);
+        } else {
+          this.stopReceiptPolling();
+        }
+      },
+      error: () => {
+        this.statusMessage.set('Could not load receipt details.');
+      }
+    });
+  }
+
+  createExpenseFromReceipt(
+    receiptId: string,
+    payload: {
+      categoryId: string;
+      expenseDate: string;
+      title: string;
+      merchantName?: string;
+      notes?: string;
+      paymentMethod?: string;
+    },
+    onDone?: () => void
+  ) {
+    if (!this.token()) {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.statusMessage.set('Creating expense from reviewed receipt...');
+
+    this.api.createExpenseFromReceipt(this.token(), receiptId, payload).subscribe({
+      next: ({ receipt }) => {
+        this.loadExpenses();
+        this.loadReceipts();
+        this.currentReceipt.set(receipt);
+        this.isSubmitting.set(false);
+        this.statusMessage.set('Expense created from receipt successfully.');
+        onDone?.();
+      },
+      error: (error) => {
+        this.isSubmitting.set(false);
+        this.statusMessage.set(error.error?.message ?? 'Could not create expense from receipt.');
       }
     });
   }
@@ -360,6 +440,9 @@ export class AppStore {
     this.categories.set([]);
     this.expenses.set([]);
     this.paymentMethods.set([]);
+    this.receipts.set([]);
+    this.currentReceipt.set(null);
+    this.stopReceiptPolling();
     this.statusMessage.set('Logged out. You can sign in again anytime.');
   }
 
@@ -378,6 +461,7 @@ export class AppStore {
     this.loadCategories();
     this.loadExpenses();
     this.loadPaymentMethods();
+    this.loadReceipts();
     this.isSubmitting.set(false);
   }
 
@@ -462,5 +546,20 @@ export class AppStore {
       updatedAt: new Date().toISOString()
     });
     this.loadDashboardData();
+  }
+
+  private startReceiptPolling(receiptId: string) {
+    this.stopReceiptPolling();
+
+    this.receiptPollTimer = window.setTimeout(() => {
+      this.loadReceipt(receiptId);
+    }, 2500);
+  }
+
+  private stopReceiptPolling() {
+    if (this.receiptPollTimer !== null) {
+      window.clearTimeout(this.receiptPollTimer);
+      this.receiptPollTimer = null;
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { DatePipe, NgClass } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { Expense } from './api.types';
 import { AppStore } from './app.store';
@@ -14,6 +15,7 @@ import { AppStore } from './app.store';
 export class DashboardPageComponent {
   protected readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
 
   protected readonly activeTab = signal<'login' | 'register'>('login');
   protected readonly editingExpenseId = signal<string | null>(null);
@@ -171,12 +173,15 @@ export class DashboardPageComponent {
       return;
     }
 
-    this.store.processReceipt(
+    this.store.queueReceipt(
       {
         ...formValue,
         receiptFile: this.selectedReceiptFile()
       },
-      () => this.resetReceiptForm()
+      () => {
+        this.resetReceiptForm();
+        void this.router.navigateByUrl('/receipts');
+      }
     );
   }
 

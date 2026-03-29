@@ -519,7 +519,8 @@ button:hover,
 }
 
 .expense-list,
-.payment-method-list {
+.payment-method-list,
+.receipt-queue-list {
   display: grid;
   gap: 14px;
   margin-top: 22px;
@@ -653,6 +654,116 @@ button:hover,
   font-weight: 600;
 }
 
+.receipt-review-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  gap: 20px;
+}
+
+.receipt-queue-item {
+  width: 100%;
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--border-soft);
+  background: #ffffff;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-card);
+}
+
+.receipt-queue-item strong {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.receipt-queue-item span {
+  color: var(--text-secondary);
+}
+
+.receipt-status-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.receipt-status-pill[data-status="queued"] {
+  background: #eef4ff;
+  color: #6885c5;
+}
+
+.receipt-status-pill[data-status="processing"] {
+  background: #fff8e8;
+  color: #c49a3d;
+}
+
+.receipt-status-pill[data-status="processed"],
+.receipt-status-pill[data-status="completed"] {
+  background: #edf9f3;
+  color: #5ca786;
+}
+
+.receipt-status-pill[data-status="failed"] {
+  background: #fff1f2;
+  color: #e06172;
+}
+
+.receipt-result-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+  margin-bottom: 22px;
+}
+
+.receipt-result-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--border-soft);
+  background: #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+.receipt-result-card span {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.receipt-result-card strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--text-primary);
+  font-size: 1.3rem;
+}
+
+.receipt-text-block {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--border-soft);
+  background: #ffffff;
+}
+
+.receipt-text-block pre {
+  margin: 12px 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary);
+  font: inherit;
+  line-height: 1.6;
+}
+
 .receipt-success-pill,
 .receipt-review-pill {
   display: inline-flex;
@@ -677,12 +788,14 @@ button:hover,
   .dashboard-top-grid,
   .dashboard-main-grid,
   .workspace-grid,
-  .auth-grid {
+  .auth-grid,
+  .receipt-review-grid {
     grid-template-columns: 1fr;
   }
 
   .overview-stats,
-  .summary-grid {
+  .summary-grid,
+  .receipt-result-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -710,7 +823,8 @@ button:hover,
   .inline-form,
   .payment-method-form,
   .summary-grid,
-  .overview-stats {
+  .overview-stats,
+  .receipt-result-grid {
     grid-template-columns: 1fr;
   }
 

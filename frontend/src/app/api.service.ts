@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AuthResponse, Category, CurrentUser, Expense, PaymentMethod, ReceiptExtraction } from './api.types';
+import { AuthResponse, Category, CurrentUser, Expense, PaymentMethod, Receipt } from './api.types';
 
 type RegisterPayload = {
   name: string;
@@ -147,7 +147,7 @@ export class ApiService {
     );
   }
 
-  processReceipt(
+  queueReceipt(
     token: string,
     payload: {
       categoryId: string;
@@ -159,7 +159,7 @@ export class ApiService {
       rawText?: string;
       receiptFile?: File | null;
     }
-  ): Observable<{ message: string; expense: Expense; extraction: ReceiptExtraction }> {
+  ): Observable<{ message: string; receipt: Receipt }> {
     const formData = new FormData();
     formData.append('categoryId', payload.categoryId);
 
@@ -191,9 +191,40 @@ export class ApiService {
       formData.append('receipt', payload.receiptFile);
     }
 
-    return this.http.post<{ message: string; expense: Expense; extraction: ReceiptExtraction }>(
-      `${this.baseUrl}/receipts/process`,
+    return this.http.post<{ message: string; receipt: Receipt }>(
+      `${this.baseUrl}/receipts/queue`,
       formData,
+      { headers: this.authHeaders(token) }
+    );
+  }
+
+  getReceipts(token: string): Observable<{ receipts: Receipt[] }> {
+    return this.http.get<{ receipts: Receipt[] }>(`${this.baseUrl}/receipts`, {
+      headers: this.authHeaders(token)
+    });
+  }
+
+  getReceipt(token: string, receiptId: string): Observable<{ receipt: Receipt }> {
+    return this.http.get<{ receipt: Receipt }>(`${this.baseUrl}/receipts/${receiptId}`, {
+      headers: this.authHeaders(token)
+    });
+  }
+
+  createExpenseFromReceipt(
+    token: string,
+    receiptId: string,
+    payload: {
+      categoryId: string;
+      expenseDate: string;
+      title: string;
+      merchantName?: string;
+      notes?: string;
+      paymentMethod?: string;
+    }
+  ): Observable<{ message: string; expense: Expense; receipt: Receipt }> {
+    return this.http.post<{ message: string; expense: Expense; receipt: Receipt }>(
+      `${this.baseUrl}/receipts/${receiptId}/create-expense`,
+      payload,
       { headers: this.authHeaders(token) }
     );
   }

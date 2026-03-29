@@ -1,0 +1,121 @@
+@if (!store.token()) {
+  <section class="panel profile-panel">
+    <p class="eyebrow">Receipts</p>
+    <h2>Sign in to review queued receipts</h2>
+    <p class="profile-copy">Login first, then come back here to track receipt processing and create expenses from the extracted totals.</p>
+  </section>
+} @else {
+  <section class="receipt-review-grid">
+    <article class="panel receipt-queue-panel">
+      <p class="eyebrow">Queue</p>
+      <h2>Receipt processing queue</h2>
+      <p class="profile-copy">Uploads appear here first. Open a receipt to track OCR processing and review the extracted values.</p>
+
+      <div class="receipt-queue-list">
+        @for (receipt of store.receipts(); track receipt.id) {
+          <button type="button" class="receipt-queue-item" (click)="openReceipt(receipt)">
+            <strong>{{ receipt.title || receipt.merchantName || receipt.originalFileName }}</strong>
+            <span>{{ receipt.originalFileName }}</span>
+            <span class="receipt-status-pill" [attr.data-status]="receipt.status">{{ receipt.status }}</span>
+          </button>
+        } @empty {
+          <p class="empty-state">No queued receipts yet. Upload one from the dashboard.</p>
+        }
+      </div>
+    </article>
+
+    <article class="panel receipt-review-panel">
+      @if (store.currentReceipt(); as receipt) {
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Review</p>
+            <h3>{{ receipt.title || receipt.merchantName || receipt.originalFileName }}</h3>
+          </div>
+          <span class="receipt-status-pill" [attr.data-status]="receipt.status">{{ receipt.status }}</span>
+        </div>
+
+        @if (receipt.status === 'queued' || receipt.status === 'processing') {
+          <p class="profile-copy">This receipt is still being processed. The page will refresh automatically when OCR finishes.</p>
+        }
+
+        @if (receipt.status === 'failed') {
+          <div class="help-note">Processing failed: {{ receipt.processingError || 'Unknown error' }}</div>
+        }
+
+        @if (receipt.status === 'processed' || receipt.status === 'completed') {
+          <div class="receipt-result-grid">
+            <div class="receipt-result-card">
+              <span>Detected total</span>
+              <strong>{{ store.formatCurrency(amountForReview(receipt), receipt.currency || store.preferredCurrency()) }}</strong>
+            </div>
+            <div class="receipt-result-card">
+              <span>Subtotal</span>
+              <strong>{{ store.formatCurrency(receipt.extractedSubtotal || 0, receipt.currency || store.preferredCurrency()) }}</strong>
+            </div>
+            <div class="receipt-result-card">
+              <span>Tax</span>
+              <strong>{{ store.formatCurrency(receipt.extractedTax || 0, receipt.currency || store.preferredCurrency()) }}</strong>
+            </div>
+            <div class="receipt-result-card">
+              <span>Confidence</span>
+              <strong>{{ receipt.parserConfidence ? (receipt.parserConfidence * 100).toFixed(0) : '0' }}%</strong>
+            </div>
+          </div>
+
+          <form [formGroup]="reviewForm" (ngSubmit)="createExpenseFromReceipt()" class="form-grid">
+            <label>
+              <span>Title</span>
+              <input type="text" formControlName="title" />
+            </label>
+            <label>
+              <span>Category</span>
+              <select formControlName="categoryId">
+                <option value="" disabled>Select a category</option>
+                @for (category of store.categories(); track category.id) {
+                  <option [value]="category.id">{{ category.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              <span>Date</span>
+              <input type="date" formControlName="expenseDate" />
+            </label>
+            <label>
+              <span>Payment method</span>
+              <select formControlName="paymentMethod">
+                <option value="" disabled>Select a payment method</option>
+                @for (method of store.paymentMethods(); track method.id) {
+                  <option [value]="method.name">{{ method.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              <span>Merchant</span>
+              <input type="text" formControlName="merchantName" />
+            </label>
+            <label class="full-width">
+              <span>Notes</span>
+              <textarea rows="4" formControlName="notes"></textarea>
+            </label>
+            <div class="form-actions full-width">
+              @if (receipt.status === 'completed') {
+                <span class="file-helper">Expense already created from this receipt.</span>
+              } @else {
+                <button type="submit">Create expense</button>
+              }
+            </div>
+          </form>
+
+          @if (receipt.ocrRawText) {
+            <div class="receipt-text-block">
+              <span class="receipt-result-title">OCR text</span>
+              <pre>{{ receipt.ocrRawText }}</pre>
+            </div>
+          }
+        }
+      } @else {
+        <p class="empty-state">Choose a receipt from the queue to review it.</p>
+      }
+    </article>
+  </section>
+}

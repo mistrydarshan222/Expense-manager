@@ -3,7 +3,7 @@ import path from "path";
 import Tesseract from "tesseract.js";
 
 import { prisma } from "../../config/db";
-import { ProcessReceiptInput } from "./receipts.validation";
+import { CreateExpenseFromReceiptInput, EnqueueReceiptInput } from "./receipts.validation";
 
 type ParsedReceipt = {
   merchantName: string | null;
@@ -16,6 +16,9 @@ type ParsedReceipt = {
   needsReview: boolean;
   parserConfidence: number;
 };
+
+const receiptQueue: string[] = [];
+let isQueueProcessing = false;
 
 function parseAmount(value: string) {
   const normalized = value.replace(/,/g, "").trim();
@@ -70,14 +73,56 @@ function detectDate(text: string) {
 }
 
 function detectMerchant(text: string) {
+  const knownMerchants: Array<{ pattern: RegExp; name: string }> = [
+    { pattern: /\bwalmart\b/i, name: "Walmart" },
+    { pattern: /\bcostco\b/i, name: "Costco" },
+    { pattern: /\btarget\b/i, name: "Target" },
+    { pattern: /\bamazon\b/i, name: "Amazon" },
+    { pattern: /\btesco\b/i, name: "Tesco" },
+    { pattern: /\baldi\b/i, name: "Aldi" },
+    { pattern: /\bcarrefour\b/i, name: "Carrefour" },
+  ];
+  const blockedPatterns =
+    /(invoice|receipt|tax|total|subtotal|date|survey|customer survey|how did we do|win|gift cards|rules and regulations|contest|change due|approval|signature|mastercard|visa|terminal|items sold)/i;
+
   const lines = text
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
 
-  for (const line of lines.slice(0, 5)) {
-    if (!/\d/.test(line) && !/(invoice|receipt|tax|total|subtotal|date)/i.test(line)) {
-      return line;
+  const topLines = lines.slice(0, 20);
+
+  for (const line of topLines) {
+    for (const merchant of knownMerchants) {
+      if (merchant.pattern.test(line)) {
+        return merchant.name;
+      }
+    }
+  }
+
+  for (const line of topLines) {
+    if (/\d/.test(line) || blockedPatterns.test(line)) {
+      continue;
+    }
+
+    const normalized = line
+      .replace(/[^A-Za-z&\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!normalized || normalized.length < 3) {
+      continue;
+    }
+
+    const words = normalized.split(" ");
+    const cleanedCandidate = words
+      .filter((word) => word.length > 1)
+      .slice(0, 3)
+      .join(" ")
+      .trim();
+
+    if (cleanedCandidate && !blockedPatterns.test(cleanedCandidate)) {
+      return cleanedCandidate;
     }
   }
 
@@ -114,107 +159,287 @@ function parseReceiptText(text: string): ParsedReceipt {
   };
 }
 
-async function readUploadedReceiptText(file: Express.Multer.File) {
-  const extension = path.extname(file.originalname).toLowerCase();
+async function readUploadedReceiptText(filePath: string, mimeType: string, originalFileName: string) {
+  const extension = path.extname(originalFileName).toLowerCase();
   const textLikeMimeTypes = new Set(["text/plain", "text/csv", "application/json"]);
   const imageLikeMimeTypes = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/bmp"]);
 
-  if (textLikeMimeTypes.has(file.mimetype) || [".txt", ".csv", ".json", ".log"].includes(extension)) {
-    return fs.readFile(file.path, "utf8");
+  if (textLikeMimeTypes.has(mimeType) || [".txt", ".csv", ".json", ".log"].includes(extension)) {
+    return fs.readFile(filePath, "utf8");
   }
 
-  if (imageLikeMimeTypes.has(file.mimetype) || [".png", ".jpg", ".jpeg", ".webp", ".bmp"].includes(extension)) {
-    const result = await Tesseract.recognize(file.path, "eng");
+  if (imageLikeMimeTypes.has(mimeType) || [".png", ".jpg", ".jpeg", ".webp", ".bmp"].includes(extension)) {
+    const result = await Tesseract.recognize(filePath, "eng");
     return result.data.text ?? "";
   }
 
   return "";
 }
 
-export async function processReceipt(
+function computeFinalAmount(receipt: {
+  extractedSubtotal: unknown;
+  extractedTax: unknown;
+  extractedTotal: unknown;
+}) {
+  const total = receipt.extractedTotal === null ? null : Number(receipt.extractedTotal);
+  const subtotal = receipt.extractedSubtotal === null ? null : Number(receipt.extractedSubtotal);
+  const tax = receipt.extractedTax === null ? null : Number(receipt.extractedTax);
+
+  if (Number.isFinite(total)) {
+    return { finalAmount: total, needsReview: false };
+  }
+
+  if (subtotal !== null && tax !== null && Number.isFinite(subtotal) && Number.isFinite(tax)) {
+    return {
+      finalAmount: Number((subtotal + tax).toFixed(2)),
+      needsReview: true,
+    };
+  }
+
+  if (Number.isFinite(subtotal)) {
+    return { finalAmount: subtotal, needsReview: true };
+  }
+
+  return { finalAmount: null, needsReview: true };
+}
+
+async function processQueuedReceipt(receiptId: string) {
+  const receipt = await prisma.receipt.findUnique({
+    where: { id: receiptId },
+    include: {
+      user: {
+        select: {
+          preferredCurrency: true,
+        },
+      },
+    },
+  });
+
+  if (!receipt) {
+    return;
+  }
+
+  await prisma.receipt.update({
+    where: { id: receiptId },
+    data: {
+      status: "processing",
+      processingError: null,
+    },
+  });
+
+  try {
+    const extractedText = receipt.ocrRawText?.trim()
+      ? receipt.ocrRawText
+      : receipt.filePath !== "inline"
+        ? await readUploadedReceiptText(receipt.filePath, receipt.mimeType, receipt.originalFileName)
+        : "";
+
+    if (!extractedText.trim()) {
+      throw new Error("Could not read any text from this receipt.");
+    }
+
+    const parsed = parseReceiptText(extractedText);
+
+    if (parsed.finalAmount === null) {
+      throw new Error("Could not find total, subtotal, or tax values in this receipt.");
+    }
+
+    await prisma.receipt.update({
+      where: { id: receiptId },
+      data: {
+        status: "processed",
+        title: receipt.title || parsed.merchantName || path.parse(receipt.originalFileName).name,
+        ocrRawText: extractedText,
+        merchantName: receipt.merchantName || parsed.merchantName,
+        expenseDate: receipt.expenseDate ?? parsed.expenseDate ?? new Date(),
+        currency: receipt.currency ?? parsed.currency ?? receipt.user.preferredCurrency,
+        extractedSubtotal: parsed.subtotal,
+        extractedTax: parsed.tax,
+        extractedTotal: parsed.total ?? parsed.finalAmount,
+        parserConfidence: parsed.parserConfidence,
+        processingError: null,
+        processedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    await prisma.receipt.update({
+      where: { id: receiptId },
+      data: {
+        status: "failed",
+        processingError: error instanceof Error ? error.message : "Failed to process receipt",
+        processedAt: new Date(),
+      },
+    });
+  }
+}
+
+async function processQueue() {
+  if (isQueueProcessing) {
+    return;
+  }
+
+  isQueueProcessing = true;
+
+  try {
+    while (receiptQueue.length > 0) {
+      const receiptId = receiptQueue.shift();
+      if (!receiptId) {
+        continue;
+      }
+
+      await processQueuedReceipt(receiptId);
+    }
+  } finally {
+    isQueueProcessing = false;
+  }
+}
+
+export function enqueueReceiptProcessing(receiptId: string) {
+  receiptQueue.push(receiptId);
+  setTimeout(() => {
+    void processQueue();
+  }, 0);
+}
+
+export async function enqueueReceipt(
   userId: string,
-  input: ProcessReceiptInput,
+  input: EnqueueReceiptInput,
   file: Express.Multer.File | undefined,
   preferredCurrency: string,
 ) {
-  const uploadedText = file ? await readUploadedReceiptText(file) : "";
-  const receiptText = input.rawText || uploadedText;
-
-  if (!receiptText.trim()) {
-    throw new Error("Upload a supported receipt image or paste receipt text so the app can extract the total.");
+  if (!file && !input.rawText.trim()) {
+    throw new Error("Upload a receipt image or paste receipt text first.");
   }
 
-  const parsed = parseReceiptText(receiptText);
+  const receipt = await prisma.receipt.create({
+    data: {
+      userId,
+      status: "queued",
+      categoryId: input.categoryId,
+      title: input.title || null,
+      merchantName: input.merchantName || null,
+      expenseDate: input.expenseDate.trim() ? new Date(input.expenseDate) : null,
+      currency: preferredCurrency,
+      paymentMethod: input.paymentMethod || null,
+      notes: input.notes || null,
+      originalFileName: file?.originalname ?? "pasted-receipt.txt",
+      storedFileName: file ? path.basename(file.path) : "pasted-receipt.txt",
+      mimeType: file?.mimetype ?? "text/plain",
+      filePath: file?.path ?? "inline",
+      ocrRawText: input.rawText || null,
+    },
+  });
 
-  if (parsed.finalAmount === null) {
-    throw new Error("Could not find a total in the receipt. Paste clearer receipt text or add the expense manually.");
+  enqueueReceiptProcessing(receipt.id);
+
+  return receipt;
+}
+
+export async function listReceipts(userId: string) {
+  return prisma.receipt.findMany({
+    where: { userId },
+    include: {
+      expense: {
+        include: {
+          category: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function getReceipt(userId: string, receiptId: string) {
+  const receipt = await prisma.receipt.findFirst({
+    where: { id: receiptId, userId },
+    include: {
+      expense: {
+        include: {
+          category: true,
+        },
+      },
+    },
+  });
+
+  if (!receipt) {
+    throw new Error("Receipt not found");
   }
 
-  const extractedFinalAmount = parsed.finalAmount;
-  const finalExpenseDate = input.expenseDate.trim()
-    ? new Date(input.expenseDate)
-    : parsed.expenseDate ?? new Date();
+  return receipt;
+}
 
-  const expenseTitle =
-    input.title.trim() ||
-    input.merchantName.trim() ||
-    parsed.merchantName ||
-    "Receipt expense";
+export async function createExpenseFromReceipt(
+  userId: string,
+  receiptId: string,
+  input: CreateExpenseFromReceiptInput,
+) {
+  const receipt = await prisma.receipt.findFirst({
+    where: { id: receiptId, userId },
+  });
 
-  const merchantName = input.merchantName.trim() || parsed.merchantName || null;
-  const currency = parsed.currency ?? preferredCurrency;
+  if (!receipt) {
+    throw new Error("Receipt not found");
+  }
+
+  if (receipt.expenseId) {
+    throw new Error("An expense has already been created from this receipt");
+  }
+
+  if (receipt.status !== "processed") {
+    throw new Error("This receipt is not ready for review yet");
+  }
+
+  const computed = computeFinalAmount(receipt);
+
+  if (computed.finalAmount === null) {
+    throw new Error("Could not determine the final amount from this receipt");
+  }
+
+  const finalAmount = computed.finalAmount;
 
   return prisma.$transaction(async (tx) => {
     const expense = await tx.expense.create({
       data: {
         userId,
         categoryId: input.categoryId,
-        title: expenseTitle,
-        merchantName,
-        expenseDate: finalExpenseDate,
-        subtotal: parsed.subtotal,
-        tax: parsed.tax,
-        total: parsed.total ?? extractedFinalAmount,
-        finalAmount: extractedFinalAmount,
-        currency,
-        paymentMethod: input.paymentMethod || null,
-        notes: input.notes || null,
-        receiptUrl: file ? `/uploads/receipts/${path.basename(file.path)}` : null,
+        title: input.title,
+        merchantName: input.merchantName || receipt.merchantName || null,
+        expenseDate: new Date(input.expenseDate),
+        subtotal: receipt.extractedSubtotal,
+        tax: receipt.extractedTax,
+        total: receipt.extractedTotal ?? finalAmount,
+        finalAmount,
+        currency: receipt.currency || "USD",
+        paymentMethod: input.paymentMethod || receipt.paymentMethod || null,
+        notes: input.notes || receipt.notes || null,
+        receiptUrl: receipt.filePath !== "inline" ? `/uploads/receipts/${receipt.storedFileName}` : null,
         isAutoExtracted: true,
-        needsReview: parsed.needsReview,
+        needsReview: computed.needsReview,
       },
       include: {
         category: true,
       },
     });
 
-    const receipt = await tx.receipt.create({
+    const updatedReceipt = await tx.receipt.update({
+      where: { id: receipt.id },
       data: {
-        userId,
         expenseId: expense.id,
-        originalFileName: file?.originalname ?? "pasted-receipt.txt",
-        storedFileName: file ? path.basename(file.path) : "pasted-receipt.txt",
-        mimeType: file?.mimetype ?? "text/plain",
-        filePath: file?.path ?? "inline",
-        ocrRawText: receiptText,
-        extractedSubtotal: parsed.subtotal,
-        extractedTax: parsed.tax,
-        extractedTotal: parsed.total ?? extractedFinalAmount,
-        parserConfidence: parsed.parserConfidence,
+        status: "completed",
+        categoryId: input.categoryId,
+        title: input.title,
+        merchantName: input.merchantName || receipt.merchantName || null,
+        expenseDate: new Date(input.expenseDate),
+        paymentMethod: input.paymentMethod || receipt.paymentMethod || null,
+        notes: input.notes || receipt.notes || null,
       },
     });
 
     return {
       expense,
-      receipt,
-      extraction: {
-        subtotal: parsed.subtotal,
-        tax: parsed.tax,
-        total: parsed.total,
-        finalAmount: extractedFinalAmount,
-        currency,
-        needsReview: parsed.needsReview,
-      },
+      receipt: updatedReceipt,
     };
   });
 }

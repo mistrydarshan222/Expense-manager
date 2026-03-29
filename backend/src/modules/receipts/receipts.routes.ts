@@ -4,7 +4,12 @@ import path from "path";
 import { mkdirSync } from "fs";
 
 import { requireAuth } from "../../common/middleware/auth.middleware";
-import { postProcessReceipt } from "./receipts.controller";
+import {
+  getReceiptById,
+  getReceipts,
+  postCreateExpenseFromReceipt,
+  postEnqueueReceipt,
+} from "./receipts.controller";
 
 const uploadDirectory = path.resolve("uploads", "receipts");
 mkdirSync(uploadDirectory, { recursive: true });
@@ -25,6 +30,9 @@ const upload = multer({ storage });
 const receiptsRouter = Router();
 
 receiptsRouter.use(requireAuth);
-receiptsRouter.post("/process", upload.single("receipt"), postProcessReceipt);
+receiptsRouter.get("/", getReceipts);
+receiptsRouter.get("/:id", getReceiptById);
+receiptsRouter.post("/queue", upload.single("receipt"), postEnqueueReceipt);
+receiptsRouter.post("/:id/create-expense", postCreateExpenseFromReceipt);
 
 export { receiptsRouter };
