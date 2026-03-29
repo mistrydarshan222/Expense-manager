@@ -1,5 +1,6 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { Receipt } from './api.types';
 import { AppStore } from './app.store';
@@ -13,6 +14,15 @@ import { AppStore } from './app.store';
 export class ReceiptsPageComponent {
   protected readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  protected readonly recentReceipts = computed(() => {
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+
+    return this.store
+      .receipts()
+      .filter((receipt) => new Date(receipt.createdAt).getTime() >= cutoff)
+      .slice(0, 5);
+  });
 
   protected readonly reviewForm = this.fb.nonNullable.group({
     categoryId: ['', [Validators.required]],
@@ -28,7 +38,7 @@ export class ReceiptsPageComponent {
 
     effect(() => {
       const currentReceipt = this.store.currentReceipt();
-      const receipts = this.store.receipts();
+      const receipts = this.recentReceipts();
 
       if (!currentReceipt && receipts.length > 0) {
         this.openReceipt(receipts[0]);
@@ -39,12 +49,16 @@ export class ReceiptsPageComponent {
         return;
       }
 
+      const matchedPaymentMethod =
+        currentReceipt.paymentMethod ||
+        this.matchPaymentMethodFromReceiptText(currentReceipt.ocrRawText);
+
       this.reviewForm.patchValue({
         categoryId: currentReceipt.categoryId ?? this.store.categories()[0]?.id ?? '',
         expenseDate: currentReceipt.expenseDate?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
         title: currentReceipt.title ?? currentReceipt.merchantName ?? 'Receipt expense',
         merchantName: currentReceipt.merchantName ?? '',
-        paymentMethod: currentReceipt.paymentMethod ?? this.store.paymentMethods()[0]?.name ?? '',
+        paymentMethod: matchedPaymentMethod ?? this.store.paymentMethods()[0]?.name ?? '',
         notes: currentReceipt.notes ?? ''
       });
     });
@@ -65,7 +79,9 @@ export class ReceiptsPageComponent {
       return;
     }
 
-    this.store.createExpenseFromReceipt(receipt.id, this.reviewForm.getRawValue());
+    this.store.createExpenseFromReceipt(receipt.id, this.reviewForm.getRawValue(), () => {
+      void this.router.navigateByUrl('/');
+    });
   }
 
   protected amountForReview(receipt: Receipt) {
@@ -82,5 +98,33 @@ export class ReceiptsPageComponent {
     }
 
     return subtotal ?? 0;
+  }
+
+  private matchPaymentMethodFromReceiptText(ocrText: string | null) {
+    if (!ocrText) {
+      return null;
+    }
+
+    const patterns = [
+      /\b(?:mastercard|master card|visa|debit|credit|amex|american express)[^\n]*?(\d{4})\b/i,
+      /\b(?:card|mcard|mcard tend)[^\n]*?(\d{4})\b/i,
+      /(?:\*{2,}|x{2,}|%{2,})[\s*%x]*(\d{4})\b/i
+    ];
+
+    let lastFour: string | null = null;
+
+    for (const pattern of patterns) {
+      const match = ocrText.match(pattern);
+      if (match?.[1]) {
+        lastFour = match[1];
+        break;
+      }
+    }
+
+    if (!lastFour) {
+      return null;
+    }
+
+    return this.store.paymentMethods().find((method) => method.lastFour === lastFour)?.name ?? null;
   }
 }

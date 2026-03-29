@@ -9,10 +9,10 @@
     <article class="panel receipt-queue-panel">
       <p class="eyebrow">Queue</p>
       <h2>Receipt processing queue</h2>
-      <p class="profile-copy">Uploads appear here first. Open a receipt to track OCR processing and review the extracted values.</p>
+      <p class="profile-copy">Uploads appear here first. This list only shows the latest 5 receipts from the last 1 day.</p>
 
       <div class="receipt-queue-list">
-        @for (receipt of store.receipts(); track receipt.id) {
+        @for (receipt of recentReceipts(); track receipt.id) {
           <button type="button" class="receipt-queue-item" (click)="openReceipt(receipt)">
             <strong>{{ receipt.title || receipt.merchantName || receipt.originalFileName }}</strong>
             <span>{{ receipt.originalFileName }}</span>

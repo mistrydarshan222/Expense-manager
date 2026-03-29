@@ -75,8 +75,8 @@ function detectDate(text: string) {
 
 function detectCardLastFour(text: string) {
   const cardLinePatterns = [
-    /\b(?:mastercard|master card|visa|debit|credit|amex|american express)[^\n]*?(\d{4})\b/i,
-    /\b(?:card|mcard|mcard tend)[^\n]*?(\d{4})\b/i,
+    /\b(?:mastercard|master card|visa|debit|credit|amex|american express)[^\n]{0,80}?(\d{4})\b/i,
+    /\b(?:card|mcard|mcard tend)[^\n]{0,80}?(\d{4})\b/i,
   ];
 
   for (const pattern of cardLinePatterns) {
@@ -86,7 +86,7 @@ function detectCardLastFour(text: string) {
     }
   }
 
-  const maskedMatch = text.match(/(?:\*{2,}\s*){2,}(\d{4})\b/);
+  const maskedMatch = text.match(/(?:[\*xX%]{2,}[\s*%xX]*){2,}(\d{4})\b/);
   if (maskedMatch?.[1]) {
     return maskedMatch[1];
   }
@@ -301,13 +301,16 @@ async function processQueuedReceipt(receiptId: string) {
       throw new Error("Could not find total, subtotal, or tax values in this receipt.");
     }
 
-    const matchedPaymentMethod =
-      receipt.paymentMethod ||
-      (
-        parsed.cardLastFour
-          ? receipt.user.paymentMethods.find((method) => method.lastFour === parsed.cardLastFour)?.name ?? null
-          : null
-      );
+    const autoMatchedPaymentMethod = parsed.cardLastFour
+      ? receipt.user.paymentMethods.find((method) => method.lastFour === parsed.cardLastFour)?.name ?? null
+      : null;
+
+    const shouldOverrideExistingPaymentMethod =
+      !receipt.paymentMethod || /^cash$/i.test(receipt.paymentMethod.trim());
+
+    const matchedPaymentMethod = shouldOverrideExistingPaymentMethod
+      ? autoMatchedPaymentMethod ?? receipt.paymentMethod ?? null
+      : receipt.paymentMethod;
 
     await prisma.receipt.update({
       where: { id: receiptId },

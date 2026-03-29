@@ -75,10 +75,6 @@ export class DashboardPageComponent {
       if (!this.expenseForm.value.paymentMethod && methods.length > 0) {
         this.expenseForm.patchValue({ paymentMethod: methods[0].name });
       }
-
-      if (!this.receiptForm.value.paymentMethod && methods.length > 0) {
-        this.receiptForm.patchValue({ paymentMethod: methods[0].name });
-      }
     });
   }
 
@@ -258,7 +254,7 @@ export class DashboardPageComponent {
       expenseDate: new Date().toISOString().slice(0, 10),
       title: '',
       merchantName: '',
-      paymentMethod: this.store.paymentMethods()[0]?.name ?? '',
+      paymentMethod: '',
       notes: '',
       rawText: ''
     });
