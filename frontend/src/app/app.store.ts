@@ -388,7 +388,7 @@ export class AppStore {
     });
   }
 
-  createPaymentMethod(name: string, onDone?: () => void) {
+  createPaymentMethod(payload: { name: string; lastFour?: string }, onDone?: () => void) {
     if (!this.token()) {
       return;
     }
@@ -396,7 +396,7 @@ export class AppStore {
     this.isSubmitting.set(true);
     this.statusMessage.set('Adding payment method...');
 
-    this.api.createPaymentMethod(this.token(), name).subscribe({
+    this.api.createPaymentMethod(this.token(), payload).subscribe({
       next: () => {
         this.loadPaymentMethods();
         this.isSubmitting.set(false);

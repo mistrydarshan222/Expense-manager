@@ -57,13 +57,22 @@
         <span>Payment method name</span>
         <input type="text" formControlName="name" placeholder="Cash, Visa, Amex, HDFC Credit Card" />
       </label>
+      <label>
+        <span>Card last 4 digits</span>
+        <input type="text" formControlName="lastFour" maxlength="4" placeholder="7620" />
+      </label>
       <button type="submit">Add payment method</button>
     </form>
 
     <div class="payment-method-list">
       @for (method of store.paymentMethods(); track method.id) {
         <article class="payment-method-card">
-          <strong>{{ method.name }}</strong>
+          <div>
+            <strong>{{ method.name }}</strong>
+            @if (method.lastFour) {
+              <span class="summary-note">Ending in {{ method.lastFour }}</span>
+            }
+          </div>
           <button type="button" class="danger-button" (click)="deletePaymentMethod(method.id)">Delete</button>
         </article>
       }

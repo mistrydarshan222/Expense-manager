@@ -13,6 +13,7 @@ type ParsedReceipt = {
   total: number | null;
   finalAmount: number | null;
   currency: string | null;
+  cardLastFour: string | null;
   needsReview: boolean;
   parserConfidence: number;
 };
@@ -72,18 +73,60 @@ function detectDate(text: string) {
   return null;
 }
 
+function detectCardLastFour(text: string) {
+  const cardLinePatterns = [
+    /\b(?:mastercard|master card|visa|debit|credit|amex|american express)[^\n]*?(\d{4})\b/i,
+    /\b(?:card|mcard|mcard tend)[^\n]*?(\d{4})\b/i,
+  ];
+
+  for (const pattern of cardLinePatterns) {
+    const match = text.match(pattern);
+    if (match?.[1]) {
+      return match[1];
+    }
+  }
+
+  const maskedMatch = text.match(/(?:\*{2,}\s*){2,}(\d{4})\b/);
+  if (maskedMatch?.[1]) {
+    return maskedMatch[1];
+  }
+
+  return null;
+}
+
 function detectMerchant(text: string) {
-  const knownMerchants: Array<{ pattern: RegExp; name: string }> = [
-    { pattern: /\bwalmart\b/i, name: "Walmart" },
-    { pattern: /\bcostco\b/i, name: "Costco" },
-    { pattern: /\btarget\b/i, name: "Target" },
-    { pattern: /\bamazon\b/i, name: "Amazon" },
-    { pattern: /\btesco\b/i, name: "Tesco" },
-    { pattern: /\baldi\b/i, name: "Aldi" },
-    { pattern: /\bcarrefour\b/i, name: "Carrefour" },
+  const knownMerchants: Array<{ key: string; name: string }> = [
+    { key: "walmart", name: "Walmart" },
+    { key: "costco", name: "Costco" },
+    { key: "target", name: "Target" },
+    { key: "amazon", name: "Amazon" },
+    { key: "tesco", name: "Tesco" },
+    { key: "aldi", name: "Aldi" },
+    { key: "carrefour", name: "Carrefour" },
   ];
   const blockedPatterns =
     /(invoice|receipt|tax|total|subtotal|date|survey|customer survey|how did we do|win|gift cards|rules and regulations|contest|change due|approval|signature|mastercard|visa|terminal|items sold)/i;
+
+  const normalizeMerchantText = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z]/g, "");
+
+  const canonicalMerchant = (value: string) => {
+    const normalized = normalizeMerchantText(value);
+
+    for (const merchant of knownMerchants) {
+      if (
+        normalized === merchant.key ||
+        normalized.startsWith(merchant.key) ||
+        merchant.key.startsWith(normalized)
+      ) {
+        return merchant.name;
+      }
+    }
+
+    return null;
+  };
 
   const lines = text
     .split(/\r?\n/)
@@ -93,10 +136,9 @@ function detectMerchant(text: string) {
   const topLines = lines.slice(0, 20);
 
   for (const line of topLines) {
-    for (const merchant of knownMerchants) {
-      if (merchant.pattern.test(line)) {
-        return merchant.name;
-      }
+    const canonical = canonicalMerchant(line);
+    if (canonical) {
+      return canonical;
     }
   }
 
@@ -112,6 +154,11 @@ function detectMerchant(text: string) {
 
     if (!normalized || normalized.length < 3) {
       continue;
+    }
+
+    const canonical = canonicalMerchant(normalized);
+    if (canonical) {
+      return canonical;
     }
 
     const words = normalized.split(" ");
@@ -154,6 +201,7 @@ function parseReceiptText(text: string): ParsedReceipt {
     total,
     finalAmount,
     currency: detectCurrency(normalizedText),
+    cardLastFour: detectCardLastFour(normalizedText),
     needsReview,
     parserConfidence: total !== null ? 0.92 : subtotal !== null ? 0.68 : 0.2,
   };
@@ -210,6 +258,15 @@ async function processQueuedReceipt(receiptId: string) {
       user: {
         select: {
           preferredCurrency: true,
+          paymentMethods: {
+            select: {
+              name: true,
+              lastFour: true,
+            },
+            orderBy: {
+              name: "asc",
+            },
+          },
         },
       },
     },
@@ -244,6 +301,14 @@ async function processQueuedReceipt(receiptId: string) {
       throw new Error("Could not find total, subtotal, or tax values in this receipt.");
     }
 
+    const matchedPaymentMethod =
+      receipt.paymentMethod ||
+      (
+        parsed.cardLastFour
+          ? receipt.user.paymentMethods.find((method) => method.lastFour === parsed.cardLastFour)?.name ?? null
+          : null
+      );
+
     await prisma.receipt.update({
       where: { id: receiptId },
       data: {
@@ -253,6 +318,7 @@ async function processQueuedReceipt(receiptId: string) {
         merchantName: receipt.merchantName || parsed.merchantName,
         expenseDate: receipt.expenseDate ?? parsed.expenseDate ?? new Date(),
         currency: receipt.currency ?? parsed.currency ?? receipt.user.preferredCurrency,
+        paymentMethod: matchedPaymentMethod,
         extractedSubtotal: parsed.subtotal,
         extractedTax: parsed.tax,
         extractedTotal: parsed.total ?? parsed.finalAmount,

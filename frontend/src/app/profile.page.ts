@@ -22,7 +22,8 @@ export class ProfilePageComponent {
   });
 
   protected readonly paymentMethodForm = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.minLength(2)]]
+    name: ['', [Validators.required, Validators.minLength(2)]],
+    lastFour: ['']
   });
 
   constructor() {
@@ -82,8 +83,8 @@ export class ProfilePageComponent {
       return;
     }
 
-    this.store.createPaymentMethod(this.paymentMethodForm.getRawValue().name, () => {
-      this.paymentMethodForm.reset({ name: '' });
+    this.store.createPaymentMethod(this.paymentMethodForm.getRawValue(), () => {
+      this.paymentMethodForm.reset({ name: '', lastFour: '' });
     });
   }
 

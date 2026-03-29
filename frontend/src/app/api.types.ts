@@ -29,6 +29,7 @@ export type Category = {
 export type PaymentMethod = {
   id: string;
   name: string;
+  lastFour: string | null;
   userId: string;
   createdAt: string;
   updatedAt: string;

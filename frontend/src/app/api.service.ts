@@ -104,11 +104,11 @@ export class ApiService {
 
   createPaymentMethod(
     token: string,
-    name: string
+    payload: { name: string; lastFour?: string }
   ): Observable<{ message: string; paymentMethod: PaymentMethod }> {
     return this.http.post<{ message: string; paymentMethod: PaymentMethod }>(
       `${this.baseUrl}/payment-methods`,
-      { name },
+      payload,
       { headers: this.authHeaders(token) }
     );
   }

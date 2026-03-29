@@ -13,6 +13,7 @@ export async function createPaymentMethod(userId: string, input: CreatePaymentMe
     data: {
       userId,
       name: input.name,
+      lastFour: input.lastFour || null,
     },
   });
 }
