@@ -1,0 +1,44 @@
+<svg width="1200" height="420" viewBox="0 0 1200 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="420" rx="48" fill="#F8FAFC"/>
+  <g transform="translate(70 42)">
+    <defs>
+      <linearGradient id="ringGradient" x1="60" y1="30" x2="270" y2="270" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#0EA5E9"/>
+        <stop offset="1" stop-color="#123B67"/>
+      </linearGradient>
+      <linearGradient id="leafGradient" x1="34" y1="230" x2="176" y2="112" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#16A34A"/>
+        <stop offset="1" stop-color="#84CC16"/>
+      </linearGradient>
+      <linearGradient id="arrowGradient" x1="114" y1="210" x2="312" y2="78" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#F97316"/>
+        <stop offset="1" stop-color="#FACC15"/>
+      </linearGradient>
+      <linearGradient id="barGradient" x1="126" y1="222" x2="218" y2="96" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#0284C7"/>
+        <stop offset="1" stop-color="#22C55E"/>
+      </linearGradient>
+      <filter id="shadow" x="0" y="0" width="340" height="340" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#0F172A" flood-opacity="0.14"/>
+      </filter>
+    </defs>
+
+    <g filter="url(#shadow)">
+      <path d="M163 23C107 24 53 56 29 109C6 160 13 225 61 274C112 324 189 335 251 304C314 272 346 203 332 140" stroke="url(#ringGradient)" stroke-width="24" stroke-linecap="round"/>
+      <path d="M38 140C28 194 46 252 95 291C144 330 216 334 270 302" stroke="url(#leafGradient)" stroke-width="22" stroke-linecap="round"/>
+      <path d="M96 236V186H136V236H96Z" fill="url(#barGradient)"/>
+      <path d="M152 236V138H193V236H152Z" fill="url(#barGradient)"/>
+      <path d="M209 236V96H250V236H209Z" fill="url(#barGradient)"/>
+      <path d="M58 210C99 198 138 177 173 149C208 121 237 89 262 56L306 69L301 15L249 28L261 40C237 71 210 99 178 122C145 145 108 163 69 174L58 210Z" fill="url(#arrowGradient)"/>
+      <circle cx="173" cy="222" r="41" fill="#123B67"/>
+      <path d="M188 206C182 199 173 196 163 196C150 196 139 204 139 217C139 230 149 236 162 239L169 241C176 243 180 246 180 251C180 257 174 260 167 260C159 260 151 256 146 249L133 262C141 271 153 276 167 276C183 276 197 267 197 251C197 237 186 231 173 228L166 226C159 224 156 221 156 216C156 210 162 207 168 207C176 207 182 210 186 216L188 206Z" fill="#F8FAFC"/>
+      <path d="M166 186H179V286H166V186Z" fill="#F8FAFC"/>
+    </g>
+  </g>
+
+  <g transform="translate(420 118)">
+    <text x="0" y="92" fill="#123B67" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="800" letter-spacing="-2">Expense</text>
+    <text x="424" y="92" fill="#22C55E" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="800" letter-spacing="-2">Flow</text>
+    <text x="2" y="138" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500">Track smarter spending. Grow with every transaction.</text>
+  </g>
+</svg>

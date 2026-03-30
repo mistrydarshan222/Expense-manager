@@ -13,7 +13,10 @@
           <h2>All expenses</h2>
           <p class="profile-copy">Review every saved expense and narrow the list with date, category, payment method, currency, or search.</p>
         </div>
-        <div class="panel-tip">{{ filteredExpenses().length }} matching expense{{ filteredExpenses().length === 1 ? '' : 's' }}</div>
+        <div class="expense-hero-actions">
+          <div class="panel-tip">{{ filteredExpenses().length }} matching expense{{ filteredExpenses().length === 1 ? '' : 's' }}</div>
+          <button type="button" (click)="downloadStatementPdf()">Download PDF</button>
+        </div>
       </div>
 
       <div class="time-filter-row">
