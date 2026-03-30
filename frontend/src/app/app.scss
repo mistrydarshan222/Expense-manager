@@ -1202,6 +1202,11 @@ button:hover,
     gap: 16px;
   }
 
+  .expenses-page-shell,
+  .receipt-review-grid {
+    gap: 16px;
+  }
+
   .overview-panel {
     padding: 18px;
   }
@@ -1260,6 +1265,39 @@ button:hover,
     font-size: 1.5rem;
   }
 
+  .expenses-hero-panel .panel-heading,
+  .receipt-panel .panel-heading,
+  .receipt-review-panel .panel-heading,
+  .profile-panel .panel-heading {
+    gap: 12px;
+  }
+
+  .expense-hero-actions,
+  .receipt-review-side {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .expense-hero-actions .panel-tip,
+  .expense-hero-actions button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .time-filter-row {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .time-filter-chip {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 11px 10px;
+  }
+
   .inline-form,
   .payment-method-form {
     grid-template-columns: 1fr;
@@ -1273,6 +1311,15 @@ button:hover,
 
   .expense-filter-bar {
     gap: 12px;
+  }
+
+  .expense-filter-summary {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .expense-filter-summary .summary-note {
+    margin-top: 0;
   }
 
   .expense-filter-actions {
@@ -1322,6 +1369,69 @@ button:hover,
   .expense-actions button {
     width: 100%;
     justify-self: stretch;
+  }
+
+  .receipt-panel {
+    max-width: none;
+    margin-bottom: 16px;
+  }
+
+  .receipt-queue-head,
+  .receipt-review-hero {
+    gap: 12px;
+  }
+
+  .receipt-mini-stat {
+    min-width: 0;
+    width: 100%;
+    padding: 14px;
+  }
+
+  .receipt-result-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 18px;
+    margin-bottom: 18px;
+  }
+
+  .receipt-result-card {
+    padding: 16px;
+  }
+
+  .receipt-review-copy h2,
+  .expenses-hero-panel h2,
+  .profile-panel h2,
+  .receipt-panel h2 {
+    font-size: 1.72rem;
+  }
+
+  .receipt-info-banner,
+  .help-note,
+  .empty-state {
+    padding: 16px;
+  }
+
+  .receipt-actions {
+    gap: 10px;
+  }
+
+  .receipt-actions .ghost-button,
+  .receipt-actions button,
+  .receipt-queue-item {
+    width: 100%;
+  }
+
+  .payment-method-card-main {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .payment-method-copy {
+    min-width: 0;
+  }
+
+  .payment-method-meta-row {
+    flex-wrap: wrap;
   }
 
   .form-actions {
