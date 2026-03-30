@@ -256,15 +256,10 @@ export class ExpensesPageComponent {
     const summaryTop = currentY;
     const detailsWidth = contentWidth;
     const balanceWidth = Math.floor((contentWidth - 14) / 2);
-    stream += this.drawText('Summary of your account', margin, summaryTop, 13, '#0F766E', 'F2');
-    currentY -= 16;
+    // stream += this.drawText('Summary of your account', margin, summaryTop, 15, '#0F766E', 'F2');
+    // currentY -= 24;
 
-    stream += this.drawRect(margin, currentY - 132, detailsWidth, 124, '#FFFFFF', 12, '#D7E0EA');
-    stream += this.drawRect(margin, currentY - 30, detailsWidth, 22, '#F8FAFC');
-    const leftHeaderCenter = margin + detailsWidth / 4;
-    const rightHeaderCenter = margin + (detailsWidth * 3) / 4;
-    stream += this.drawCenteredText('ACCOUNT DETAILS', leftHeaderCenter, currentY - 15, 9, '#475569', 'F2');
-    stream += this.drawCenteredText('CURRENT SNAPSHOT', rightHeaderCenter, currentY - 15, 9, '#475569', 'F2');
+    stream += this.drawRect(margin, currentY - 128, detailsWidth, 120, '#FFFFFF', 12, '#D7E0EA');
 
     const leftLabelX = margin + 12;
     const leftValueX = margin + 130;
@@ -280,7 +275,7 @@ export class ExpensesPageComponent {
     ];
 
     detailRows.forEach(([label, value], index) => {
-      const y = currentY - 44 - index * 18;
+      const y = currentY - 28 - index * 22;
       stream += this.drawText(label, leftLabelX, y, 9, '#475569', 'F1');
       stream += this.drawText(value, leftValueX, y, 9, '#111827', 'F2');
     });
@@ -292,24 +287,25 @@ export class ExpensesPageComponent {
     ];
 
     rightLabels.forEach(([label, value], index) => {
-      const y = currentY - 44 - index * 18;
+      const y = currentY - 28 - index * 22;
       stream += this.drawText(label, rightLabelX, y, 9, '#475569', 'F1');
       stream += this.drawText(value, rightValueX, y, 9, '#111827', 'F2');
     });
 
-    const balanceY = currentY - 148;
-    stream += this.drawRect(margin, balanceY - 92, balanceWidth, 92, '#F8FAFC', 12, '#D7E0EA');
-    stream += this.drawRect(margin, balanceY - 34, balanceWidth, 28, '#10B981', 10);
-    stream += this.drawCenteredText('Statement balance', margin + balanceWidth / 2, balanceY - 17, 10, '#ECFDF5', 'F2');
+    const balanceY = currentY - 144;
+    stream += this.drawRect(margin, balanceY - 102, balanceWidth, 102, '#F8FAFC', 14, '#CFE0F2');
+    stream += this.drawRect(margin, balanceY - 102, balanceWidth, 8, '#123B67', 14);
+    stream += this.drawText('Statement balance', margin + 16, balanceY - 24, 11, '#123B67', 'F2');
+    stream += this.drawText('Current filtered total', margin + 16, balanceY - 40, 9, '#64748B', 'F1');
 
-    let summaryY = balanceY - 52;
+    let summaryY = balanceY - 66;
     input.totals.forEach((total) => {
-      stream += this.drawText(total.currency, margin + 14, summaryY, 9, '#64748B', 'F1');
-      stream += this.drawText(this.store.formatCurrency(total.amount, total.currency), margin + 14, summaryY - 15, 13, '#123B67', 'F2');
+      stream += this.drawText(total.currency, margin + 16, summaryY, 9, '#64748B', 'F1');
+      stream += this.drawText(this.store.formatCurrency(total.amount, total.currency), margin + 16, summaryY - 16, 15, '#0F172A', 'F2');
       summaryY -= 28;
     });
 
-    currentY = balanceY - 108;
+    currentY = balanceY - 126;
 
     const drawTableHeader = () => {
       stream += this.drawText('Details of your transactions', margin, currentY, 13, '#0F766E', 'F2');

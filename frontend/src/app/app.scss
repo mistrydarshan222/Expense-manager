@@ -779,7 +779,7 @@ button:hover,
 .receipt-queue-head,
 .receipt-review-hero {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 18px;
 }
@@ -825,7 +825,7 @@ button:hover,
 .receipt-queue-item-top {
   width: 100%;
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
