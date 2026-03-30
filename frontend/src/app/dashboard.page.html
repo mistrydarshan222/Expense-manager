@@ -57,26 +57,26 @@
   <section class="dashboard-shell" id="overview">
     <section class="dashboard-top-grid">
       <article class="panel overview-panel">
-        <p class="eyebrow">Overview</p>
+        <p class="eyebrow">Workspace</p>
         <h2>{{ store.userName() }}</h2>
-        <p class="dashboard-copy">{{ store.statusMessage() }}</p>
+        <p class="dashboard-copy">Track daily spending, manage categories, and keep every expense organized in one place.</p>
 
         <div class="overview-pill-row">
-          <span class="head-note-pill">Default currency: {{ store.preferredCurrency() }}</span>
-          <span class="head-note-pill muted-pill">{{ store.paymentMethods().length }} payment methods</span>
+          <span class="head-note-pill">Primary currency: {{ store.preferredCurrency() }}</span>
+          <span class="head-note-pill muted-pill">{{ store.paymentMethods().length }} saved payment methods</span>
         </div>
 
         <div class="overview-stats">
           <div class="overview-stat">
-            <span>Profile Currency</span>
+            <span>Default currency</span>
             <strong>{{ store.preferredCurrency() }}</strong>
           </div>
           <div class="overview-stat">
-            <span>Categories</span>
+            <span>Active categories</span>
             <strong>{{ store.categories().length }}</strong>
           </div>
           <div class="overview-stat">
-            <span>Expenses</span>
+            <span>Total records</span>
             <strong>{{ store.expenses().length }}</strong>
           </div>
         </div>
@@ -84,26 +84,26 @@
 
       <section class="summary-grid">
         <article class="panel summary-card">
-          <p>Total categories</p>
+          <p>Categories</p>
           <strong>{{ store.categories().length }}</strong>
-          <span class="summary-caption">Organized buckets for daily tracking</span>
+          <span class="summary-caption">Use categories to group everyday spending.</span>
         </article>
         <article class="panel summary-card">
-          <p>Total expenses</p>
+          <p>Expenses logged</p>
           <strong>{{ store.expenses().length }}</strong>
-          <span class="summary-caption">Saved records across your timeline</span>
+          <span class="summary-caption">Every saved transaction across your account history.</span>
         </article>
         <article class="panel summary-card">
           <p>Payment methods</p>
           <strong>{{ store.paymentMethods().length }}</strong>
-          <span class="summary-caption">Cash, cards, transfers and more</span>
+          <span class="summary-caption">Cards, cash, transfers, and other saved methods.</span>
         </article>
         <article class="panel summary-card summary-card-strong">
-          <p>Total spent</p>
+          <p>Total spending</p>
           @if (store.totalsByCurrency().length <= 1) {
             <strong>{{ store.formatCurrency(store.totalSpent(), store.totalsByCurrency()[0]?.currency || store.preferredCurrency()) }}</strong>
           } @else {
-            <strong>Mixed currencies</strong>
+            <strong>Multiple currencies</strong>
           }
           @for (total of store.totalsByCurrency(); track total.currency) {
             <span class="summary-note">{{ total.currency }}: {{ store.formatCurrency(total.amount, total.currency) }}</span>
@@ -116,10 +116,10 @@
       <article class="panel form-panel" id="expenses">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Expense Form</p>
-            <h3>{{ isEditingExpense() ? 'Edit expense details' : 'Add a new expense' }}</h3>
+            <p class="eyebrow">Expense Entry</p>
+            <h3>{{ isEditingExpense() ? 'Update expense' : 'Add expense' }}</h3>
           </div>
-          <div class="panel-tip">Profile currency: {{ store.preferredCurrency() }}</div>
+          <div class="panel-tip">Default currency: {{ store.preferredCurrency() }}</div>
         </div>
 
         <form [formGroup]="expenseForm" (ngSubmit)="addExpense()" class="form-grid">
@@ -174,7 +174,7 @@
         <div class="panel-heading">
           <div>
             <p class="eyebrow">Categories</p>
-            <h3>Manage expense buckets</h3>
+            <h3>Manage categories</h3>
           </div>
         </div>
 
@@ -194,14 +194,14 @@
     <section class="panel recent-panel">
       <div class="panel-heading">
         <div>
-          <p class="eyebrow">Recent Expenses</p>
-          <h3>Latest 5 expenses</h3>
+          <p class="eyebrow">Recent Activity</p>
+          <h3>Latest expenses</h3>
         </div>
         <a routerLink="/expenses" class="ghost-button">View all expenses</a>
       </div>
 
       @if (store.expenses().length === 0) {
-        <p class="empty-state">No expenses yet. Add your first daily expense from the form above.</p>
+        <p class="empty-state">No expenses yet. Add your first transaction to start building your history.</p>
       } @else {
         <form [formGroup]="expenseFilterForm" class="expense-filter-bar">
           <label>
@@ -236,13 +236,13 @@
             </select>
           </label>
           <div class="expense-filter-actions">
-            <span class="file-helper">{{ recentExpensePreview().length }} of {{ filteredExpenses().length }} matching expense{{ filteredExpenses().length === 1 ? '' : 's' }}</span>
+            <span class="file-helper">{{ recentExpensePreview().length }} of {{ filteredExpenses().length }} matching transaction{{ filteredExpenses().length === 1 ? '' : 's' }}</span>
             <button type="button" class="ghost-button" (click)="clearExpenseFilters()">Clear filters</button>
           </div>
         </form>
 
         @if (filteredExpenses().length === 0) {
-          <p class="empty-state">No expenses match your current filters.</p>
+          <p class="empty-state">No transactions match your current filters.</p>
         } @else {
         <div class="expense-list">
           @for (expense of recentExpensePreview(); track expense.id) {

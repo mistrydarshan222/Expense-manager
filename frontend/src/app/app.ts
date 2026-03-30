@@ -1,5 +1,5 @@
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { Component, ViewEncapsulation, inject } from '@angular/core';
+import { Component, ViewEncapsulation, inject, signal } from '@angular/core';
 
 import { AppStore } from './app.store';
 
@@ -12,4 +12,18 @@ import { AppStore } from './app.store';
 })
 export class App {
   protected readonly store = inject(AppStore);
+  protected readonly mobileMenuOpen = signal(false);
+
+  protected toggleMobileMenu() {
+    this.mobileMenuOpen.update((value) => !value);
+  }
+
+  protected closeMobileMenu() {
+    this.mobileMenuOpen.set(false);
+  }
+
+  protected logout() {
+    this.closeMobileMenu();
+    this.store.logout();
+  }
 }

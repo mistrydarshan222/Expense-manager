@@ -4,27 +4,40 @@
       <img class="brand-logo" src="/transparent-logo.svg" alt="ExpenseFlow logo" />
     </div>
 
-    <nav class="topnav" aria-label="Primary">
-      <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
-      <a routerLink="/expenses" routerLinkActive="active-link">Expenses</a>
-      <a routerLink="/receipts" routerLinkActive="active-link">Receipts</a>
-      <a routerLink="/profile" routerLinkActive="active-link">Profile</a>
-    </nav>
+    <button
+      type="button"
+      class="mobile-menu-button"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      aria-label="Toggle navigation menu"
+      (click)="toggleMobileMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
 
-    <div class="topbar-actions">
-      <div class="profile-chip">
-        <div class="profile-avatar">
-          {{ store.token() ? (store.userName().slice(0, 1) || 'U') : 'G' }}
+    <div class="topbar-menu-shell" [class.mobile-open]="mobileMenuOpen()">
+      <nav class="topnav" aria-label="Primary">
+        <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMobileMenu()">Dashboard</a>
+        <a routerLink="/expenses" routerLinkActive="active-link" (click)="closeMobileMenu()">Expenses</a>
+        <a routerLink="/receipts" routerLinkActive="active-link" (click)="closeMobileMenu()">Receipts</a>
+        <a routerLink="/profile" routerLinkActive="active-link" (click)="closeMobileMenu()">Profile</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <div class="profile-chip">
+          <div class="profile-avatar">
+            {{ store.token() ? (store.userName().slice(0, 1) || 'U') : 'G' }}
+          </div>
+          <div class="profile-copy">
+            <strong>{{ store.userName() }}</strong>
+            <span>{{ store.token() ? store.currentUser()?.email : 'Not signed in' }}</span>
+          </div>
         </div>
-        <div class="profile-copy">
-          <strong>{{ store.userName() }}</strong>
-          <span>{{ store.token() ? store.currentUser()?.email : 'Not signed in' }}</span>
-        </div>
+
+        @if (store.token()) {
+          <button type="button" class="secondary-button" (click)="logout()">Logout</button>
+        }
       </div>
-
-      @if (store.token()) {
-        <button type="button" class="secondary-button" (click)="store.logout()">Logout</button>
-      }
     </div>
   </header>
 
