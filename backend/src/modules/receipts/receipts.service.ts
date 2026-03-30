@@ -24,6 +24,12 @@ type OcrReadResult = {
   headerText: string;
 };
 
+type OcrCandidate = {
+  fullText: string;
+  headerText: string;
+  score: number;
+};
+
 const receiptQueue: string[] = [];
 let isQueueProcessing = false;
 
@@ -50,6 +56,118 @@ function findAmountForLabels(text: string, labels: string[]) {
   }
 
   return null;
+}
+
+function findAllAmountsForLabels(text: string, labels: string[]) {
+  const amounts: number[] = [];
+
+  for (const label of labels) {
+    const regex = new RegExp(
+      `${label}\\s*[:\\-]?\\s*(?:\\d+(?:\\.\\d+)?\\s*%\\s*)?(?:[A-Z]{3}\\s*)?[\\$\\u20AC\\u00A3\\u20B9]?\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{2})?)`,
+      "gi",
+    );
+
+    for (const match of text.matchAll(regex)) {
+      if (!match[1]) {
+        continue;
+      }
+
+      const amount = parseAmount(match[1]);
+      if (amount !== null) {
+        amounts.push(amount);
+      }
+    }
+  }
+
+  return amounts;
+}
+
+function extractLastAmountFromLine(line: string) {
+  const normalizedLine = line.replace(/,/g, "").replace(/\s+/g, " ").trim();
+
+  const decimalMatches = Array.from(normalizedLine.matchAll(/(?:[A-Z]{3}\s*)?[$€£₹]?\s*(\d+\.\d{2})/g));
+  const lastDecimalMatch = decimalMatches[decimalMatches.length - 1];
+  if (lastDecimalMatch?.[1]) {
+    return parseAmount(lastDecimalMatch[1]);
+  }
+
+  const numericTokens = normalizedLine.match(/\d+/g) ?? [];
+  if (numericTokens.length >= 2) {
+    const cents = numericTokens[numericTokens.length - 1];
+    const whole = numericTokens[numericTokens.length - 2];
+
+    if (cents.length === 2 && whole.length >= 1) {
+      const combined = `${whole}.${cents}`;
+      const parsedCombined = parseAmount(combined);
+      if (parsedCombined !== null) {
+        return parsedCombined;
+      }
+    }
+  }
+
+  const lastToken = numericTokens[numericTokens.length - 1];
+  return lastToken ? parseAmount(lastToken) : null;
+}
+
+function findLineAmount(text: string, labels: string[], options?: { exclude?: RegExp }) {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    const normalizedLine = line.replace(/\s+/g, " ").trim();
+
+    if (options?.exclude?.test(normalizedLine)) {
+      continue;
+    }
+
+    for (const label of labels) {
+      const labelPattern = label.replace(/\s+/g, "\\s*");
+      const regex = new RegExp(`^${labelPattern}\\b`, "i");
+
+      if (!regex.test(normalizedLine)) {
+        continue;
+      }
+
+      const amount = extractLastAmountFromLine(normalizedLine);
+      if (amount !== null) {
+        return amount;
+      }
+    }
+  }
+
+  return null;
+}
+
+function findTaxAmountsFromLines(text: string, labels: string[]) {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const amounts: number[] = [];
+
+  for (const line of lines) {
+    const normalizedLine = line.replace(/\s+/g, " ").trim();
+
+    for (const label of labels) {
+      const labelPattern = label.replace(/\s+/g, "\\s*");
+      const regex = new RegExp(`^${labelPattern}\\b`, "i");
+
+      if (!regex.test(normalizedLine)) {
+        continue;
+      }
+
+      const amount = extractLastAmountFromLine(normalizedLine);
+      if (amount !== null) {
+        amounts.push(amount);
+      }
+      break;
+    }
+  }
+
+  return amounts;
 }
 
 function detectCurrency(text: string) {
@@ -192,18 +310,52 @@ function detectMerchant(text: string) {
 function parseReceiptText(text: string, headerText = ""): ParsedReceipt {
   const normalizedText = text.replace(/\r/g, "\n");
   const normalizedHeaderText = headerText.replace(/\r/g, "\n");
-  const subtotal = findAmountForLabels(normalizedText, ["subtotal", "sub total", "amount"]);
-  const tax = findAmountForLabels(normalizedText, ["tax", "vat", "gst"]);
-  const total = findAmountForLabels(normalizedText, ["grand total", "total due", "amount due", "total"]);
+  const subtotal =
+    findLineAmount(normalizedText, ["subtotal", "sub total"], { exclude: /\btotal\b/i }) ??
+    findAmountForLabels(normalizedText, ["subtotal", "sub total"]);
+  const taxAmounts = [
+    ...findTaxAmountsFromLines(normalizedText, [
+      "tax",
+      "tax 1",
+      "tax 2",
+      "vat",
+      "gst",
+      "hst",
+      "pst",
+      "qst",
+      "sales tax",
+    ]),
+    ...findAllAmountsForLabels(normalizedText, [
+    "tax",
+    "vat",
+    "gst",
+    "hst",
+    "pst",
+    "qst",
+    "sales tax",
+    ]),
+  ];
+  const uniqueTaxAmounts = Array.from(new Set(taxAmounts.map((amount) => amount.toFixed(2)))).map(Number);
+  const tax =
+    uniqueTaxAmounts.length > 0
+      ? Number(uniqueTaxAmounts.reduce((sum, amount) => sum + amount, 0).toFixed(2))
+      : null;
+  const total =
+    findLineAmount(normalizedText, ["grand total", "total due", "amount due", "total"], {
+      exclude: /\bsub\s*total\b/i,
+    }) ??
+    findAmountForLabels(normalizedText, ["grand total", "total due", "amount due", "total"]);
 
-  let finalAmount = total;
+  const subtotalPlusTax =
+    subtotal !== null && tax !== null ? Number((subtotal + tax).toFixed(2)) : null;
+
+  let finalAmount = subtotalPlusTax ?? total;
   let needsReview = false;
 
-  if (finalAmount === null && subtotal !== null && tax !== null) {
-    finalAmount = Number((subtotal + tax).toFixed(2));
-    needsReview = true;
-  } else if (finalAmount === null && subtotal !== null) {
+  if (finalAmount === null && subtotal !== null) {
     finalAmount = subtotal;
+    needsReview = true;
+  } else if (subtotalPlusTax !== null && total !== null && Math.abs(subtotalPlusTax - total) > 0.009) {
     needsReview = true;
   }
 
@@ -217,14 +369,29 @@ function parseReceiptText(text: string, headerText = ""): ParsedReceipt {
     currency: detectCurrency(normalizedText),
     cardLastFour: detectCardLastFour(normalizedText),
     needsReview,
-    parserConfidence: total !== null ? 0.92 : subtotal !== null ? 0.68 : 0.2,
+    parserConfidence: subtotalPlusTax !== null || total !== null ? 0.92 : subtotal !== null ? 0.68 : 0.2,
   };
+}
+
+function scoreParsedReceipt(parsed: ParsedReceipt) {
+  let score = 0;
+
+  if (parsed.total !== null) score += 10;
+  if (parsed.subtotal !== null) score += 4;
+  if (parsed.tax !== null) score += 3;
+  if (parsed.finalAmount !== null) score += 8;
+  if (parsed.merchantName) score += 3;
+  if (parsed.expenseDate) score += 1;
+  if (parsed.cardLastFour) score += 1;
+
+  return score;
 }
 
 async function readUploadedReceiptText(filePath: string, mimeType: string, originalFileName: string): Promise<OcrReadResult> {
   const extension = path.extname(originalFileName).toLowerCase();
   const textLikeMimeTypes = new Set(["text/plain", "text/csv", "application/json"]);
   const imageLikeMimeTypes = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/bmp"]);
+  const pdfLikeMimeTypes = new Set(["application/pdf"]);
 
   if (textLikeMimeTypes.has(mimeType) || [".txt", ".csv", ".json", ".log"].includes(extension)) {
     const text = await fs.readFile(filePath, "utf8");
@@ -234,56 +401,82 @@ async function readUploadedReceiptText(filePath: string, mimeType: string, origi
     };
   }
 
-  if (imageLikeMimeTypes.has(mimeType) || [".png", ".jpg", ".jpeg", ".webp", ".bmp"].includes(extension)) {
-    const processedFullPath = `${filePath}.ocr.png`;
-    let fullText = "";
-    let headerText = "";
+  if (
+    imageLikeMimeTypes.has(mimeType) ||
+    pdfLikeMimeTypes.has(mimeType) ||
+    [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".pdf"].includes(extension)
+  ) {
+    const candidates: OcrCandidate[] = [];
+    const generatedPaths: string[] = [];
 
     try {
-      const baseImage = sharp(filePath);
+      const isPdf = pdfLikeMimeTypes.has(mimeType) || extension === ".pdf";
+      const createBaseImage = () => (isPdf ? sharp(filePath, { density: 300, page: 0 }) : sharp(filePath));
+      const baseImage = createBaseImage();
       const metadata = await baseImage.metadata();
 
-      await baseImage
-        .grayscale()
-        .normalize()
-        .withMetadata({ density: 300 })
-        .png()
-        .toFile(processedFullPath);
+      const rotations = [0, 90, 270, 180];
 
-      const fullResult = await Tesseract.recognize(processedFullPath, "eng");
-      fullText = fullResult.data.text ?? "";
+      for (const rotation of rotations) {
+        const processedFullPath = `${filePath}.ocr-${rotation}.png`;
+        generatedPaths.push(processedFullPath);
 
-      if (metadata.width && metadata.height) {
-        const headerHeight = Math.max(Math.floor(metadata.height * 0.32), 200);
-        const headerPath = `${filePath}.header.png`;
-
-        await sharp(filePath)
-          .extract({
-            left: 0,
-            top: 0,
-            width: metadata.width,
-            height: Math.min(headerHeight, metadata.height),
-          })
+        await createBaseImage()
+          .rotate(rotation)
           .grayscale()
           .normalize()
           .withMetadata({ density: 300 })
           .png()
-          .toFile(headerPath);
+          .toFile(processedFullPath);
 
-        const headerResult = await Tesseract.recognize(headerPath, "eng");
-        headerText = headerResult.data.text ?? "";
-        await fs.unlink(headerPath).catch(() => undefined);
+        const fullResult = await Tesseract.recognize(processedFullPath, "eng");
+        const fullText = fullResult.data.text ?? "";
+
+        let headerText = "";
+
+        const rotatedMetadata = await sharp(processedFullPath).metadata();
+        if (rotatedMetadata.width && rotatedMetadata.height) {
+          const headerHeight = Math.max(Math.floor(rotatedMetadata.height * 0.32), 200);
+          const headerPath = `${filePath}.header-${rotation}.png`;
+          generatedPaths.push(headerPath);
+
+          await sharp(processedFullPath)
+            .extract({
+              left: 0,
+              top: 0,
+              width: rotatedMetadata.width,
+              height: Math.min(headerHeight, rotatedMetadata.height),
+            })
+            .png()
+            .toFile(headerPath);
+
+          const headerResult = await Tesseract.recognize(headerPath, "eng");
+          headerText = headerResult.data.text ?? "";
+        }
+
+        const parsed = parseReceiptText(fullText, headerText);
+        candidates.push({
+          fullText,
+          headerText,
+          score: scoreParsedReceipt(parsed),
+        });
       }
     } catch {
-      fullText = "";
-      headerText = "";
+      return {
+        fullText: "",
+        headerText: "",
+      };
     } finally {
-      await fs.unlink(processedFullPath).catch(() => undefined);
+      for (const tempPath of generatedPaths) {
+        await fs.unlink(tempPath).catch(() => undefined);
+      }
     }
 
+    const bestCandidate = candidates.sort((left, right) => right.score - left.score)[0];
+
     return {
-      fullText,
-      headerText,
+      fullText: bestCandidate?.fullText ?? "",
+      headerText: bestCandidate?.headerText ?? "",
     };
   }
 
@@ -393,7 +586,7 @@ async function processQueuedReceipt(receiptId: string) {
         paymentMethod: matchedPaymentMethod,
         extractedSubtotal: parsed.subtotal,
         extractedTax: parsed.tax,
-        extractedTotal: parsed.total ?? parsed.finalAmount,
+        extractedTotal: parsed.finalAmount,
         parserConfidence: parsed.parserConfidence,
         processingError: null,
         processedAt: new Date(),
