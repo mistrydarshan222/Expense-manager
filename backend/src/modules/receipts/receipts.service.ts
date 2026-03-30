@@ -235,18 +235,29 @@ async function readUploadedReceiptText(filePath: string, mimeType: string, origi
   }
 
   if (imageLikeMimeTypes.has(mimeType) || [".png", ".jpg", ".jpeg", ".webp", ".bmp"].includes(extension)) {
-    const fullResult = await Tesseract.recognize(filePath, "eng");
+    const processedFullPath = `${filePath}.ocr.png`;
+    let fullText = "";
     let headerText = "";
 
     try {
-      const image = sharp(filePath);
-      const metadata = await image.metadata();
+      const baseImage = sharp(filePath);
+      const metadata = await baseImage.metadata();
+
+      await baseImage
+        .grayscale()
+        .normalize()
+        .withMetadata({ density: 300 })
+        .png()
+        .toFile(processedFullPath);
+
+      const fullResult = await Tesseract.recognize(processedFullPath, "eng");
+      fullText = fullResult.data.text ?? "";
 
       if (metadata.width && metadata.height) {
         const headerHeight = Math.max(Math.floor(metadata.height * 0.32), 200);
         const headerPath = `${filePath}.header.png`;
 
-        await image
+        await sharp(filePath)
           .extract({
             left: 0,
             top: 0,
@@ -255,6 +266,8 @@ async function readUploadedReceiptText(filePath: string, mimeType: string, origi
           })
           .grayscale()
           .normalize()
+          .withMetadata({ density: 300 })
+          .png()
           .toFile(headerPath);
 
         const headerResult = await Tesseract.recognize(headerPath, "eng");
@@ -262,11 +275,14 @@ async function readUploadedReceiptText(filePath: string, mimeType: string, origi
         await fs.unlink(headerPath).catch(() => undefined);
       }
     } catch {
+      fullText = "";
       headerText = "";
+    } finally {
+      await fs.unlink(processedFullPath).catch(() => undefined);
     }
 
     return {
-      fullText: fullResult.data.text ?? "",
+      fullText,
       headerText,
     };
   }
