@@ -360,6 +360,13 @@ h3 {
     linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(221, 244, 239, 0.95) 100%);
 }
 
+.summary-card-strong strong {
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .summary-caption,
 .summary-note {
   line-height: 1.5;
