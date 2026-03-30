@@ -5,37 +5,125 @@
     <p class="profile-copy">Login first, then come back here to track receipt processing and create expenses from the extracted totals.</p>
   </section>
 } @else {
+  <section class="panel receipt-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">Receipt Upload</p>
+        <h2>Scan a receipt</h2>
+        <p class="profile-copy">Upload a receipt or paste OCR text, then review the extracted details before saving the expense.</p>
+      </div>
+      <div class="panel-tip">Receipts are queued first, then moved into review once processing finishes.</div>
+    </div>
+
+    <form [formGroup]="receiptForm" (ngSubmit)="processReceipt()" class="form-grid">
+      <label>
+        <span>Category</span>
+        <select formControlName="categoryId">
+          <option value="" disabled>Select a category</option>
+          @for (category of store.categories(); track category.id) {
+            <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span>Date override</span>
+        <input type="date" formControlName="expenseDate" />
+      </label>
+      <label>
+        <span>Optional title</span>
+        <input type="text" formControlName="title" placeholder="Leave blank to use the detected merchant" />
+      </label>
+      <label>
+        <span>Payment method</span>
+        <select formControlName="paymentMethod">
+          <option value="" disabled>Select a payment method</option>
+          @for (method of store.paymentMethods(); track method.id) {
+            <option [value]="method.name">{{ method.name }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        <span>Optional merchant</span>
+        <input type="text" formControlName="merchantName" placeholder="Use only if you want to override the merchant" />
+      </label>
+      <label>
+        <span>Receipt file</span>
+        <input type="file" accept=".png,.jpg,.jpeg,.webp,.bmp,.txt,.csv,.json,.log,image/png,image/jpeg,image/webp,image/bmp,text/plain,text/csv,application/json" (change)="onReceiptFileSelected($event)" />
+      </label>
+      <label class="full-width">
+        <span>Receipt text or OCR text</span>
+        <textarea
+          rows="5"
+          formControlName="rawText"
+          placeholder="Optional: paste receipt text here if you already have OCR output"
+        ></textarea>
+      </label>
+      <label class="full-width">
+        <span>Notes</span>
+        <textarea rows="3" formControlName="notes" placeholder="Optional note saved with the expense"></textarea>
+      </label>
+      <div class="form-actions full-width">
+        <button type="submit">Send to queue</button>
+        @if (selectedReceiptFile()) {
+          <span class="file-helper">Image attached and ready for processing.</span>
+        } @else {
+          <span class="file-helper">Add a receipt image or paste text to start a new review job.</span>
+        }
+      </div>
+    </form>
+  </section>
+
   <section class="receipt-review-grid">
     <article class="panel receipt-queue-panel">
-      <p class="eyebrow">Queue</p>
-      <h2>Receipt processing queue</h2>
-      <p class="profile-copy">Uploads appear here first. This list only shows the latest 5 receipts from the last 1 day.</p>
+      <div class="receipt-queue-head">
+        <div>
+          <p class="eyebrow">Queue</p>
+          <h2>Recent receipt jobs</h2>
+          <p class="profile-copy">Latest 5 receipts from the last 1 day.</p>
+        </div>
+        <div class="receipt-mini-stat">
+          <strong>{{ recentReceipts().length }}</strong>
+          <span>Visible jobs</span>
+        </div>
+      </div>
 
       <div class="receipt-queue-list">
         @for (receipt of recentReceipts(); track receipt.id) {
-          <button type="button" class="receipt-queue-item" (click)="openReceipt(receipt)">
-            <strong>{{ receipt.title || receipt.merchantName || receipt.originalFileName }}</strong>
-            <span>{{ receipt.originalFileName }}</span>
-            <span class="receipt-status-pill" [attr.data-status]="receipt.status">{{ receipt.status }}</span>
+          <button
+            type="button"
+            class="receipt-queue-item"
+            [class.receipt-queue-item-active]="store.currentReceipt()?.id === receipt.id"
+            (click)="openReceipt(receipt)"
+          >
+            <div class="receipt-queue-item-top">
+              <strong>{{ receiptDisplayName(receipt) }}</strong>
+              <span class="receipt-status-pill" [attr.data-status]="receipt.status">{{ receipt.status }}</span>
+            </div>
+            <span class="receipt-queue-item-time">{{ receipt.createdAt | date:'medium' }}</span>
           </button>
         } @empty {
-          <p class="empty-state">No queued receipts yet. Upload one from the dashboard.</p>
+          <p class="empty-state">No receipt jobs yet. Start by uploading a receipt above.</p>
         }
       </div>
     </article>
 
     <article class="panel receipt-review-panel">
       @if (store.currentReceipt(); as receipt) {
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Review</p>
-            <h3>{{ receipt.title || receipt.merchantName || receipt.originalFileName }}</h3>
+        <div class="receipt-review-hero">
+            <div class="receipt-review-copy">
+              <p class="eyebrow">Review</p>
+              <h2>{{ receiptDisplayName(receipt) }}</h2>
+              <p class="profile-copy">Review the extracted amount, adjust the fields if needed, and then create the expense.</p>
+            </div>
+          <div class="receipt-review-side">
+            <span class="receipt-status-pill" [attr.data-status]="receipt.status">{{ receipt.status }}</span>
           </div>
-          <span class="receipt-status-pill" [attr.data-status]="receipt.status">{{ receipt.status }}</span>
         </div>
 
         @if (receipt.status === 'queued' || receipt.status === 'processing') {
-          <p class="profile-copy">This receipt is still being processed. The page will refresh automatically when OCR finishes.</p>
+          <div class="receipt-info-banner">
+            This receipt is still being processed. The page refreshes automatically when OCR finishes.
+          </div>
         }
 
         @if (receipt.status === 'failed') {
@@ -62,56 +150,53 @@
             </div>
           </div>
 
-          <form [formGroup]="reviewForm" (ngSubmit)="createExpenseFromReceipt()" class="form-grid">
-            <label>
-              <span>Title</span>
-              <input type="text" formControlName="title" />
-            </label>
-            <label>
-              <span>Category</span>
-              <select formControlName="categoryId">
-                <option value="" disabled>Select a category</option>
-                @for (category of store.categories(); track category.id) {
-                  <option [value]="category.id">{{ category.name }}</option>
+          <div class="receipt-review-body">
+            <form [formGroup]="reviewForm" (ngSubmit)="createExpenseFromReceipt()" class="form-grid receipt-form-grid">
+              <label>
+                <span>Title</span>
+                <input type="text" formControlName="title" />
+              </label>
+              <label>
+                <span>Category</span>
+                <select formControlName="categoryId">
+                  <option value="" disabled>Select a category</option>
+                  @for (category of store.categories(); track category.id) {
+                    <option [value]="category.id">{{ category.name }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                <span>Date</span>
+                <input type="date" formControlName="expenseDate" />
+              </label>
+              <label>
+                <span>Payment method</span>
+                <select formControlName="paymentMethod">
+                  <option value="" disabled>Select a payment method</option>
+                  @for (method of store.paymentMethods(); track method.id) {
+                    <option [value]="method.name">{{ method.name }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                <span>Merchant</span>
+                <input type="text" formControlName="merchantName" />
+              </label>
+              <label class="full-width">
+                <span>Notes</span>
+                <textarea rows="5" formControlName="notes" placeholder="Add any context before saving this expense"></textarea>
+              </label>
+              <div class="form-actions full-width receipt-actions">
+                @if (receipt.status === 'completed') {
+                  <span class="file-helper">Expense already created from this receipt.</span>
+                  <button type="button" class="ghost-button" (click)="cancelReview()">Back to dashboard</button>
+                } @else {
+                  <button type="submit">Create expense</button>
+                  <button type="button" class="ghost-button" (click)="cancelReview()">Cancel</button>
                 }
-              </select>
-            </label>
-            <label>
-              <span>Date</span>
-              <input type="date" formControlName="expenseDate" />
-            </label>
-            <label>
-              <span>Payment method</span>
-              <select formControlName="paymentMethod">
-                <option value="" disabled>Select a payment method</option>
-                @for (method of store.paymentMethods(); track method.id) {
-                  <option [value]="method.name">{{ method.name }}</option>
-                }
-              </select>
-            </label>
-            <label>
-              <span>Merchant</span>
-              <input type="text" formControlName="merchantName" />
-            </label>
-            <label class="full-width">
-              <span>Notes</span>
-              <textarea rows="4" formControlName="notes"></textarea>
-            </label>
-            <div class="form-actions full-width">
-              @if (receipt.status === 'completed') {
-                <span class="file-helper">Expense already created from this receipt.</span>
-              } @else {
-                <button type="submit">Create expense</button>
-              }
-            </div>
-          </form>
-
-          @if (receipt.ocrRawText) {
-            <div class="receipt-text-block">
-              <span class="receipt-result-title">OCR text</span>
-              <pre>{{ receipt.ocrRawText }}</pre>
-            </div>
-          }
+              </div>
+            </form>
+          </div>
         }
       } @else {
         <p class="empty-state">Choose a receipt from the queue to review it.</p>

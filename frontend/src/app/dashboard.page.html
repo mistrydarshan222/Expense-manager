@@ -191,86 +191,61 @@
       </article>
     </section>
 
-    <section class="panel receipt-panel">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Receipt Upload</p>
-          <h3>Upload a receipt and auto-add the total</h3>
-        </div>
-        <div class="panel-tip">The app saves the receipt total first, then subtotal + tax if needed.</div>
-      </div>
-
-      <form [formGroup]="receiptForm" (ngSubmit)="processReceipt()" class="form-grid">
-        <label>
-          <span>Category</span>
-          <select formControlName="categoryId">
-            <option value="" disabled>Select a category</option>
-            @for (category of store.categories(); track category.id) {
-              <option [value]="category.id">{{ category.name }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          <span>Date override</span>
-          <input type="date" formControlName="expenseDate" />
-        </label>
-        <label>
-          <span>Optional title</span>
-          <input type="text" formControlName="title" placeholder="Leave blank to use merchant name" />
-        </label>
-        <label>
-          <span>Payment method</span>
-          <select formControlName="paymentMethod">
-            <option value="" disabled>Select a payment method</option>
-            @for (method of store.paymentMethods(); track method.id) {
-              <option [value]="method.name">{{ method.name }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          <span>Optional merchant</span>
-          <input type="text" formControlName="merchantName" placeholder="Merchant name if you want to override it" />
-        </label>
-        <label>
-          <span>Receipt file</span>
-          <input type="file" accept=".png,.jpg,.jpeg,.webp,.bmp,.txt,.csv,.json,.log,image/png,image/jpeg,image/webp,image/bmp,text/plain,text/csv,application/json" (change)="onReceiptFileSelected($event)" />
-        </label>
-        <label class="full-width">
-          <span>Receipt text or OCR text</span>
-          <textarea
-            rows="6"
-            formControlName="rawText"
-            placeholder="Optional: paste receipt text here. Example: Subtotal 100.00 Tax 18.00 Total 118.00"
-          ></textarea>
-        </label>
-        <label class="full-width">
-          <span>Notes</span>
-          <textarea rows="3" formControlName="notes" placeholder="Optional note saved with the expense"></textarea>
-        </label>
-        <div class="form-actions full-width">
-          <button type="submit">Send to queue</button>
-          @if (selectedReceiptFile()) {
-            <span class="file-helper">Selected file: {{ selectedReceiptFile()?.name }}</span>
-          } @else {
-            <span class="file-helper">Tip: upload a receipt image or paste receipt text. The request goes to the queue first, then you review it before creating the expense.</span>
-          }
-        </div>
-      </form>
-    </section>
-
     <section class="panel recent-panel">
       <div class="panel-heading">
         <div>
           <p class="eyebrow">Recent Expenses</p>
-          <h3>Everything currently stored in PostgreSQL</h3>
+          <h3>Latest 5 expenses</h3>
         </div>
+        <a routerLink="/expenses" class="ghost-button">View all expenses</a>
       </div>
 
       @if (store.expenses().length === 0) {
         <p class="empty-state">No expenses yet. Add your first daily expense from the form above.</p>
       } @else {
+        <form [formGroup]="expenseFilterForm" class="expense-filter-bar">
+          <label>
+            <span>Search</span>
+            <input type="text" formControlName="search" placeholder="Search title, merchant, or note" />
+          </label>
+          <label>
+            <span>Category</span>
+            <select formControlName="categoryId">
+              <option value="all">All categories</option>
+              @for (category of store.categories(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            <span>Payment method</span>
+            <select formControlName="paymentMethod">
+              <option value="all">All methods</option>
+              @for (method of store.paymentMethods(); track method.id) {
+                <option [value]="method.name">{{ method.name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            <span>Currency</span>
+            <select formControlName="currency">
+              <option value="all">All currencies</option>
+              @for (total of store.totalsByCurrency(); track total.currency) {
+                <option [value]="total.currency">{{ total.currency }}</option>
+              }
+            </select>
+          </label>
+          <div class="expense-filter-actions">
+            <span class="file-helper">{{ recentExpensePreview().length }} of {{ filteredExpenses().length }} matching expense{{ filteredExpenses().length === 1 ? '' : 's' }}</span>
+            <button type="button" class="ghost-button" (click)="clearExpenseFilters()">Clear filters</button>
+          </div>
+        </form>
+
+        @if (filteredExpenses().length === 0) {
+          <p class="empty-state">No expenses match your current filters.</p>
+        } @else {
         <div class="expense-list">
-          @for (expense of store.expenses(); track expense.id) {
+          @for (expense of recentExpensePreview(); track expense.id) {
             <article class="expense-card">
               <div class="expense-main">
                 <div class="expense-title-row">
@@ -299,6 +274,7 @@
             </article>
           }
         </div>
+        }
       }
     </section>
   </section>

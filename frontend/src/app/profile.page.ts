@@ -91,4 +91,54 @@ export class ProfilePageComponent {
   protected deletePaymentMethod(id: string) {
     this.store.deletePaymentMethod(id);
   }
+
+  protected paymentMethodKind(name: string) {
+    const value = name.toLowerCase();
+
+    if (value.includes('cash')) {
+      return 'Cash';
+    }
+
+    if (
+      value.includes('visa') ||
+      value.includes('mastercard') ||
+      value.includes('amex') ||
+      value.includes('credit') ||
+      value.includes('debit') ||
+      value.includes('card')
+    ) {
+      return 'Card';
+    }
+
+    if (value.includes('bank') || value.includes('transfer') || value.includes('wire') || value.includes('upi')) {
+      return 'Bank';
+    }
+
+    return 'Custom';
+  }
+
+  protected paymentMethodIcon(name: string) {
+    const value = name.toLowerCase();
+
+    if (value.includes('cash')) {
+      return 'CA';
+    }
+
+    if (
+      value.includes('visa') ||
+      value.includes('mastercard') ||
+      value.includes('amex') ||
+      value.includes('credit') ||
+      value.includes('debit') ||
+      value.includes('card')
+    ) {
+      return 'CR';
+    }
+
+    if (value.includes('bank') || value.includes('transfer') || value.includes('wire') || value.includes('upi')) {
+      return 'BK';
+    }
+
+    return 'PM';
+  }
 }

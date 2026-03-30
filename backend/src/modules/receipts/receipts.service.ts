@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
+import sharp from "sharp";
 import Tesseract from "tesseract.js";
 
 import { prisma } from "../../config/db";
@@ -16,6 +17,11 @@ type ParsedReceipt = {
   cardLastFour: string | null;
   needsReview: boolean;
   parserConfidence: number;
+};
+
+type OcrReadResult = {
+  fullText: string;
+  headerText: string;
 };
 
 const receiptQueue: string[] = [];
@@ -95,32 +101,35 @@ function detectCardLastFour(text: string) {
 }
 
 function detectMerchant(text: string) {
-  const knownMerchants: Array<{ key: string; name: string }> = [
-    { key: "walmart", name: "Walmart" },
-    { key: "costco", name: "Costco" },
-    { key: "target", name: "Target" },
-    { key: "amazon", name: "Amazon" },
-    { key: "tesco", name: "Tesco" },
-    { key: "aldi", name: "Aldi" },
-    { key: "carrefour", name: "Carrefour" },
+  const knownMerchants: Array<{ pattern: RegExp; name: string }> = [
+    { pattern: /\breal canadian superstore\b/i, name: "Real Canadian Superstore" },
+    { pattern: /\bwalmart\b/i, name: "Walmart" },
+    { pattern: /\bcostco\b/i, name: "Costco" },
+    { pattern: /\btarget\b/i, name: "Target" },
+    { pattern: /\bamazon\b/i, name: "Amazon" },
+    { pattern: /\btesco\b/i, name: "Tesco" },
+    { pattern: /\baldi\b/i, name: "Aldi" },
+    { pattern: /\bcarrefour\b/i, name: "Carrefour" },
   ];
   const blockedPatterns =
-    /(invoice|receipt|tax|total|subtotal|date|survey|customer survey|how did we do|win|gift cards|rules and regulations|contest|change due|approval|signature|mastercard|visa|terminal|items sold)/i;
+    /(invoice|receipt|tax|total|subtotal|date|survey|customer survey|how did we do|win|gift cards|rules and regulations|contest|change due|approval|signature|mastercard|visa|discover|terminal|items sold|transaction|merchant id|terminal id|approval code|entry mode|response|thank you|thanks for supporting|purchase|card type|number|type|slip #|retain this copy)/i;
 
-  const normalizeMerchantText = (value: string) =>
+  const normalizeSpaces = (value: string) =>
+    value.replace(/[^A-Za-z&\s]/g, " ").replace(/\s+/g, " ").trim();
+
+  const titleCase = (value: string) =>
     value
       .toLowerCase()
-      .replace(/[^a-z]/g, "");
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
 
   const canonicalMerchant = (value: string) => {
-    const normalized = normalizeMerchantText(value);
+    const normalizedLine = normalizeSpaces(value);
 
     for (const merchant of knownMerchants) {
-      if (
-        normalized === merchant.key ||
-        normalized.startsWith(merchant.key) ||
-        merchant.key.startsWith(normalized)
-      ) {
+      if (merchant.pattern.test(normalizedLine)) {
         return merchant.name;
       }
     }
@@ -128,12 +137,35 @@ function detectMerchant(text: string) {
     return null;
   };
 
+  const cleanCandidate = (value: string) => {
+    const normalized = normalizeSpaces(value);
+
+    if (!normalized || normalized.length < 3) {
+      return null;
+    }
+
+    if (/\d/.test(normalized) || blockedPatterns.test(normalized)) {
+      return null;
+    }
+
+    const words = normalized
+      .split(" ")
+      .filter((word) => word.length > 1)
+      .slice(0, 5);
+
+    if (words.length === 0) {
+      return null;
+    }
+
+    return titleCase(words.join(" "));
+  };
+
   const lines = text
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const topLines = lines.slice(0, 20);
+  const topLines = lines.slice(0, 12);
 
   for (const line of topLines) {
     const canonical = canonicalMerchant(line);
@@ -143,32 +175,13 @@ function detectMerchant(text: string) {
   }
 
   for (const line of topLines) {
-    if (/\d/.test(line) || blockedPatterns.test(line)) {
-      continue;
-    }
-
-    const normalized = line
-      .replace(/[^A-Za-z&\s]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (!normalized || normalized.length < 3) {
-      continue;
-    }
-
-    const canonical = canonicalMerchant(normalized);
+    const canonical = canonicalMerchant(line);
     if (canonical) {
       return canonical;
     }
 
-    const words = normalized.split(" ");
-    const cleanedCandidate = words
-      .filter((word) => word.length > 1)
-      .slice(0, 3)
-      .join(" ")
-      .trim();
-
-    if (cleanedCandidate && !blockedPatterns.test(cleanedCandidate)) {
+    const cleanedCandidate = cleanCandidate(line);
+    if (cleanedCandidate) {
       return cleanedCandidate;
     }
   }
@@ -176,8 +189,9 @@ function detectMerchant(text: string) {
   return null;
 }
 
-function parseReceiptText(text: string): ParsedReceipt {
+function parseReceiptText(text: string, headerText = ""): ParsedReceipt {
   const normalizedText = text.replace(/\r/g, "\n");
+  const normalizedHeaderText = headerText.replace(/\r/g, "\n");
   const subtotal = findAmountForLabels(normalizedText, ["subtotal", "sub total", "amount"]);
   const tax = findAmountForLabels(normalizedText, ["tax", "vat", "gst"]);
   const total = findAmountForLabels(normalizedText, ["grand total", "total due", "amount due", "total"]);
@@ -194,7 +208,7 @@ function parseReceiptText(text: string): ParsedReceipt {
   }
 
   return {
-    merchantName: detectMerchant(normalizedText),
+    merchantName: detectMerchant(normalizedHeaderText) || detectMerchant(normalizedText),
     expenseDate: detectDate(normalizedText),
     subtotal,
     tax,
@@ -207,21 +221,60 @@ function parseReceiptText(text: string): ParsedReceipt {
   };
 }
 
-async function readUploadedReceiptText(filePath: string, mimeType: string, originalFileName: string) {
+async function readUploadedReceiptText(filePath: string, mimeType: string, originalFileName: string): Promise<OcrReadResult> {
   const extension = path.extname(originalFileName).toLowerCase();
   const textLikeMimeTypes = new Set(["text/plain", "text/csv", "application/json"]);
   const imageLikeMimeTypes = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/bmp"]);
 
   if (textLikeMimeTypes.has(mimeType) || [".txt", ".csv", ".json", ".log"].includes(extension)) {
-    return fs.readFile(filePath, "utf8");
+    const text = await fs.readFile(filePath, "utf8");
+    return {
+      fullText: text,
+      headerText: text,
+    };
   }
 
   if (imageLikeMimeTypes.has(mimeType) || [".png", ".jpg", ".jpeg", ".webp", ".bmp"].includes(extension)) {
-    const result = await Tesseract.recognize(filePath, "eng");
-    return result.data.text ?? "";
+    const fullResult = await Tesseract.recognize(filePath, "eng");
+    let headerText = "";
+
+    try {
+      const image = sharp(filePath);
+      const metadata = await image.metadata();
+
+      if (metadata.width && metadata.height) {
+        const headerHeight = Math.max(Math.floor(metadata.height * 0.32), 200);
+        const headerPath = `${filePath}.header.png`;
+
+        await image
+          .extract({
+            left: 0,
+            top: 0,
+            width: metadata.width,
+            height: Math.min(headerHeight, metadata.height),
+          })
+          .grayscale()
+          .normalize()
+          .toFile(headerPath);
+
+        const headerResult = await Tesseract.recognize(headerPath, "eng");
+        headerText = headerResult.data.text ?? "";
+        await fs.unlink(headerPath).catch(() => undefined);
+      }
+    } catch {
+      headerText = "";
+    }
+
+    return {
+      fullText: fullResult.data.text ?? "",
+      headerText,
+    };
   }
 
-  return "";
+  return {
+    fullText: "",
+    headerText: "",
+  };
 }
 
 function computeFinalAmount(receipt: {
@@ -285,17 +338,17 @@ async function processQueuedReceipt(receiptId: string) {
   });
 
   try {
-    const extractedText = receipt.ocrRawText?.trim()
-      ? receipt.ocrRawText
+    const extractedResult = receipt.ocrRawText?.trim()
+      ? { fullText: receipt.ocrRawText, headerText: receipt.ocrRawText }
       : receipt.filePath !== "inline"
         ? await readUploadedReceiptText(receipt.filePath, receipt.mimeType, receipt.originalFileName)
-        : "";
+        : { fullText: "", headerText: "" };
 
-    if (!extractedText.trim()) {
+    if (!extractedResult.fullText.trim()) {
       throw new Error("Could not read any text from this receipt.");
     }
 
-    const parsed = parseReceiptText(extractedText);
+    const parsed = parseReceiptText(extractedResult.fullText, extractedResult.headerText);
 
     if (parsed.finalAmount === null) {
       throw new Error("Could not find total, subtotal, or tax values in this receipt.");
@@ -317,7 +370,7 @@ async function processQueuedReceipt(receiptId: string) {
       data: {
         status: "processed",
         title: receipt.title || parsed.merchantName || path.parse(receipt.originalFileName).name,
-        ocrRawText: extractedText,
+        ocrRawText: extractedResult.fullText,
         merchantName: receipt.merchantName || parsed.merchantName,
         expenseDate: receipt.expenseDate ?? parsed.expenseDate ?? new Date(),
         currency: receipt.currency ?? parsed.currency ?? receipt.user.preferredCurrency,

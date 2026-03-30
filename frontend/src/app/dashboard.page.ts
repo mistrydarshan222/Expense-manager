@@ -1,21 +1,23 @@
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe, DOCUMENT, NgClass } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { startWith } from 'rxjs';
 
 import { Expense } from './api.types';
 import { AppStore } from './app.store';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [ReactiveFormsModule, DatePipe, NgClass],
+  imports: [ReactiveFormsModule, DatePipe, NgClass, RouterLink],
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss'
 })
 export class DashboardPageComponent {
   protected readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
-  private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
 
   protected readonly activeTab = signal<'login' | 'register'>('login');
   protected readonly editingExpenseId = signal<string | null>(null);
@@ -36,18 +38,6 @@ export class DashboardPageComponent {
     name: ['', [Validators.required, Validators.minLength(2)]]
   });
 
-  protected readonly receiptForm = this.fb.nonNullable.group({
-    categoryId: ['', [Validators.required]],
-    expenseDate: [new Date().toISOString().slice(0, 10)],
-    title: [''],
-    merchantName: [''],
-    paymentMethod: [''],
-    notes: [''],
-    rawText: ['']
-  });
-
-  protected readonly selectedReceiptFile = signal<File | null>(null);
-
   protected readonly expenseForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
     categoryId: ['', [Validators.required]],
@@ -58,15 +48,44 @@ export class DashboardPageComponent {
     notes: ['']
   });
 
+  protected readonly expenseFilterForm = this.fb.nonNullable.group({
+    search: [''],
+    categoryId: ['all'],
+    paymentMethod: ['all'],
+    currency: ['all']
+  });
+
+  private readonly expenseFilters = toSignal(
+    this.expenseFilterForm.valueChanges.pipe(startWith(this.expenseFilterForm.getRawValue())),
+    { initialValue: this.expenseFilterForm.getRawValue() }
+  );
+
+  protected readonly filteredExpenses = computed(() => {
+    const { search = '', categoryId = 'all', paymentMethod = 'all', currency = 'all' } = this.expenseFilters();
+    const searchValue = search.trim().toLowerCase();
+
+    return this.store.expenses().filter((expense) => {
+      const matchesSearch =
+        !searchValue ||
+        expense.title.toLowerCase().includes(searchValue) ||
+        (expense.merchantName ?? '').toLowerCase().includes(searchValue) ||
+        (expense.notes ?? '').toLowerCase().includes(searchValue);
+
+      const matchesCategory = categoryId === 'all' || expense.categoryId === categoryId;
+      const matchesPaymentMethod = paymentMethod === 'all' || (expense.paymentMethod ?? '') === paymentMethod;
+      const matchesCurrency = currency === 'all' || expense.currency === currency;
+
+      return matchesSearch && matchesCategory && matchesPaymentMethod && matchesCurrency;
+    });
+  });
+
+  protected readonly recentExpensePreview = computed(() => this.filteredExpenses().slice(0, 5));
+
   constructor() {
     effect(() => {
       const categories = this.store.categories();
       if (!this.expenseForm.value.categoryId && categories.length > 0) {
         this.expenseForm.patchValue({ categoryId: categories[0].id });
-      }
-
-      if (!this.receiptForm.value.categoryId && categories.length > 0) {
-        this.receiptForm.patchValue({ categoryId: categories[0].id });
       }
     });
 
@@ -148,39 +167,6 @@ export class DashboardPageComponent {
     this.store.createExpense(payload, () => this.resetExpenseForm());
   }
 
-  protected onReceiptFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    this.selectedReceiptFile.set(file);
-  }
-
-  protected processReceipt() {
-    const formValue = this.receiptForm.getRawValue();
-    const hasReceiptText = formValue.rawText.trim().length >= 10;
-    const hasReceiptFile = this.selectedReceiptFile() !== null;
-
-    if (!hasReceiptText && !hasReceiptFile) {
-      this.store.statusMessage.set('Upload a receipt image or paste receipt text first.');
-      return;
-    }
-
-    if (this.receiptForm.invalid) {
-      this.receiptForm.markAllAsTouched();
-      return;
-    }
-
-    this.store.queueReceipt(
-      {
-        ...formValue,
-        receiptFile: this.selectedReceiptFile()
-      },
-      () => {
-        this.resetReceiptForm();
-        void this.router.navigateByUrl('/receipts');
-      }
-    );
-  }
-
   protected startEditExpense(expense: Expense) {
     this.editingExpenseId.set(expense.id);
     this.expenseForm.patchValue({
@@ -193,6 +179,13 @@ export class DashboardPageComponent {
       notes: expense.notes ?? ''
     });
     this.store.statusMessage.set(`Editing "${expense.title}". Update any field and save.`);
+    queueMicrotask(() => {
+      const expenseSection = this.document.getElementById('expenses');
+      expenseSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const titleInput = expenseSection?.querySelector('input[formcontrolname="title"]') as HTMLInputElement | null;
+      titleInput?.focus();
+      titleInput?.select();
+    });
   }
 
   protected cancelEditExpense() {
@@ -202,6 +195,15 @@ export class DashboardPageComponent {
 
   protected deleteExpense(expenseId: string) {
     this.store.deleteExpense(expenseId);
+  }
+
+  protected clearExpenseFilters() {
+    this.expenseFilterForm.reset({
+      search: '',
+      categoryId: 'all',
+      paymentMethod: 'all',
+      currency: 'all'
+    });
   }
 
   protected paymentMethodClass(method: string | null) {
@@ -244,19 +246,6 @@ export class DashboardPageComponent {
       merchantName: '',
       paymentMethod: this.store.paymentMethods()[0]?.name ?? '',
       notes: ''
-    });
-  }
-
-  protected resetReceiptForm() {
-    this.selectedReceiptFile.set(null);
-    this.receiptForm.patchValue({
-      categoryId: this.store.categories()[0]?.id ?? '',
-      expenseDate: new Date().toISOString().slice(0, 10),
-      title: '',
-      merchantName: '',
-      paymentMethod: '',
-      notes: '',
-      rawText: ''
     });
   }
 }

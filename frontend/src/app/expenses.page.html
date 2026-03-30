@@ -1,0 +1,110 @@
+@if (!store.token()) {
+  <section class="panel profile-panel">
+    <p class="eyebrow">Expenses</p>
+    <h2>Sign in to view your expense history</h2>
+    <p class="profile-copy">Login first, then come back here to browse your full expense timeline with filters and summaries.</p>
+  </section>
+} @else {
+  <section class="expenses-page-shell">
+    <section class="panel expenses-hero-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Expense History</p>
+          <h2>All expenses</h2>
+          <p class="profile-copy">Review every saved expense and narrow the list with date, category, payment method, currency, or search.</p>
+        </div>
+        <div class="panel-tip">{{ filteredExpenses().length }} matching expense{{ filteredExpenses().length === 1 ? '' : 's' }}</div>
+      </div>
+
+      <div class="time-filter-row">
+        <button type="button" class="time-filter-chip" [ngClass]="{ 'time-filter-chip-active': filterForm.value.timeRange === 'all' }" (click)="setTimeRange('all')">All time</button>
+        <button type="button" class="time-filter-chip" [ngClass]="{ 'time-filter-chip-active': filterForm.value.timeRange === 'lastMonth' }" (click)="setTimeRange('lastMonth')">Last month</button>
+        <button type="button" class="time-filter-chip" [ngClass]="{ 'time-filter-chip-active': filterForm.value.timeRange === 'thisMonth' }" (click)="setTimeRange('thisMonth')">This month</button>
+        <button type="button" class="time-filter-chip" [ngClass]="{ 'time-filter-chip-active': filterForm.value.timeRange === 'thisWeek' }" (click)="setTimeRange('thisWeek')">This week</button>
+        <button type="button" class="time-filter-chip" [ngClass]="{ 'time-filter-chip-active': filterForm.value.timeRange === 'today' }" (click)="setTimeRange('today')">Today</button>
+      </div>
+
+      <form [formGroup]="filterForm" class="expense-filter-bar expense-filter-bar-wide">
+        <label>
+          <span>Search</span>
+          <input type="text" formControlName="search" placeholder="Search title, merchant, or note" />
+        </label>
+        <label>
+          <span>Category</span>
+          <select formControlName="categoryId">
+            <option value="all">All categories</option>
+            @for (category of store.categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Payment method</span>
+          <select formControlName="paymentMethod">
+            <option value="all">All methods</option>
+            @for (method of store.paymentMethods(); track method.id) {
+              <option [value]="method.name">{{ method.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Currency</span>
+          <select formControlName="currency">
+            <option value="all">All currencies</option>
+            @for (total of store.totalsByCurrency(); track total.currency) {
+              <option [value]="total.currency">{{ total.currency }}</option>
+            }
+          </select>
+        </label>
+        <div class="expense-filter-actions">
+          @if (filteredTotalsByCurrency().length > 0) {
+            <div class="expense-filter-summary">
+              @for (total of filteredTotalsByCurrency(); track total.currency) {
+                <span class="summary-note">{{ total.currency }}: {{ store.formatCurrency(total.amount, total.currency) }}</span>
+              }
+            </div>
+          }
+          <button type="button" class="ghost-button" (click)="clearFilters()">Clear filters</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel recent-panel">
+      @if (store.expenses().length === 0) {
+        <p class="empty-state">No expenses yet. Add your first expense from the dashboard.</p>
+      } @else if (filteredExpenses().length === 0) {
+        <p class="empty-state">No expenses match the selected filters.</p>
+      } @else {
+        <div class="expense-list">
+          @for (expense of filteredExpenses(); track expense.id) {
+            <article class="expense-card">
+              <div class="expense-main">
+                <div class="expense-title-row">
+                  <p class="expense-title">{{ expense.title }}</p>
+                  <span class="currency-badge">{{ expense.currency }}</span>
+                </div>
+                <p class="expense-meta">
+                  {{ expense.category?.name || 'Uncategorized' }} - {{ expense.expenseDate | date:'mediumDate' }}
+                </p>
+                <div class="expense-meta-row">
+                  @if (expense.merchantName) {
+                    <p class="expense-note">Merchant: {{ expense.merchantName }}</p>
+                  }
+                  @if (expense.paymentMethod) {
+                    <span class="method-badge" [ngClass]="paymentMethodClass(expense.paymentMethod)">{{ expense.paymentMethod }}</span>
+                  }
+                </div>
+                @if (expense.notes) {
+                  <p class="expense-note">{{ expense.notes }}</p>
+                }
+              </div>
+              <div class="expense-side">
+                <strong>{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </section>
+}

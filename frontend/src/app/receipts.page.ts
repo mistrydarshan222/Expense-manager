@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -7,7 +8,7 @@ import { AppStore } from './app.store';
 
 @Component({
   selector: 'app-receipts-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './receipts.page.html',
   styleUrl: './receipts.page.scss'
 })
@@ -15,6 +16,7 @@ export class ReceiptsPageComponent {
   protected readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  protected readonly selectedReceiptFile = signal<File | null>(null);
   protected readonly recentReceipts = computed(() => {
     const cutoff = Date.now() - 24 * 60 * 60 * 1000;
 
@@ -33,8 +35,25 @@ export class ReceiptsPageComponent {
     notes: ['']
   });
 
+  protected readonly receiptForm = this.fb.nonNullable.group({
+    categoryId: ['', [Validators.required]],
+    expenseDate: [new Date().toISOString().slice(0, 10)],
+    title: [''],
+    merchantName: [''],
+    paymentMethod: [''],
+    notes: [''],
+    rawText: ['']
+  });
+
   constructor() {
     this.store.loadReceipts();
+
+    effect(() => {
+      const categories = this.store.categories();
+      if (!this.receiptForm.value.categoryId && categories.length > 0) {
+        this.receiptForm.patchValue({ categoryId: categories[0].id });
+      }
+    });
 
     effect(() => {
       const currentReceipt = this.store.currentReceipt();
@@ -64,6 +83,39 @@ export class ReceiptsPageComponent {
     });
   }
 
+  protected onReceiptFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.selectedReceiptFile.set(file);
+  }
+
+  protected processReceipt() {
+    const formValue = this.receiptForm.getRawValue();
+    const hasReceiptText = formValue.rawText.trim().length >= 10;
+    const hasReceiptFile = this.selectedReceiptFile() !== null;
+
+    if (!hasReceiptText && !hasReceiptFile) {
+      this.store.statusMessage.set('Upload a receipt image or paste receipt text first.');
+      return;
+    }
+
+    if (this.receiptForm.invalid) {
+      this.receiptForm.markAllAsTouched();
+      return;
+    }
+
+    this.store.queueReceipt(
+      {
+        ...formValue,
+        receiptFile: this.selectedReceiptFile()
+      },
+      () => {
+        this.resetReceiptForm();
+        this.store.loadReceipts();
+      }
+    );
+  }
+
   protected openReceipt(receipt: Receipt) {
     this.store.loadReceipt(receipt.id);
   }
@@ -84,6 +136,10 @@ export class ReceiptsPageComponent {
     });
   }
 
+  protected cancelReview() {
+    void this.router.navigateByUrl('/');
+  }
+
   protected amountForReview(receipt: Receipt) {
     const total = receipt.extractedTotal ? Number(receipt.extractedTotal) : null;
     const subtotal = receipt.extractedSubtotal ? Number(receipt.extractedSubtotal) : null;
@@ -98,6 +154,46 @@ export class ReceiptsPageComponent {
     }
 
     return subtotal ?? 0;
+  }
+
+  protected receiptDisplayName(receipt: Receipt) {
+    const title = receipt.title?.trim();
+    const merchantName = receipt.merchantName?.trim();
+
+    if (title) {
+      return title;
+    }
+
+    if (merchantName) {
+      return merchantName;
+    }
+
+    if (receipt.status === 'queued') {
+      return 'Receipt added to queue';
+    }
+
+    if (receipt.status === 'processing') {
+      return 'Receipt scan in progress';
+    }
+
+    if (receipt.status === 'failed') {
+      return 'Receipt needs review';
+    }
+
+    return 'Scanned receipt';
+  }
+
+  protected resetReceiptForm() {
+    this.selectedReceiptFile.set(null);
+    this.receiptForm.patchValue({
+      categoryId: this.store.categories()[0]?.id ?? '',
+      expenseDate: new Date().toISOString().slice(0, 10),
+      title: '',
+      merchantName: '',
+      paymentMethod: '',
+      notes: '',
+      rawText: ''
+    });
   }
 
   private matchPaymentMethodFromReceiptText(ocrText: string | null) {

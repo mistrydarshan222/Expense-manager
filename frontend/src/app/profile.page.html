@@ -39,7 +39,9 @@
         <span>New password</span>
         <input type="password" formControlName="newPassword" placeholder="Leave blank to keep current password" />
       </label>
-      <button type="submit">Save profile</button>
+      <div class="form-actions full-width">
+        <button type="submit">Save profile</button>
+      </div>
     </form>
   </section>
 
@@ -67,11 +69,17 @@
     <div class="payment-method-list">
       @for (method of store.paymentMethods(); track method.id) {
         <article class="payment-method-card">
-          <div>
-            <strong>{{ method.name }}</strong>
-            @if (method.lastFour) {
-              <span class="summary-note">Ending in {{ method.lastFour }}</span>
-            }
+          <div class="payment-method-card-main">
+            <div class="payment-method-icon">{{ paymentMethodIcon(method.name) }}</div>
+            <div class="payment-method-copy">
+              <strong>{{ method.name }}</strong>
+              <div class="payment-method-meta-row">
+                <span class="payment-method-kind">{{ paymentMethodKind(method.name) }}</span>
+                @if (method.lastFour) {
+                  <span class="payment-method-last-four">Ending With {{ method.lastFour }}</span>
+                }
+              </div>
+            </div>
           </div>
           <button type="button" class="danger-button" (click)="deletePaymentMethod(method.id)">Delete</button>
         </article>
