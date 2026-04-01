@@ -311,30 +311,32 @@ function parseReceiptText(text: string, headerText = ""): ParsedReceipt {
   const normalizedText = text.replace(/\r/g, "\n");
   const normalizedHeaderText = headerText.replace(/\r/g, "\n");
   const subtotal =
-    findLineAmount(normalizedText, ["subtotal", "sub total"], { exclude: /\btotal\b/i }) ??
+    findLineAmount(normalizedText, ["subtotal", "sub total"]) ??
     findAmountForLabels(normalizedText, ["subtotal", "sub total"]);
-  const taxAmounts = [
-    ...findTaxAmountsFromLines(normalizedText, [
-      "tax",
-      "tax 1",
-      "tax 2",
-      "vat",
-      "gst",
-      "hst",
-      "pst",
-      "qst",
-      "sales tax",
-    ]),
-    ...findAllAmountsForLabels(normalizedText, [
+  const lineTaxAmounts = findTaxAmountsFromLines(normalizedText, [
     "tax",
+    "tax 1",
+    "tax 2",
     "vat",
     "gst",
     "hst",
     "pst",
     "qst",
     "sales tax",
-    ]),
-  ];
+  ]);
+  const fallbackTaxAmounts =
+    lineTaxAmounts.length > 0
+      ? []
+      : findAllAmountsForLabels(normalizedText, [
+          "tax",
+          "vat",
+          "gst",
+          "hst",
+          "pst",
+          "qst",
+          "sales tax",
+        ]);
+  const taxAmounts = [...lineTaxAmounts, ...fallbackTaxAmounts];
   const uniqueTaxAmounts = Array.from(new Set(taxAmounts.map((amount) => amount.toFixed(2)))).map(Number);
   const tax =
     uniqueTaxAmounts.length > 0
