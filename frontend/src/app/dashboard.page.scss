@@ -1,3 +1,262 @@
 :host {
   display: block;
 }
+
+.auth-hero-panel {
+  min-height: 100%;
+  display: grid;
+  gap: 24px;
+  align-content: space-between;
+  background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.14), transparent 30%),
+    linear-gradient(145deg, rgba(10, 37, 64, 0.96) 0%, rgba(18, 82, 99, 0.94) 56%, rgba(15, 118, 110, 0.9) 100%);
+  color: #f8fafc;
+}
+
+.auth-hero-copy {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-hero-panel .eyebrow,
+.auth-hero-panel h2,
+.auth-hero-panel .dashboard-copy {
+  color: inherit;
+}
+
+.auth-hero-panel .eyebrow {
+  color: rgba(236, 253, 245, 0.82);
+}
+
+.auth-hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.auth-metric-card {
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px);
+}
+
+.auth-metric-card span,
+.auth-status-card span {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auth-metric-card span {
+  color: rgba(226, 232, 240, 0.75);
+}
+
+.auth-metric-card strong,
+.auth-status-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.auth-metric-card p {
+  margin-top: 10px;
+  color: rgba(226, 232, 240, 0.82);
+  line-height: 1.6;
+}
+
+.auth-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.auth-trust-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f8fafc;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.auth-form-panel {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.auth-panel-head {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-panel-copy,
+.auth-form-footnote {
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.auth-tab-row {
+  width: fit-content;
+}
+
+.auth-form-grid {
+  margin-top: 0;
+}
+
+.auth-form-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-form-actions button {
+  width: 100%;
+  justify-self: stretch;
+}
+
+.auth-status-card {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(15, 118, 110, 0.16);
+  background: linear-gradient(180deg, #effcf7 0%, #ffffff 100%);
+  color: var(--accent-strong);
+}
+
+@media (max-width: 1100px) {
+  .auth-grid {
+    gap: 18px;
+  }
+
+  .auth-hero-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .auth-hero-panel,
+  .auth-form-panel {
+    padding: 22px;
+  }
+
+  .auth-hero-copy h2 {
+    font-size: clamp(1.9rem, 7vw, 2.4rem);
+  }
+
+  .auth-tab-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .auth-tab-row button {
+    width: 100%;
+    justify-self: stretch;
+    text-align: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-hero-panel {
+    display: none;
+  }
+
+  .auth-hero-panel,
+  .auth-form-panel {
+    gap: 18px;
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .auth-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-metric-card,
+  .auth-status-card {
+    padding: 16px;
+  }
+
+  .auth-panel-head {
+    gap: 8px;
+  }
+
+  .auth-panel-head h3 {
+    font-size: 1.35rem;
+  }
+
+  .auth-panel-copy,
+  .auth-form-footnote,
+  .auth-metric-card p {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .auth-tab-row {
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .auth-tab-row button {
+    padding: 12px 10px;
+    font-size: 0.94rem;
+  }
+
+  .auth-form-grid label span {
+    font-size: 0.88rem;
+  }
+
+  .auth-form-grid input {
+    min-height: 52px;
+    padding: 14px 15px;
+    border-radius: 14px;
+    font-size: 0.98rem;
+  }
+
+  .auth-form-actions {
+    gap: 10px;
+  }
+
+  .auth-form-actions button {
+    min-height: 52px;
+    border-radius: 14px;
+  }
+
+  .auth-trust-row {
+    flex-direction: column;
+  }
+
+  .auth-trust-pill {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .auth-form-panel {
+    padding: 16px;
+  }
+
+  .auth-hero-copy {
+    gap: 12px;
+  }
+
+  .auth-hero-copy h2 {
+    font-size: 1.72rem;
+    line-height: 1.08;
+  }
+
+  .auth-trust-pill,
+  .auth-status-card strong,
+  .auth-metric-card strong {
+    font-size: 1rem;
+  }
+}

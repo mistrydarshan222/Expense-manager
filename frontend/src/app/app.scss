@@ -58,6 +58,11 @@
   backdrop-filter: blur(20px);
 }
 
+.topbar-logged-out {
+  grid-template-columns: 1fr;
+  justify-items: start;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -1000,6 +1005,11 @@ button:hover,
     justify-items: stretch;
   }
 
+  .topbar-logged-out {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
   .brand {
     justify-content: flex-start;
   }
@@ -1126,6 +1136,11 @@ button:hover,
   .topbar {
     gap: 16px;
     padding: 18px 14px;
+  }
+
+  .topbar-logged-out {
+    padding: 14px 12px;
+    margin-bottom: 16px;
   }
 
   .brand-logo {
