@@ -1,8 +1,8 @@
 <main class="shell">
   <header class="topbar" [class.topbar-logged-out]="!store.token()">
-    <div class="brand">
+    <a class="brand" routerLink="/" aria-label="Go to ExpenseFlow home" (click)="closeMobileMenu()">
       <img class="brand-logo" src="/transparent-logo.svg" alt="ExpenseFlow logo" />
-    </div>
+    </a>
 
     @if (store.token()) {
       <button
@@ -36,6 +36,23 @@
           </div>
 
           <button type="button" class="secondary-button" (click)="logout()">Logout</button>
+        </div>
+      </div>
+    } @else {
+      <div class="logged-out-hero">
+        <div class="logged-out-copy">
+          <span class="eyebrow">Your spending home base</span>
+          <strong>Track expenses, review receipts, and pick up right where you left off.</strong>
+          <p>Use the dashboard to sign in or create an account, then manage categories, payment methods, and receipts from one place.</p>
+        </div>
+
+        <div class="logged-out-actions">
+          <a class="topbar-cta" routerLink="/" fragment="auth-access">Login or Register</a>
+          <nav class="signed-out-links" aria-label="Quick links">
+            @for (link of signedOutQuickLinks; track link.fragment) {
+              <a routerLink="/" [fragment]="link.fragment">{{ link.label }}</a>
+            }
+          </nav>
         </div>
       </div>
     }

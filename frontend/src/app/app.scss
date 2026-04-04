@@ -59,14 +59,15 @@
 }
 
 .topbar-logged-out {
-  grid-template-columns: 1fr;
-  justify-items: start;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
 }
 
 .brand {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-decoration: none;
 }
 
 .brand-logo {
@@ -74,6 +75,85 @@
   height: 72px;
   object-fit: contain;
   flex: 0 0 auto;
+}
+
+.logged-out-hero {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) auto;
+  align-items: center;
+  gap: 22px;
+}
+
+.logged-out-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.logged-out-copy strong {
+  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.logged-out-copy p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 56ch;
+}
+
+.logged-out-actions {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+}
+
+.topbar-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 184px;
+  padding: 14px 22px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #123b67 0%, #0f766e 100%);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 800;
+  box-shadow: 0 14px 26px rgba(18, 59, 103, 0.2);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.topbar-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 28px rgba(18, 59, 103, 0.24);
+}
+
+.signed-out-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.signed-out-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.signed-out-links a:hover {
+  transform: translateY(-1px);
+  background: #ffffff;
+  color: var(--accent-strong);
 }
 
 .mobile-menu-button {
@@ -1007,7 +1087,7 @@ button:hover,
 
   .topbar-logged-out {
     grid-template-columns: 1fr;
-    justify-items: start;
+    justify-items: stretch;
   }
 
   .brand {
@@ -1029,6 +1109,17 @@ button:hover,
 
   .mobile-menu-button span {
     background: #ffffff;
+  }
+
+  .logged-out-hero {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .logged-out-actions,
+  .signed-out-links {
+    justify-items: start;
+    justify-content: flex-start;
   }
 
   .topbar-menu-shell {
@@ -1141,6 +1232,33 @@ button:hover,
   .topbar-logged-out {
     padding: 14px 12px;
     margin-bottom: 16px;
+  }
+
+  .logged-out-copy strong {
+    font-size: 1rem;
+  }
+
+  .logged-out-copy p {
+    font-size: 0.92rem;
+  }
+
+  .logged-out-actions {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .topbar-cta {
+    width: 100%;
+  }
+
+  .signed-out-links {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .signed-out-links a {
+    justify-content: center;
   }
 
   .brand-logo {
