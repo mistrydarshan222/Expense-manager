@@ -1,7 +1,7 @@
 import { DatePipe, DOCUMENT, NgClass } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { startWith } from 'rxjs';
 
@@ -18,6 +18,7 @@ export class DashboardPageComponent {
   protected readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
   private readonly document = inject(DOCUMENT);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly activeTab = signal<'login' | 'register'>('login');
   protected readonly editingExpenseId = signal<string | null>(null);
@@ -82,6 +83,19 @@ export class DashboardPageComponent {
   protected readonly recentExpensePreview = computed(() => this.filteredExpenses().slice(0, 5));
 
   constructor() {
+    this.route.queryParamMap.subscribe((params) => {
+      const authTab = params.get('auth');
+
+      if (authTab === 'register') {
+        this.activeTab.set('register');
+        return;
+      }
+
+      if (authTab === 'login') {
+        this.activeTab.set('login');
+      }
+    });
+
     effect(() => {
       const categories = this.store.categories();
       if (!this.expenseForm.value.categoryId && categories.length > 0) {

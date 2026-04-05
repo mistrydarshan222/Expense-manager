@@ -14,4 +14,8 @@ export const env = {
   port: Number(process.env.PORT ?? 5000),
   databaseUrl: process.env.DATABASE_URL ?? "",
   jwtSecret: process.env.JWT_SECRET ?? "",
+  corsOrigins: (process.env.CORS_ORIGINS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean),
 };

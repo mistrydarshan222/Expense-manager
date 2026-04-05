@@ -39,21 +39,23 @@
         </div>
       </div>
     } @else {
-      <div class="logged-out-hero">
-        <div class="logged-out-copy">
-          <span class="eyebrow">Your spending home base</span>
-          <strong>Track expenses, review receipts, and pick up right where you left off.</strong>
-          <p>Use the dashboard to sign in or create an account, then manage categories, payment methods, and receipts from one place.</p>
-        </div>
-
-        <div class="logged-out-actions">
-          <a class="topbar-cta" routerLink="/" fragment="auth-access">Login or Register</a>
-          <nav class="signed-out-links" aria-label="Quick links">
-            @for (link of signedOutQuickLinks; track link.fragment) {
-              <a routerLink="/" [fragment]="link.fragment">{{ link.label }}</a>
-            }
-          </nav>
-        </div>
+      <div class="logged-out-actions logged-out-actions-inline">
+        <a
+          class="topbar-auth-button topbar-auth-button-secondary"
+          [class.topbar-auth-button-active]="authMode() === 'login'"
+          routerLink="/"
+          fragment="auth-access"
+          [queryParams]="{ auth: 'login' }">
+          Login
+        </a>
+        <a
+          class="topbar-auth-button topbar-auth-button-primary"
+          [class.topbar-auth-button-active]="authMode() === 'register'"
+          routerLink="/"
+          fragment="auth-access"
+          [queryParams]="{ auth: 'register' }">
+          Register
+        </a>
       </div>
     }
   </header>

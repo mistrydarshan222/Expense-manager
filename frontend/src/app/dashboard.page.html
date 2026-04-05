@@ -42,11 +42,6 @@
         </p>
       </div>
 
-      <div class="tab-row auth-tab-row">
-        <button type="button" [ngClass]="{ active: activeTab() === 'login' }" (click)="setActiveTab('login')">Login</button>
-        <button type="button" [ngClass]="{ active: activeTab() === 'register' }" (click)="setActiveTab('register')">Register</button>
-      </div>
-
       @if (activeTab() === 'login') {
         <form [formGroup]="loginForm" (ngSubmit)="login()" class="form-grid auth-form-grid">
           <label class="full-width">

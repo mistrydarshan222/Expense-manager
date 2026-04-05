@@ -1,4 +1,4 @@
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Component, ViewEncapsulation, inject, signal } from '@angular/core';
 
 import { AppStore } from './app.store';
@@ -12,12 +12,8 @@ import { AppStore } from './app.store';
 })
 export class App {
   protected readonly store = inject(AppStore);
+  private readonly router = inject(Router);
   protected readonly mobileMenuOpen = signal(false);
-  protected readonly signedOutQuickLinks = [
-    { label: 'Login / Register', fragment: 'auth-access' },
-    { label: 'Why ExpenseFlow', fragment: 'auth-overview' },
-    { label: 'See Features', fragment: 'auth-benefits' }
-  ];
 
   protected toggleMobileMenu() {
     this.mobileMenuOpen.update((value) => !value);
@@ -30,5 +26,10 @@ export class App {
   protected logout() {
     this.closeMobileMenu();
     this.store.logout();
+  }
+
+  protected authMode() {
+    const auth = this.router.parseUrl(this.router.url).queryParams['auth'];
+    return auth === 'register' ? 'register' : 'login';
   }
 }
