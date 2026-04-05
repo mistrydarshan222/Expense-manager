@@ -3,7 +3,6 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { AuthResponse, Category, CurrentUser, Expense, PaymentMethod, Receipt } from './api.types';
-import { environment } from '../environments/environment';
 
 type RegisterPayload = {
   name: string;
@@ -32,7 +31,7 @@ type ExpensePayload = {
 })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly baseUrl = 'https://api.darshanmistry.in/api';
 
   register(payload: RegisterPayload): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/auth/register`, payload);
