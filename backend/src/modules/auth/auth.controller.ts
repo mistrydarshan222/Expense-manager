@@ -16,18 +16,20 @@ function formatZodError(error: ZodError) {
 export async function register(req: Request, res: Response) {
   try {
     const input = registerSchema.parse(req.body);
-    const user = await registerUser(input);
-    const token = signAccessToken({ userId: user.id, email: user.email });
+    const result = await registerUser(input);
+    const token = signAccessToken({ userId: result.user.id, email: result.user.email });
 
     return res.status(201).json({
       message: "User registered successfully",
       token,
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        preferredCurrency: user.preferredCurrency,
+        id: result.user.id,
+        name: result.user.name,
+        email: result.user.email,
+        preferredCurrency: result.user.preferredCurrency,
       },
+      categories: result.categories,
+      paymentMethods: result.paymentMethods,
     });
   } catch (error) {
     if (error instanceof ZodError) {

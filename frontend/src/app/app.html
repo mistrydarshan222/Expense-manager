@@ -1,4 +1,37 @@
 <main class="shell">
+  @if (store.actionFeedback(); as feedback) {
+    <section
+      class="action-feedback-banner"
+      [attr.data-tone]="feedback.tone"
+      aria-live="polite"
+      aria-atomic="true">
+      <div class="action-feedback-copy">
+        <span class="action-feedback-label">
+          @switch (feedback.tone) {
+            @case ('success') {
+              Success
+            }
+            @case ('error') {
+              Action needed
+            }
+            @default {
+              Working
+            }
+          }
+        </span>
+        <strong>{{ feedback.message }}</strong>
+      </div>
+
+      <button
+        type="button"
+        class="action-feedback-close"
+        aria-label="Dismiss action feedback"
+        (click)="store.dismissActionFeedback()">
+        Close
+      </button>
+    </section>
+  }
+
   <header class="topbar" [class.topbar-logged-out]="!store.token()">
     <a class="brand" routerLink="/" aria-label="Go to ExpenseFlow home" (click)="closeMobileMenu()">
       <img class="brand-logo" src="/transparent-logo.svg" alt="ExpenseFlow logo" />

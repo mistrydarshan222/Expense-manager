@@ -3,13 +3,13 @@ import bcrypt from "bcrypt";
 import { prisma } from "../src/config/db";
 
 const DEFAULT_CATEGORIES = [
-  "Food",
-  "Travel",
   "Bills",
-  "Shopping",
-  "Health",
   "Entertainment",
+  "Food",
+  "Health",
   "Other",
+  "Shopping",
+  "Travel",
 ] as const;
 
 async function main() {

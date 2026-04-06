@@ -28,7 +28,22 @@ export async function registerUser(input: RegisterInput) {
   await createDefaultCategoriesForUser(user.id);
   await createDefaultPaymentMethodForUser(user.id);
 
-  return user;
+  const [categories, paymentMethods] = await Promise.all([
+    prisma.category.findMany({
+      where: { userId: user.id },
+      orderBy: { name: "asc" },
+    }),
+    prisma.paymentMethod.findMany({
+      where: { userId: user.id },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  return {
+    user,
+    categories,
+    paymentMethods,
+  };
 }
 
 export async function loginUser(input: LoginInput) {

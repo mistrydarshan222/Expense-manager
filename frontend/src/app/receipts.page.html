@@ -15,6 +15,24 @@
       <div class="panel-tip">Receipts are queued first, then moved into review once processing finishes.</div>
     </div>
 
+    <div class="receipt-helper-grid">
+      <article class="receipt-helper-card">
+        <span>Best results</span>
+        <strong>Use a flat, well-lit receipt photo</strong>
+        <p>Keep the full receipt visible and avoid shadows so the total and merchant are easier to detect.</p>
+      </article>
+      <article class="receipt-helper-card">
+        <span>Accepted input</span>
+        <strong>Image, PDF, or pasted OCR text</strong>
+        <p>Upload a file when possible. Paste raw text only if you already ran OCR elsewhere.</p>
+      </article>
+      <article class="receipt-helper-card">
+        <span>Review step</span>
+        <strong>Always confirm the extracted amount</strong>
+        <p>Receipts with unclear totals stay in review so you can adjust the fields before saving.</p>
+      </article>
+    </div>
+
     <form [formGroup]="receiptForm" (ngSubmit)="processReceipt()" class="form-grid">
       <label>
         <span>Category</span>
@@ -128,6 +146,9 @@
 
         @if (receipt.status === 'failed') {
           <div class="help-note">Processing failed: {{ receipt.processingError || 'Unknown error' }}</div>
+          <div class="receipt-info-banner">
+            Try uploading a clearer image, use a tighter crop around the totals, or paste OCR text manually if the receipt is difficult to read.
+          </div>
         }
 
         @if (receipt.status === 'processed' || receipt.status === 'completed') {

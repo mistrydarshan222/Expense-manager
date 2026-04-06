@@ -32,11 +32,26 @@ type OcrCandidate = {
 
 const receiptQueue: string[] = [];
 let isQueueProcessing = false;
+const MAX_STORED_AMOUNT = 99_999_999.99;
 
 function parseAmount(value: string) {
-  const normalized = value.replace(/,/g, "").trim();
+  const normalized = value.replace(/[,\s]/g, "").trim();
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeStoredAmount(value: number | null) {
+  if (value === null || !Number.isFinite(value)) {
+    return null;
+  }
+
+  const rounded = Number(value.toFixed(2));
+
+  if (rounded < 0 || Math.abs(rounded) > MAX_STORED_AMOUNT) {
+    return null;
+  }
+
+  return rounded;
 }
 
 function findAmountForLabels(text: string, labels: string[]) {
@@ -106,7 +121,22 @@ function extractLastAmountFromLine(line: string) {
   }
 
   const lastToken = numericTokens[numericTokens.length - 1];
-  return lastToken ? parseAmount(lastToken) : null;
+  if (!lastToken) {
+    return null;
+  }
+
+  // OCR commonly drops the decimal point on money lines, turning 19.48 into 1948.
+  // Prefer an implied-cents interpretation for larger integer tokens.
+  if (lastToken.length >= 4 && lastToken.length <= 10) {
+    const withImpliedCents = `${lastToken.slice(0, -2)}.${lastToken.slice(-2)}`;
+    const parsedWithImpliedCents = parseAmount(withImpliedCents);
+
+    if (parsedWithImpliedCents !== null) {
+      return parsedWithImpliedCents;
+    }
+  }
+
+  return parseAmount(lastToken);
 }
 
 function findLineAmount(text: string, labels: string[], options?: { exclude?: RegExp }) {
@@ -364,10 +394,10 @@ function parseReceiptText(text: string, headerText = ""): ParsedReceipt {
   return {
     merchantName: detectMerchant(normalizedHeaderText) || detectMerchant(normalizedText),
     expenseDate: detectDate(normalizedText),
-    subtotal,
-    tax,
-    total,
-    finalAmount,
+    subtotal: normalizeStoredAmount(subtotal),
+    tax: normalizeStoredAmount(tax),
+    total: normalizeStoredAmount(total),
+    finalAmount: normalizeStoredAmount(finalAmount),
     currency: detectCurrency(normalizedText),
     cardLastFour: detectCardLastFour(normalizedText),
     needsReview,
@@ -493,9 +523,9 @@ function computeFinalAmount(receipt: {
   extractedTax: unknown;
   extractedTotal: unknown;
 }) {
-  const total = receipt.extractedTotal === null ? null : Number(receipt.extractedTotal);
-  const subtotal = receipt.extractedSubtotal === null ? null : Number(receipt.extractedSubtotal);
-  const tax = receipt.extractedTax === null ? null : Number(receipt.extractedTax);
+  const total = normalizeStoredAmount(receipt.extractedTotal === null ? null : Number(receipt.extractedTotal));
+  const subtotal = normalizeStoredAmount(receipt.extractedSubtotal === null ? null : Number(receipt.extractedSubtotal));
+  const tax = normalizeStoredAmount(receipt.extractedTax === null ? null : Number(receipt.extractedTax));
 
   if (Number.isFinite(total)) {
     return { finalAmount: total, needsReview: false };
@@ -562,7 +592,7 @@ async function processQueuedReceipt(receiptId: string) {
     const parsed = parseReceiptText(extractedResult.fullText, extractedResult.headerText);
 
     if (parsed.finalAmount === null) {
-      throw new Error("Could not find total, subtotal, or tax values in this receipt.");
+      throw new Error("Could not determine a valid receipt amount from this file.");
     }
 
     const autoMatchedPaymentMethod = parsed.cardLastFour

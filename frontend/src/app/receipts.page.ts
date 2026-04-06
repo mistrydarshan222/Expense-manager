@@ -46,7 +46,7 @@ export class ReceiptsPageComponent {
   });
 
   constructor() {
-    this.store.loadReceipts();
+    this.store.loadReceiptsPageData();
 
     effect(() => {
       const categories = this.store.categories();
@@ -111,7 +111,7 @@ export class ReceiptsPageComponent {
       },
       () => {
         this.resetReceiptForm();
-        this.store.loadReceipts();
+        this.store.loadReceiptsPageData();
       }
     );
   }

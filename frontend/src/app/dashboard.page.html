@@ -209,16 +209,22 @@
           </div>
         </div>
 
+        <p class="side-panel-copy">Starter categories are added automatically for every account. Add extras only when you need a more detailed breakdown.</p>
+
         <form [formGroup]="categoryForm" (ngSubmit)="addCategory()" class="inline-form">
           <input type="text" formControlName="name" placeholder="Add a category like Utilities" />
           <button type="submit">Add category</button>
         </form>
 
-        <div class="chip-list">
-          @for (category of store.categories(); track category.id) {
-            <span class="chip">{{ category.name }}</span>
-          }
-        </div>
+        @if (store.categories().length === 0) {
+          <p class="empty-state">Default categories are being prepared for your workspace. Refresh in a moment if they do not appear right away.</p>
+        } @else {
+          <div class="chip-list">
+            @for (category of store.categories(); track category.id) {
+              <span class="chip">{{ category.name }}</span>
+            }
+          </div>
+        }
       </article>
     </section>
 
@@ -232,7 +238,14 @@
       </div>
 
       @if (store.expenses().length === 0) {
-        <p class="empty-state">No expenses yet. Add your first transaction to start building your history.</p>
+        <div class="empty-state empty-state-rich">
+          <strong>No expenses yet</strong>
+          <p>Add your first transaction from the expense form above or upload a receipt to let the app prefill the details for you.</p>
+          <div class="empty-state-actions">
+            <a class="ghost-button" href="#expenses">Add first expense</a>
+            <a class="ghost-button" routerLink="/receipts">Upload a receipt</a>
+          </div>
+        </div>
       } @else {
         <form [formGroup]="expenseFilterForm" class="expense-filter-bar">
           <label>

@@ -27,6 +27,24 @@
         <button type="button" class="time-filter-chip" [ngClass]="{ 'time-filter-chip-active': filterForm.value.timeRange === 'today' }" (click)="setTimeRange('today')">Today</button>
       </div>
 
+      <div class="history-snapshot-grid">
+        <article class="history-snapshot-card">
+          <span>Visible expenses</span>
+          <strong>{{ filteredExpenses().length }}</strong>
+          <p>Every item currently matching your selected filters.</p>
+        </article>
+        <article class="history-snapshot-card">
+          <span>Active currencies</span>
+          <strong>{{ filteredTotalsByCurrency().length }}</strong>
+          <p>Currency totals stay separated so mixed-currency histories remain accurate.</p>
+        </article>
+        <article class="history-snapshot-card">
+          <span>Quick help</span>
+          <strong>Filter first</strong>
+          <p>Use category, method, and search together to narrow large histories faster.</p>
+        </article>
+      </div>
+
       <form [formGroup]="filterForm" class="expense-filter-bar expense-filter-bar-wide">
         <label>
           <span>Search</span>
@@ -74,9 +92,22 @@
 
     <section class="panel recent-panel">
       @if (store.expenses().length === 0) {
-        <p class="empty-state">No expenses yet. Add your first expense from the dashboard.</p>
+        <div class="empty-state empty-state-rich">
+          <strong>No expenses yet</strong>
+          <p>You have not saved any transactions yet. Start from the dashboard or create an expense from a scanned receipt.</p>
+          <div class="empty-state-actions">
+            <a class="ghost-button" routerLink="/">Go to dashboard</a>
+            <a class="ghost-button" routerLink="/receipts">Review receipts</a>
+          </div>
+        </div>
       } @else if (filteredExpenses().length === 0) {
-        <p class="empty-state">No expenses match the selected filters.</p>
+        <div class="empty-state empty-state-rich">
+          <strong>No matching expenses</strong>
+          <p>Try clearing one or two filters to widen the list, or search with a shorter keyword.</p>
+          <div class="empty-state-actions">
+            <button type="button" class="ghost-button" (click)="clearFilters()">Clear filters</button>
+          </div>
+        </div>
       } @else {
         <div class="expense-list">
           @for (expense of filteredExpenses(); track expense.id) {

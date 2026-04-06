@@ -31,7 +31,7 @@ type ExpensePayload = {
 })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'https://api.darshanmistry.in/api';
+  private readonly baseUrl = 'http://localhost:5000/api';
 
   register(payload: RegisterPayload): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/auth/register`, payload);

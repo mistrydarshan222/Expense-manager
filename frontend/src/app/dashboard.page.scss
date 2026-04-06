@@ -2,6 +2,32 @@
   display: block;
 }
 
+.side-panel-copy {
+  margin-top: 16px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.empty-state-rich {
+  display: grid;
+  gap: 12px;
+}
+
+.empty-state-rich strong {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.empty-state-actions .ghost-button {
+  text-decoration: none;
+}
+
 .auth-hero-panel {
   min-height: 100%;
   display: grid;
@@ -179,6 +205,15 @@
 
   .auth-grid {
     grid-template-columns: 1fr;
+  }
+
+  .empty-state-actions {
+    flex-direction: column;
+  }
+
+  .empty-state-actions .ghost-button {
+    width: 100%;
+    text-align: center;
   }
 
   .auth-metric-card,

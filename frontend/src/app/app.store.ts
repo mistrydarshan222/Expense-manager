@@ -8,6 +8,13 @@ type CurrencyOption = {
   label: string;
 };
 
+type ActionFeedbackTone = 'info' | 'success' | 'error';
+
+type ActionFeedback = {
+  message: string;
+  tone: ActionFeedbackTone;
+};
+
 const fallbackCurrencyOptions: CurrencyOption[] = [
   { code: 'USD', label: 'US Dollar' },
   { code: 'EUR', label: 'Euro' },
@@ -62,8 +69,13 @@ export class AppStore {
   readonly receipts = signal<Receipt[]>([]);
   readonly currentReceipt = signal<Receipt | null>(null);
   readonly statusMessage = signal('Ready to connect your expense manager.');
+  readonly actionFeedback = signal<ActionFeedback | null>({
+    message: 'Ready to connect your expense manager.',
+    tone: 'info'
+  });
   readonly isSubmitting = signal(false);
   private receiptPollTimer: number | null = null;
+  private feedbackTimer: number | null = null;
 
   readonly userName = computed(() => this.currentUser()?.name ?? 'Guest');
   readonly preferredCurrency = computed(() => this.currentUser()?.preferredCurrency ?? 'USD');
@@ -94,34 +106,36 @@ export class AppStore {
 
   register(payload: { name: string; email: string; password: string }, onDone?: () => void) {
     this.isSubmitting.set(true);
-    this.statusMessage.set('Creating your account and default categories...');
+    this.showFeedback('Creating your account and default categories...', 'info', 0);
 
     this.api.register(payload).subscribe({
       next: (response) => {
         this.finishAuth(response.token, response.user);
+        this.categories.set(response.categories ?? []);
+        this.paymentMethods.set(response.paymentMethods ?? []);
         onDone?.();
-        this.statusMessage.set('Account created. Default categories are ready.');
+        this.showFeedback('Account created. Default categories are ready.', 'success');
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Registration failed.');
+        this.showFeedback(error.error?.message ?? 'Registration failed.', 'error');
       }
     });
   }
 
   login(payload: { email: string; password: string }, onDone?: () => void) {
     this.isSubmitting.set(true);
-    this.statusMessage.set('Signing in and loading your dashboard...');
+    this.showFeedback('Signing in and loading your dashboard...', 'info', 0);
 
     this.api.login(payload).subscribe({
       next: (response) => {
         this.finishAuth(response.token, response.user);
         onDone?.();
-        this.statusMessage.set('Login successful.');
+        this.showFeedback('Login successful.', 'success');
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Login failed.');
+        this.showFeedback(error.error?.message ?? 'Login failed.', 'error');
       }
     });
   }
@@ -132,18 +146,18 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Adding a new category...');
+    this.showFeedback('Adding a new category...', 'info', 0);
 
     this.api.createCategory(this.token(), name).subscribe({
       next: () => {
         this.loadCategories();
         this.isSubmitting.set(false);
-        this.statusMessage.set('Category created successfully.');
+        this.showFeedback('Category created successfully.', 'success');
         onDone?.();
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not create category.');
+        this.showFeedback(error.error?.message ?? 'Could not create category.', 'error');
       }
     });
   }
@@ -166,18 +180,18 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Saving the expense...');
+    this.showFeedback('Saving the expense...', 'info', 0);
 
     this.api.createExpense(this.token(), payload).subscribe({
       next: () => {
         this.loadExpenses();
         this.isSubmitting.set(false);
-        this.statusMessage.set('Expense saved successfully.');
+        this.showFeedback('Expense saved successfully.', 'success');
         onDone?.();
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not save the expense.');
+        this.showFeedback(error.error?.message ?? 'Could not save the expense.', 'error');
       }
     });
   }
@@ -201,18 +215,18 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Updating the expense...');
+    this.showFeedback('Updating the expense...', 'info', 0);
 
     this.api.updateExpense(this.token(), expenseId, payload).subscribe({
       next: () => {
         this.loadExpenses();
         this.isSubmitting.set(false);
-        this.statusMessage.set('Expense updated successfully.');
+        this.showFeedback('Expense updated successfully.', 'success');
         onDone?.();
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not update the expense.');
+        this.showFeedback(error.error?.message ?? 'Could not update the expense.', 'error');
       }
     });
   }
@@ -223,17 +237,17 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Deleting the expense...');
+    this.showFeedback('Deleting the expense...', 'info', 0);
 
     this.api.deleteExpense(this.token(), expenseId).subscribe({
       next: () => {
         this.loadExpenses();
         this.isSubmitting.set(false);
-        this.statusMessage.set('Expense deleted successfully.');
+        this.showFeedback('Expense deleted successfully.', 'success');
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not delete the expense.');
+        this.showFeedback(error.error?.message ?? 'Could not delete the expense.', 'error');
       }
     });
   }
@@ -256,7 +270,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Adding receipt to the processing queue...');
+    this.showFeedback('Adding receipt to the processing queue...', 'info', 0);
 
     this.api.queueReceipt(this.token(), payload).subscribe({
       next: ({ receipt }) => {
@@ -264,12 +278,15 @@ export class AppStore {
         this.currentReceipt.set(receipt);
         this.startReceiptPolling(receipt.id);
         this.isSubmitting.set(false);
-        this.statusMessage.set('Receipt queued successfully. It will appear in review once processing finishes.');
+        this.showFeedback(
+          'Receipt queued successfully. It will appear in review once processing finishes.',
+          'success'
+        );
         onDone?.();
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not queue receipt.');
+        this.showFeedback(error.error?.message ?? 'Could not queue receipt.', 'error');
       }
     });
   }
@@ -284,7 +301,7 @@ export class AppStore {
         this.receipts.set(receipts);
       },
       error: () => {
-        this.statusMessage.set('Could not load receipts.');
+        this.showFeedback('Could not load receipts.', 'error');
       }
     });
   }
@@ -315,7 +332,7 @@ export class AppStore {
         }
       },
       error: () => {
-        this.statusMessage.set('Could not load receipt details.');
+        this.showFeedback('Could not load receipt details.', 'error');
       }
     });
   }
@@ -337,7 +354,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Creating expense from reviewed receipt...');
+    this.showFeedback('Creating expense from reviewed receipt...', 'info', 0);
 
     this.api.createExpenseFromReceipt(this.token(), receiptId, payload).subscribe({
       next: ({ receipt }) => {
@@ -345,12 +362,12 @@ export class AppStore {
         this.loadReceipts();
         this.currentReceipt.set(receipt);
         this.isSubmitting.set(false);
-        this.statusMessage.set('Expense created from receipt successfully.');
+        this.showFeedback('Expense created from receipt successfully.', 'success');
         onDone?.();
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not create expense from receipt.');
+        this.showFeedback(error.error?.message ?? 'Could not create expense from receipt.', 'error');
       }
     });
   }
@@ -370,7 +387,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Saving your profile...');
+    this.showFeedback('Saving your profile...', 'info', 0);
 
     this.api.updateProfile(this.token(), payload).subscribe({
       next: ({ user }) => {
@@ -378,12 +395,12 @@ export class AppStore {
         localStorage.setItem('expense-user-name', user.name);
         localStorage.setItem('expense-preferred-currency', user.preferredCurrency);
         this.isSubmitting.set(false);
-        this.statusMessage.set('Profile updated successfully.');
+        this.showFeedback('Profile updated successfully.', 'success');
         onDone?.();
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not update profile.');
+        this.showFeedback(error.error?.message ?? 'Could not update profile.', 'error');
       }
     });
   }
@@ -394,18 +411,18 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Adding payment method...');
+    this.showFeedback('Adding payment method...', 'info', 0);
 
     this.api.createPaymentMethod(this.token(), payload).subscribe({
       next: () => {
         this.loadPaymentMethods();
         this.isSubmitting.set(false);
-        this.statusMessage.set('Payment method created successfully.');
+        this.showFeedback('Payment method created successfully.', 'success');
         onDone?.();
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not create payment method.');
+        this.showFeedback(error.error?.message ?? 'Could not create payment method.', 'error');
       }
     });
   }
@@ -416,17 +433,17 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.statusMessage.set('Deleting payment method...');
+    this.showFeedback('Deleting payment method...', 'info', 0);
 
     this.api.deletePaymentMethod(this.token(), id).subscribe({
       next: () => {
         this.loadPaymentMethods();
         this.isSubmitting.set(false);
-        this.statusMessage.set('Payment method deleted successfully.');
+        this.showFeedback('Payment method deleted successfully.', 'success');
       },
       error: (error) => {
         this.isSubmitting.set(false);
-        this.statusMessage.set(error.error?.message ?? 'Could not delete payment method.');
+        this.showFeedback(error.error?.message ?? 'Could not delete payment method.', 'error');
       }
     });
   }
@@ -443,7 +460,16 @@ export class AppStore {
     this.receipts.set([]);
     this.currentReceipt.set(null);
     this.stopReceiptPolling();
-    this.statusMessage.set('Logged out. You can sign in again anytime.');
+    this.showFeedback('Logged out. You can sign in again anytime.', 'success');
+  }
+
+  dismissActionFeedback() {
+    if (this.feedbackTimer !== null) {
+      window.clearTimeout(this.feedbackTimer);
+      this.feedbackTimer = null;
+    }
+
+    this.actionFeedback.set(null);
   }
 
   formatCurrency(amount: number | string, currency: string) {
@@ -465,6 +491,12 @@ export class AppStore {
     this.isSubmitting.set(false);
   }
 
+  loadReceiptsPageData() {
+    this.loadCategories();
+    this.loadPaymentMethods();
+    this.loadReceipts();
+  }
+
   private loadProfile() {
     if (!this.token()) {
       return;
@@ -477,7 +509,7 @@ export class AppStore {
         localStorage.setItem('expense-preferred-currency', user.preferredCurrency);
       },
       error: () => {
-        this.statusMessage.set('Could not load profile settings.');
+        this.showFeedback('Could not load profile settings.', 'error');
       }
     });
   }
@@ -492,7 +524,7 @@ export class AppStore {
         this.categories.set(categories);
       },
       error: () => {
-        this.statusMessage.set('Could not load categories.');
+        this.showFeedback('Could not load categories.', 'error');
       }
     });
   }
@@ -507,7 +539,7 @@ export class AppStore {
         this.expenses.set(expenses);
       },
       error: () => {
-        this.statusMessage.set('Could not load expenses.');
+        this.showFeedback('Could not load expenses.', 'error');
       }
     });
   }
@@ -522,7 +554,7 @@ export class AppStore {
         this.paymentMethods.set(paymentMethods);
       },
       error: () => {
-        this.statusMessage.set('Could not load payment methods.');
+        this.showFeedback('Could not load payment methods.', 'error');
       }
     });
   }
@@ -560,6 +592,23 @@ export class AppStore {
     if (this.receiptPollTimer !== null) {
       window.clearTimeout(this.receiptPollTimer);
       this.receiptPollTimer = null;
+    }
+  }
+
+  private showFeedback(message: string, tone: ActionFeedbackTone, durationMs = 3600) {
+    this.statusMessage.set(message);
+    this.actionFeedback.set({ message, tone });
+
+    if (this.feedbackTimer !== null) {
+      window.clearTimeout(this.feedbackTimer);
+      this.feedbackTimer = null;
+    }
+
+    if (durationMs > 0) {
+      this.feedbackTimer = window.setTimeout(() => {
+        this.actionFeedback.set(null);
+        this.feedbackTimer = null;
+      }, durationMs);
     }
   }
 }

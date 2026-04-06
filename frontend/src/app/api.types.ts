@@ -7,6 +7,8 @@ export type AuthResponse = {
     email: string;
     preferredCurrency: string;
   };
+  categories?: Category[];
+  paymentMethods?: PaymentMethod[];
 };
 
 export type CurrentUser = {

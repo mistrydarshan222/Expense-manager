@@ -1,13 +1,13 @@
 import { prisma } from "../../config/db";
 
 export const defaultCategoryNames = [
-  "Food",
-  "Travel",
   "Bills",
-  "Shopping",
-  "Health",
   "Entertainment",
+  "Food",
+  "Health",
   "Other",
+  "Shopping",
+  "Travel",
 ] as const;
 
 export async function createDefaultCategoriesForUser(userId: string) {
