@@ -617,7 +617,7 @@ export class ExpensesPageComponent {
 
   private async loadLogoForPdf() {
     try {
-      const response = await fetch('/expenseflow-logo-creative.svg');
+      const response = await fetch('expenseflow-logo-creative.svg');
       const blob = await response.blob();
       const imageBitmap = await createImageBitmap(blob);
       const canvas = document.createElement('canvas');
