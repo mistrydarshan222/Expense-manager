@@ -100,9 +100,78 @@
 .dashboard-main-grid,
 .summary-grid,
 .workspace-grid,
-.receipt-review-grid {
+.receipt-review-grid,
+.app-footer {
   max-width: 1240px;
   margin-inline: auto;
+}
+
+.app-footer {
+  position: relative;
+  overflow: hidden;
+  margin-top: 28px;
+  padding: 24px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border: 1px solid rgba(18, 59, 103, 0.12);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.16), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.18), transparent 36%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 252, 251, 0.92) 100%);
+  box-shadow: 0 22px 46px rgba(18, 59, 103, 0.1);
+  backdrop-filter: blur(18px);
+}
+
+.app-footer-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+}
+
+.app-footer-logo {
+  width: 132px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.app-footer-copy strong {
+  color: var(--text-primary);
+  max-width: 720px;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  line-height: 1.35;
+}
+
+.app-footer-signature {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.app-footer-orbit {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 999px;
+  filter: blur(8px);
+  opacity: 0.5;
+}
+
+.app-footer-orbit-left {
+  top: -48px;
+  left: -26px;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.22) 0%, transparent 68%);
+}
+
+.app-footer-orbit-right {
+  right: -30px;
+  bottom: -58px;
+  background: radial-gradient(circle, rgba(15, 118, 110, 0.24) 0%, transparent 70%);
 }
 
 .topbar {
@@ -1234,6 +1303,10 @@ button:hover,
     flex-direction: row;
   }
 
+  .app-footer {
+    padding: 16px 18px;
+  }
+
   .form-grid,
   .profile-form,
   .inline-form,
@@ -1302,8 +1375,28 @@ button:hover,
   }
 
   .topbar,
-  .panel {
+  .panel,
+  .app-footer {
     border-radius: 22px;
+  }
+
+  .app-footer {
+    margin-top: 20px;
+    padding: 16px;
+    align-items: center;
+  }
+
+  .app-footer-logo {
+    width: 116px;
+    height: 56px;
+  }
+
+  .app-footer-copy strong {
+    font-size: .98rem;
+  }
+
+  .app-footer-signature {
+    font-size: .86rem;
   }
 
   .topbar {

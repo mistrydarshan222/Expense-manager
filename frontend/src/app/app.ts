@@ -14,6 +14,7 @@ export class App {
   protected readonly store = inject(AppStore);
   private readonly router = inject(Router);
   protected readonly mobileMenuOpen = signal(false);
+  protected readonly currentYear = new Date().getFullYear();
 
   protected toggleMobileMenu() {
     this.mobileMenuOpen.update((value) => !value);
