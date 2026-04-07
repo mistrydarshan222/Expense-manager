@@ -1,48 +1,23 @@
 @if (!store.token()) {
   <section class="auth-grid" id="auth-access">
-    <article class="panel auth-hero-panel" id="auth-overview">
-      <div class="auth-hero-copy">
-        <p class="eyebrow">ExpenseFlow</p>
-        <h2>Stay on top of spending without juggling spreadsheets.</h2>
-        <p class="dashboard-copy">
-          Track daily purchases, organize categories, save payment methods, and review receipts from one secure workspace built for real everyday budgeting.
-        </p>
-      </div>
-
-      <div class="auth-hero-metrics" id="auth-benefits">
-        <div class="auth-metric-card">
-          <span>Daily tracking</span>
-          <strong>Fast entry</strong>
-          <p>Add expenses in seconds with category and payment method support.</p>
-        </div>
-        <div class="auth-metric-card">
-          <span>Receipt review</span>
-          <strong>Less manual work</strong>
-          <p>Queue receipts, review extracted totals, and turn them into records when ready.</p>
-        </div>
-      </div>
-
-      <div class="auth-trust-row">
-        <span class="auth-trust-pill">Personal dashboard</span>
-        <span class="auth-trust-pill">Organized categories</span>
-        <span class="auth-trust-pill">Multi-currency ready</span>
-      </div>
-    </article>
-
-    <article class="panel auth-panel auth-form-panel">
+    <article
+      class="panel auth-panel auth-form-panel auth-form-panel-login"
+      [class.auth-panel-mobile-hidden]="activeTab() !== 'login'">
       <div class="auth-panel-head">
         <div>
           <p class="eyebrow">Welcome back</p>
-          <h3>{{ activeTab() === 'login' ? 'Sign in to your account' : 'Create your account' }}</h3>
+          <h3>Sign in to your account</h3>
         </div>
         <p class="auth-panel-copy">
-          {{ activeTab() === 'login'
-            ? 'Access your dashboard, categories, receipts, and recent expense history.'
-            : 'Set up your workspace and start tracking expenses with your own account.' }}
+          Access your dashboard, categories, receipts, and recent expense history.
         </p>
       </div>
 
-      @if (activeTab() === 'login') {
+      <div class="auth-panel-meta">
+        <span>Secure access</span>
+        <span>Fast login</span>
+      </div>
+
         <form [formGroup]="loginForm" (ngSubmit)="login()" class="form-grid auth-form-grid">
           <label class="full-width">
             <span>Email address</span>
@@ -57,7 +32,26 @@
             <p class="auth-form-footnote">Use your registered email and password to continue.</p>
           </div>
         </form>
-      } @else {
+
+      <div class="auth-status-card" aria-live="polite">
+        <span>Status</span>
+        <strong>{{ store.statusMessage() }}</strong>
+      </div>
+    </article>
+
+    <article
+      class="panel auth-panel auth-form-panel auth-form-panel-register"
+      [class.auth-panel-mobile-hidden]="activeTab() !== 'register'">
+      <div class="auth-panel-head">
+        <div>
+          <p class="eyebrow">New here</p>
+          <h3>Create your account</h3>
+        </div>
+        <p class="auth-panel-copy">
+          Set up your workspace and start tracking expenses with your own account.
+        </p>
+      </div>
+
         <form [formGroup]="registerForm" (ngSubmit)="register()" class="form-grid auth-form-grid">
           <label class="full-width">
             <span>Full name</span>
@@ -73,14 +67,13 @@
           </label>
           <div class="auth-form-actions full-width">
             <button type="submit">{{ store.isSubmitting() ? 'Creating account...' : 'Create account' }}</button>
-            <p class="auth-form-footnote">Your starter categories will be created automatically after signup.</p>
           </div>
         </form>
-      }
 
-      <div class="auth-status-card" aria-live="polite">
-        <span>Account status</span>
-        <strong>{{ store.statusMessage() }}</strong>
+      <div class="auth-mini-points auth-register-points">
+        <span>Default categories included</span>
+        <span>CAD ready</span>
+        <span>Receipt uploads supported</span>
       </div>
     </article>
   </section>
