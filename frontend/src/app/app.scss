@@ -153,6 +153,17 @@
   line-height: 1.5;
 }
 
+.app-footer-signature a {
+  color: #111111;
+  text-decoration: none;
+}
+
+.app-footer-signature a:hover,
+.app-footer-signature a:visited,
+.app-footer-signature a:active {
+  color: #111111;
+}
+
 .app-footer-orbit {
   position: absolute;
   width: 140px;
