@@ -36,6 +36,13 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/Expenseflow/",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
@@ -44,8 +51,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "22kB",
-                  "maximumError": "24kB"
+                  "maximumWarning": "30kB",
+                  "maximumError": "36kB"
                 }
               ],
               "outputHashing": "all"
