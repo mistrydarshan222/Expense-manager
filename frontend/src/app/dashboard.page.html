@@ -209,11 +209,14 @@
           </div>
         </div>
 
-        <p class="side-panel-copy">Starter categories are added automatically for every account. Add extras only when you need a more detailed breakdown.</p>
-
-        <form [formGroup]="categoryForm" (ngSubmit)="addCategory()" class="inline-form">
-          <input type="text" formControlName="name" placeholder="Add a category like Utilities" />
-          <button type="submit">Add category</button>
+        <form [formGroup]="categoryForm" (ngSubmit)="addCategory()" class="form-grid category-form-grid">
+          <label class="full-width">
+            <span>Category name</span>
+            <input type="text" formControlName="name" placeholder="Add a category like Utilities" />
+          </label>
+          <div class="form-actions full-width">
+            <button type="submit">Add category</button>
+          </div>
         </form>
 
         @if (store.categories().length === 0) {

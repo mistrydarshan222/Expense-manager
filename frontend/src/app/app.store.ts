@@ -16,12 +16,12 @@ type ActionFeedback = {
 };
 
 const fallbackCurrencyOptions: CurrencyOption[] = [
+  { code: 'CAD', label: 'Canadian Dollar' },
   { code: 'USD', label: 'US Dollar' },
   { code: 'EUR', label: 'Euro' },
   { code: 'GBP', label: 'British Pound' },
   { code: 'INR', label: 'Indian Rupee' },
   { code: 'AED', label: 'UAE Dirham' },
-  { code: 'CAD', label: 'Canadian Dollar' },
   { code: 'AUD', label: 'Australian Dollar' },
   { code: 'JPY', label: 'Japanese Yen' },
   { code: 'SGD', label: 'Singapore Dollar' },
@@ -69,16 +69,13 @@ export class AppStore {
   readonly receipts = signal<Receipt[]>([]);
   readonly currentReceipt = signal<Receipt | null>(null);
   readonly statusMessage = signal('Ready to connect your expense manager.');
-  readonly actionFeedback = signal<ActionFeedback | null>({
-    message: 'Ready to connect your expense manager.',
-    tone: 'info'
-  });
+  readonly actionFeedback = signal<ActionFeedback | null>(null);
   readonly isSubmitting = signal(false);
   private receiptPollTimer: number | null = null;
   private feedbackTimer: number | null = null;
 
   readonly userName = computed(() => this.currentUser()?.name ?? 'Guest');
-  readonly preferredCurrency = computed(() => this.currentUser()?.preferredCurrency ?? 'USD');
+  readonly preferredCurrency = computed(() => this.currentUser()?.preferredCurrency ?? 'CAD');
 
   readonly totalSpent = computed(() =>
     this.expenses().reduce((sum, expense) => sum + Number(expense.finalAmount), 0)
@@ -88,7 +85,7 @@ export class AppStore {
     const totals = new Map<string, number>();
 
     for (const expense of this.expenses()) {
-      const currency = expense.currency || 'USD';
+      const currency = expense.currency || 'CAD';
       totals.set(currency, (totals.get(currency) ?? 0) + Number(expense.finalAmount));
     }
 
@@ -106,7 +103,7 @@ export class AppStore {
 
   register(payload: { name: string; email: string; password: string }, onDone?: () => void) {
     this.isSubmitting.set(true);
-    this.showFeedback('Creating your account and default categories...', 'info', 0);
+    this.showFeedback('Creating your account and default categories...', 'info');
 
     this.api.register(payload).subscribe({
       next: (response) => {
@@ -125,7 +122,7 @@ export class AppStore {
 
   login(payload: { email: string; password: string }, onDone?: () => void) {
     this.isSubmitting.set(true);
-    this.showFeedback('Signing in and loading your dashboard...', 'info', 0);
+    this.showFeedback('Signing in and loading your dashboard...', 'info');
 
     this.api.login(payload).subscribe({
       next: (response) => {
@@ -146,7 +143,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.showFeedback('Adding a new category...', 'info', 0);
+    this.showFeedback('Adding a new category...', 'info');
 
     this.api.createCategory(this.token(), name).subscribe({
       next: () => {
@@ -180,7 +177,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.showFeedback('Saving the expense...', 'info', 0);
+    this.showFeedback('Saving the expense...', 'info');
 
     this.api.createExpense(this.token(), payload).subscribe({
       next: () => {
@@ -215,7 +212,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.showFeedback('Updating the expense...', 'info', 0);
+    this.showFeedback('Updating the expense...', 'info');
 
     this.api.updateExpense(this.token(), expenseId, payload).subscribe({
       next: () => {
@@ -237,7 +234,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.showFeedback('Deleting the expense...', 'info', 0);
+    this.showFeedback('Deleting the expense...', 'info');
 
     this.api.deleteExpense(this.token(), expenseId).subscribe({
       next: () => {
@@ -270,7 +267,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.showFeedback('Adding receipt to the processing queue...', 'info', 0);
+    this.showFeedback('Adding receipt to the processing queue...', 'info');
 
     this.api.queueReceipt(this.token(), payload).subscribe({
       next: ({ receipt }) => {
@@ -354,7 +351,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.showFeedback('Creating expense from reviewed receipt...', 'info', 0);
+    this.showFeedback('Creating expense from reviewed receipt...', 'info');
 
     this.api.createExpenseFromReceipt(this.token(), receiptId, payload).subscribe({
       next: ({ receipt }) => {
@@ -387,7 +384,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.showFeedback('Saving your profile...', 'info', 0);
+    this.showFeedback('Saving your profile...', 'info');
 
     this.api.updateProfile(this.token(), payload).subscribe({
       next: ({ user }) => {
@@ -411,7 +408,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.showFeedback('Adding payment method...', 'info', 0);
+    this.showFeedback('Adding payment method...', 'info');
 
     this.api.createPaymentMethod(this.token(), payload).subscribe({
       next: () => {
@@ -433,7 +430,7 @@ export class AppStore {
     }
 
     this.isSubmitting.set(true);
-    this.showFeedback('Deleting payment method...', 'info', 0);
+    this.showFeedback('Deleting payment method...', 'info');
 
     this.api.deletePaymentMethod(this.token(), id).subscribe({
       next: () => {
@@ -595,7 +592,7 @@ export class AppStore {
     }
   }
 
-  private showFeedback(message: string, tone: ActionFeedbackTone, durationMs = 3600) {
+  private showFeedback(message: string, tone: ActionFeedbackTone, durationMs = 1000) {
     this.statusMessage.set(message);
     this.actionFeedback.set({ message, tone });
 

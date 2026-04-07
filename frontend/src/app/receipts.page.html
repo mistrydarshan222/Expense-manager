@@ -15,24 +15,6 @@
       <div class="panel-tip">Receipts are queued first, then moved into review once processing finishes.</div>
     </div>
 
-    <div class="receipt-helper-grid">
-      <article class="receipt-helper-card">
-        <span>Best results</span>
-        <strong>Use a flat, well-lit receipt photo</strong>
-        <p>Keep the full receipt visible and avoid shadows so the total and merchant are easier to detect.</p>
-      </article>
-      <article class="receipt-helper-card">
-        <span>Accepted input</span>
-        <strong>Image, PDF, or pasted OCR text</strong>
-        <p>Upload a file when possible. Paste raw text only if you already ran OCR elsewhere.</p>
-      </article>
-      <article class="receipt-helper-card">
-        <span>Review step</span>
-        <strong>Always confirm the extracted amount</strong>
-        <p>Receipts with unclear totals stay in review so you can adjust the fields before saving.</p>
-      </article>
-    </div>
-
     <form [formGroup]="receiptForm" (ngSubmit)="processReceipt()" class="form-grid">
       <label>
         <span>Category</span>
@@ -64,7 +46,7 @@
         <span>Optional merchant</span>
         <input type="text" formControlName="merchantName" placeholder="Use only if you want to override the merchant" />
       </label>
-      <label>
+      <label class="receipt-file-field">
         <span>Receipt file</span>
         <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,.txt,.csv,.json,.log,application/pdf,image/png,image/jpeg,image/webp,image/bmp,text/plain,text/csv,application/json" (change)="onReceiptFileSelected($event)" />
       </label>

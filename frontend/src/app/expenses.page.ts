@@ -1,9 +1,10 @@
-import { DatePipe, NgClass } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { DatePipe, DOCUMENT, NgClass } from '@angular/common';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { startWith } from 'rxjs';
 
+import { Expense } from './api.types';
 import { AppStore } from './app.store';
 
 type TimeRange = 'all' | 'lastMonth' | 'thisMonth' | 'thisWeek' | 'today';
@@ -17,6 +18,19 @@ type TimeRange = 'all' | 'lastMonth' | 'thisMonth' | 'thisWeek' | 'today';
 export class ExpensesPageComponent {
   protected readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
+  private readonly document = inject(DOCUMENT);
+  protected readonly editingExpenseId = signal<string | null>(null);
+  protected readonly isEditingExpense = computed(() => this.editingExpenseId() !== null);
+
+  protected readonly expenseForm = this.fb.nonNullable.group({
+    title: ['', [Validators.required, Validators.minLength(2)]],
+    categoryId: ['', [Validators.required]],
+    expenseDate: [new Date().toISOString().slice(0, 10), [Validators.required]],
+    finalAmount: [0, [Validators.required, Validators.min(0.01)]],
+    merchantName: [''],
+    paymentMethod: [''],
+    notes: ['']
+  });
 
   protected readonly filterForm = this.fb.nonNullable.group({
     timeRange: ['all' as TimeRange],
@@ -69,8 +83,73 @@ export class ExpensesPageComponent {
     return Array.from(totals.entries()).map(([currency, amount]) => ({ currency, amount }));
   });
 
+  constructor() {
+    effect(() => {
+      const categories = this.store.categories();
+      if (!this.expenseForm.value.categoryId && categories.length > 0) {
+        this.expenseForm.patchValue({ categoryId: categories[0].id });
+      }
+    });
+
+    effect(() => {
+      const methods = this.store.paymentMethods();
+      if (!this.expenseForm.value.paymentMethod && methods.length > 0) {
+        this.expenseForm.patchValue({ paymentMethod: methods[0].name });
+      }
+    });
+  }
+
+  protected saveExpense() {
+    if (this.expenseForm.invalid) {
+      this.expenseForm.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.expenseForm.getRawValue();
+    const payload = {
+      ...formValue,
+      finalAmount: Number(formValue.finalAmount),
+      currency: this.store.preferredCurrency()
+    };
+
+    const editingExpenseId = this.editingExpenseId();
+
+    if (!editingExpenseId) {
+      return;
+    }
+
+    this.store.updateExpense(editingExpenseId, payload, () => this.resetExpenseForm());
+  }
+
   protected setTimeRange(timeRange: TimeRange) {
     this.filterForm.patchValue({ timeRange });
+  }
+
+  protected startEditExpense(expense: Expense) {
+    this.editingExpenseId.set(expense.id);
+    this.expenseForm.patchValue({
+      title: expense.title,
+      categoryId: expense.categoryId ?? '',
+      expenseDate: expense.expenseDate.slice(0, 10),
+      finalAmount: Number(expense.finalAmount),
+      merchantName: expense.merchantName ?? '',
+      paymentMethod: expense.paymentMethod ?? this.store.paymentMethods()[0]?.name ?? '',
+      notes: expense.notes ?? ''
+    });
+    this.store.statusMessage.set(`Editing "${expense.title}". Update any field and save.`);
+    queueMicrotask(() => {
+      const editSection = this.document.getElementById('expense-editor');
+      editSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  protected cancelEditExpense() {
+    this.resetExpenseForm();
+    this.store.statusMessage.set('Edit cancelled. You can continue browsing expenses.');
+  }
+
+  protected deleteExpense(expenseId: string) {
+    this.store.deleteExpense(expenseId);
   }
 
   protected clearFilters() {
@@ -80,6 +159,19 @@ export class ExpensesPageComponent {
       categoryId: 'all',
       paymentMethod: 'all',
       currency: 'all'
+    });
+  }
+
+  protected resetExpenseForm() {
+    this.editingExpenseId.set(null);
+    this.expenseForm.patchValue({
+      title: '',
+      categoryId: this.store.categories()[0]?.id ?? '',
+      expenseDate: new Date().toISOString().slice(0, 10),
+      finalAmount: 0,
+      merchantName: '',
+      paymentMethod: this.store.paymentMethods()[0]?.name ?? '',
+      notes: ''
     });
   }
 

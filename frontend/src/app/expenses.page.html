@@ -27,24 +27,6 @@
         <button type="button" class="time-filter-chip" [ngClass]="{ 'time-filter-chip-active': filterForm.value.timeRange === 'today' }" (click)="setTimeRange('today')">Today</button>
       </div>
 
-      <div class="history-snapshot-grid">
-        <article class="history-snapshot-card">
-          <span>Visible expenses</span>
-          <strong>{{ filteredExpenses().length }}</strong>
-          <p>Every item currently matching your selected filters.</p>
-        </article>
-        <article class="history-snapshot-card">
-          <span>Active currencies</span>
-          <strong>{{ filteredTotalsByCurrency().length }}</strong>
-          <p>Currency totals stay separated so mixed-currency histories remain accurate.</p>
-        </article>
-        <article class="history-snapshot-card">
-          <span>Quick help</span>
-          <strong>Filter first</strong>
-          <p>Use category, method, and search together to narrow large histories faster.</p>
-        </article>
-      </div>
-
       <form [formGroup]="filterForm" class="expense-filter-bar expense-filter-bar-wide">
         <label>
           <span>Search</span>

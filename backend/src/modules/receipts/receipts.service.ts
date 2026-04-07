@@ -35,9 +35,28 @@ let isQueueProcessing = false;
 const MAX_STORED_AMOUNT = 99_999_999.99;
 
 function parseAmount(value: string) {
-  const normalized = value.replace(/[,\s]/g, "").trim();
+  const trimmed = value.trim();
+  const hasDot = trimmed.includes(".");
+  const hasComma = trimmed.includes(",");
+  const normalized = hasComma && !hasDot
+    ? trimmed.replace(/\s/g, "").replace(/,/g, ".")
+    : trimmed.replace(/[,\s]/g, "");
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildLabelRegex(label: string) {
+  const normalizedLabel = label
+    .trim()
+    .split(/\s+/)
+    .map((part) => escapeRegExp(part))
+    .join("\\s*");
+
+  return new RegExp(`(?:^|\\b)${normalizedLabel}\\b`, "i");
 }
 
 function normalizeStoredAmount(value: number | null) {
@@ -56,8 +75,9 @@ function normalizeStoredAmount(value: number | null) {
 
 function findAmountForLabels(text: string, labels: string[]) {
   for (const label of labels) {
+    const labelRegex = buildLabelRegex(label);
     const regex = new RegExp(
-      `${label}\\s*[:\\-]?\\s*(?:[A-Z]{3}\\s*)?[\\$\\u20AC\\u00A3\\u20B9]?\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{2})?)`,
+      `${labelRegex.source}\\s*[:\\-]?\\s*(?:[A-Z]{3}\\s*)?[\\$\\u20AC\\u00A3\\u20B9]?\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{2})?|\\d+(?:,\\d{2}))`,
       "i",
     );
     const match = text.match(regex);
@@ -77,8 +97,9 @@ function findAllAmountsForLabels(text: string, labels: string[]) {
   const amounts: number[] = [];
 
   for (const label of labels) {
+    const labelRegex = buildLabelRegex(label);
     const regex = new RegExp(
-      `${label}\\s*[:\\-]?\\s*(?:\\d+(?:\\.\\d+)?\\s*%\\s*)?(?:[A-Z]{3}\\s*)?[\\$\\u20AC\\u00A3\\u20B9]?\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{2})?)`,
+      `${labelRegex.source}\\s*[:\\-]?\\s*(?:\\d+(?:[\\.,]\\d+)?\\s*%\\s*)?(?:[A-Z]{3}\\s*)?[\\$\\u20AC\\u00A3\\u20B9]?\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{2})?|\\d+(?:,\\d{2}))`,
       "gi",
     );
 
@@ -140,12 +161,18 @@ function extractLastAmountFromLine(line: string) {
 }
 
 function findLineAmount(text: string, labels: string[], options?: { exclude?: RegExp }) {
+  return findLineAmounts(text, labels, options)[0] ?? null;
+}
+
+function findLineAmounts(text: string, labels: string[], options?: { exclude?: RegExp }) {
   const lines = text
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
 
-  for (const line of lines) {
+  const amounts: number[] = [];
+
+  for (const [index, line] of lines.entries()) {
     const normalizedLine = line.replace(/\s+/g, " ").trim();
 
     if (options?.exclude?.test(normalizedLine)) {
@@ -153,8 +180,7 @@ function findLineAmount(text: string, labels: string[], options?: { exclude?: Re
     }
 
     for (const label of labels) {
-      const labelPattern = label.replace(/\s+/g, "\\s*");
-      const regex = new RegExp(`^${labelPattern}\\b`, "i");
+      const regex = buildLabelRegex(label);
 
       if (!regex.test(normalizedLine)) {
         continue;
@@ -162,12 +188,20 @@ function findLineAmount(text: string, labels: string[], options?: { exclude?: Re
 
       const amount = extractLastAmountFromLine(normalizedLine);
       if (amount !== null) {
-        return amount;
+        amounts.push(amount);
+      } else {
+        const nextLine = lines[index + 1];
+        if (nextLine) {
+          const combinedAmount = extractLastAmountFromLine(`${normalizedLine} ${nextLine.trim()}`);
+          if (combinedAmount !== null) {
+            amounts.push(combinedAmount);
+          }
+        }
       }
     }
   }
 
-  return null;
+  return amounts;
 }
 
 function findTaxAmountsFromLines(text: string, labels: string[]) {
@@ -178,12 +212,11 @@ function findTaxAmountsFromLines(text: string, labels: string[]) {
 
   const amounts: number[] = [];
 
-  for (const line of lines) {
+  for (const [index, line] of lines.entries()) {
     const normalizedLine = line.replace(/\s+/g, " ").trim();
 
     for (const label of labels) {
-      const labelPattern = label.replace(/\s+/g, "\\s*");
-      const regex = new RegExp(`^${labelPattern}\\b`, "i");
+      const regex = buildLabelRegex(label);
 
       if (!regex.test(normalizedLine)) {
         continue;
@@ -192,12 +225,36 @@ function findTaxAmountsFromLines(text: string, labels: string[]) {
       const amount = extractLastAmountFromLine(normalizedLine);
       if (amount !== null) {
         amounts.push(amount);
+      } else {
+        const nextLine = lines[index + 1];
+        if (nextLine) {
+          const combinedAmount = extractLastAmountFromLine(`${normalizedLine} ${nextLine.trim()}`);
+          if (combinedAmount !== null) {
+            amounts.push(combinedAmount);
+          }
+        }
       }
       break;
     }
   }
 
   return amounts;
+}
+
+function findPreferredTotalAmount(text: string) {
+  const prioritizedLabels = ["grand total", "total due", "amount due", "total"];
+  const strictTotalCandidates = findLineAmounts(text, prioritizedLabels, {
+    exclude: /\bsub\s*total\b|\btotal\s+purchase\b|\bmcard\s+tend\b|\bchange\s+due\b/i,
+  });
+
+  if (strictTotalCandidates.length > 0) {
+    return strictTotalCandidates[0];
+  }
+
+  return (
+    findAmountForLabels(text, ["grand total", "total due", "amount due"]) ??
+    findAmountForLabels(text, ["total"])
+  );
 }
 
 function detectCurrency(text: string) {
@@ -340,9 +397,26 @@ function detectMerchant(text: string) {
 function parseReceiptText(text: string, headerText = ""): ParsedReceipt {
   const normalizedText = text.replace(/\r/g, "\n");
   const normalizedHeaderText = headerText.replace(/\r/g, "\n");
-  const subtotal =
-    findLineAmount(normalizedText, ["subtotal", "sub total"]) ??
-    findAmountForLabels(normalizedText, ["subtotal", "sub total"]);
+  const rawSubtotalCandidates = [
+    ...findLineAmounts(normalizedText, ["subtotal", "sub total"]),
+    ...(() => {
+      const fallbackSubtotal = findAmountForLabels(normalizedText, ["subtotal", "sub total"]);
+      return fallbackSubtotal !== null ? [fallbackSubtotal] : [];
+    })(),
+  ];
+  const totalCandidates = [
+    ...(() => {
+      const preferredTotal = findPreferredTotalAmount(normalizedText);
+      return preferredTotal !== null ? [preferredTotal] : [];
+    })(),
+    ...(() => {
+      const fallbackTotal = findAmountForLabels(normalizedText, ["grand total", "total due", "amount due"]);
+      return fallbackTotal !== null ? [fallbackTotal] : [];
+    })(),
+  ];
+  let subtotal = rawSubtotalCandidates[0] ?? null;
+  const total = totalCandidates[0] ?? null;
+
   const lineTaxAmounts = findTaxAmountsFromLines(normalizedText, [
     "tax",
     "tax 1",
@@ -368,26 +442,32 @@ function parseReceiptText(text: string, headerText = ""): ParsedReceipt {
         ]);
   const taxAmounts = [...lineTaxAmounts, ...fallbackTaxAmounts];
   const uniqueTaxAmounts = Array.from(new Set(taxAmounts.map((amount) => amount.toFixed(2)))).map(Number);
-  const tax =
-    uniqueTaxAmounts.length > 0
-      ? Number(uniqueTaxAmounts.reduce((sum, amount) => sum + amount, 0).toFixed(2))
-      : null;
-  const total =
-    findLineAmount(normalizedText, ["grand total", "total due", "amount due", "total"], {
-      exclude: /\bsub\s*total\b/i,
-    }) ??
-    findAmountForLabels(normalizedText, ["grand total", "total due", "amount due", "total"]);
+  const tax = chooseBestTaxAmount(uniqueTaxAmounts, subtotal, total);
+  const derivedSubtotal =
+    total !== null && tax !== null && total >= tax ? Number((total - tax).toFixed(2)) : null;
+
+  if (
+    derivedSubtotal !== null &&
+    (subtotal === null || Math.abs(subtotal - derivedSubtotal) > 0.5)
+  ) {
+    subtotal = derivedSubtotal;
+  }
 
   const subtotalPlusTax =
     subtotal !== null && tax !== null ? Number((subtotal + tax).toFixed(2)) : null;
 
-  let finalAmount = subtotalPlusTax ?? total;
+  let finalAmount = total ?? subtotalPlusTax;
   let needsReview = false;
 
   if (finalAmount === null && subtotal !== null) {
     finalAmount = subtotal;
     needsReview = true;
   } else if (subtotalPlusTax !== null && total !== null && Math.abs(subtotalPlusTax - total) > 0.009) {
+    finalAmount = total;
+    needsReview = true;
+  }
+
+  if (total !== null && subtotal !== null && total < subtotal) {
     needsReview = true;
   }
 
@@ -403,6 +483,32 @@ function parseReceiptText(text: string, headerText = ""): ParsedReceipt {
     needsReview,
     parserConfidence: subtotalPlusTax !== null || total !== null ? 0.92 : subtotal !== null ? 0.68 : 0.2,
   };
+}
+
+function chooseBestTaxAmount(candidates: number[], subtotal: number | null, total: number | null) {
+  if (candidates.length === 0) {
+    if (subtotal !== null && total !== null && total >= subtotal) {
+      return Number((total - subtotal).toFixed(2));
+    }
+
+    return null;
+  }
+
+  if (subtotal !== null && total !== null) {
+    const expectedTax = Number((total - subtotal).toFixed(2));
+
+    if (expectedTax >= 0) {
+      const closestMatch = [...candidates].sort(
+        (left, right) => Math.abs(left - expectedTax) - Math.abs(right - expectedTax),
+      )[0];
+
+      if (closestMatch !== undefined) {
+        return closestMatch;
+      }
+    }
+  }
+
+  return candidates[0] ?? null;
 }
 
 function scoreParsedReceipt(parsed: ParsedReceipt) {
