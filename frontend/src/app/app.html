@@ -33,6 +33,19 @@
   }
 
   <header class="topbar" [class.topbar-logged-out]="!store.token()">
+    @if (store.token()) {
+      <button
+        type="button"
+        class="mobile-menu-button"
+        [attr.aria-expanded]="mobileMenuOpen()"
+        aria-label="Toggle navigation menu"
+        (click)="toggleMobileMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    }
+
     <a class="brand" routerLink="/" aria-label="Go to ExpenseFlow home" (click)="closeMobileMenu()">
       <img class="brand-logo" src="transparent-logo.svg" alt="ExpenseFlow logo" />
       @if (store.token()) {
@@ -44,15 +57,11 @@
     </a>
 
     @if (store.token()) {
-      <button
-        type="button"
-        class="mobile-menu-button"
-        [attr.aria-expanded]="mobileMenuOpen()"
-        aria-label="Toggle navigation menu"
-        (click)="toggleMobileMenu()">
-        <span></span>
-        <span></span>
-        <span></span>
+      <button type="button" class="mobile-header-action" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 5C9.79 5 8 6.79 8 9V11.2C8 12.28 7.72 13.34 7.18 14.27L6 16.3H18L16.82 14.27C16.28 13.34 16 12.28 16 11.2V9C16 6.79 14.21 5 12 5Z" />
+          <path d="M10 18C10.46 19.2 11.08 20 12 20C12.92 20 13.54 19.2 14 18" />
+        </svg>
       </button>
 
       <div class="topbar-menu-shell" [class.mobile-open]="mobileMenuOpen()">
