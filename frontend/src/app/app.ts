@@ -33,4 +33,41 @@ export class App {
     const auth = this.router.parseUrl(this.router.url).queryParams['auth'];
     return auth === 'register' ? 'register' : 'login';
   }
+
+  protected mobileNavActive(path: string) {
+    const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
+    return path === '' ? currentPath === '' : currentPath === path;
+  }
+
+  protected mobileHeaderTitle() {
+    const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
+
+    switch (currentPath) {
+      case 'expenses':
+        return 'Expense History';
+      case 'receipts':
+        return 'Receipt Scanner';
+      case 'profile':
+        return 'Profile';
+      case '':
+      default:
+        return 'Dashboard';
+    }
+  }
+
+  protected mobileHeaderSubtitle() {
+    const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
+
+    switch (currentPath) {
+      case 'expenses':
+        return 'Track every amount clearly';
+      case 'receipts':
+        return 'Scan and review faster';
+      case 'profile':
+        return 'Manage your account';
+      case '':
+      default:
+        return 'Your money workspace';
+    }
+  }
 }

@@ -38,6 +38,15 @@
     </a>
 
     @if (store.token()) {
+      <div class="mobile-header-copy">
+        <span class="mobile-header-kicker">
+          <span class="mobile-header-dot" aria-hidden="true"></span>
+          ExpenseFlow
+        </span>
+        <strong>{{ mobileHeaderTitle() }}</strong>
+        <span class="mobile-header-subtitle">{{ mobileHeaderSubtitle() }}</span>
+      </div>
+
       <button
         type="button"
         class="mobile-menu-button"
@@ -94,6 +103,77 @@
   </header>
 
   <router-outlet />
+
+  @if (store.token()) {
+    <nav class="mobile-bottom-nav" aria-label="Mobile primary navigation">
+      <a
+        routerLink="/"
+        [class.mobile-bottom-nav-active]="mobileNavActive('')"
+        aria-label="Home"
+        (click)="closeMobileMenu()">
+        <span class="mobile-bottom-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 10.5L12 4L20 10.5V19C20 19.55 19.55 20 19 20H15V14H9V20H5C4.45 20 4 19.55 4 19V10.5Z" />
+          </svg>
+        </span>
+      </a>
+      <a
+        routerLink="/expenses"
+        [class.mobile-bottom-nav-active]="mobileNavActive('expenses')"
+        aria-label="Expenses"
+        (click)="closeMobileMenu()">
+        <span class="mobile-bottom-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7 4H17L19 6V20L17 18L15 20L13 18L11 20L9 18L7 20L5 18V6L7 4Z" />
+            <path d="M9 8H15" />
+            <path d="M9 12H15" />
+            <path d="M9 16H13" />
+          </svg>
+        </span>
+      </a>
+      <a
+        routerLink="/receipts"
+        class="mobile-bottom-nav-center"
+        [class.mobile-bottom-nav-active]="mobileNavActive('receipts')"
+        aria-label="Scan receipt"
+        (click)="closeMobileMenu()">
+        <span class="mobile-bottom-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 4V20" />
+            <path d="M4 12H20" />
+            <path d="M7.5 7.5H7.51" />
+            <path d="M16.5 7.5H16.51" />
+            <path d="M7.5 16.5H7.51" />
+            <path d="M16.5 16.5H16.51" />
+          </svg>
+        </span>
+      </a>
+      <a
+        routerLink="/profile"
+        [class.mobile-bottom-nav-active]="mobileNavActive('profile')"
+        aria-label="Profile"
+        (click)="closeMobileMenu()">
+        <span class="mobile-bottom-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" />
+            <path d="M5 20C5.9 16.9 8.58 15 12 15C15.42 15 18.1 16.9 19 20" />
+          </svg>
+        </span>
+      </a>
+      <a
+        href="#"
+        aria-label="Logout"
+        (click)="$event.preventDefault(); logout()">
+        <span class="mobile-bottom-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M10 7V5C10 4.45 10.45 4 11 4H18C18.55 4 19 4.45 19 5V19C19 19.55 18.55 20 18 20H11C10.45 20 10 19.55 10 19V17" />
+            <path d="M15 12H4" />
+            <path d="M7 9L4 12L7 15" />
+          </svg>
+        </span>
+      </a>
+    </nav>
+  }
 
   <footer class="app-footer">
     <div class="app-footer-orbit app-footer-orbit-left"></div>
