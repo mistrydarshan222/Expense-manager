@@ -82,6 +82,7 @@ export class DashboardPageComponent {
   });
 
   protected readonly recentExpensePreview = computed(() => this.filteredExpenses().slice(0, 5));
+  protected readonly desktopRecentExpenses = computed(() => this.store.expenses().slice(0, 6));
   protected readonly mobileMonthSpent = computed(() => {
     const now = new Date();
 
@@ -110,7 +111,7 @@ export class DashboardPageComponent {
     }
 
     const totalAmount = Array.from(totals.values()).reduce((sum, item) => sum + item.amount, 0) || 1;
-    const colors = ['#22C55E', '#4ADE80', '#14B8A6', '#3B82F6'];
+    const colors = ['#58D68D', '#7EDC98', '#86E0D2', '#2EC4B6', '#BFEFDF'];
 
     return Array.from(totals.entries())
       .map(([name, value], index) => ({
@@ -143,6 +144,25 @@ export class DashboardPageComponent {
     }
 
     return `conic-gradient(${segments.join(', ')})`;
+  });
+  protected readonly desktopMonthlyTrend = computed(() => {
+    const now = new Date();
+    const monthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short' });
+
+    return Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+      const amount = this.store.expenses()
+        .filter((expense) => {
+          const expenseDate = new Date(expense.expenseDate);
+          return expenseDate.getFullYear() === date.getFullYear() && expenseDate.getMonth() === date.getMonth();
+        })
+        .reduce((sum, expense) => sum + Number(expense.finalAmount), 0);
+
+      return {
+        label: monthFormatter.format(date),
+        amount
+      };
+    });
   });
 
   constructor() {
@@ -328,5 +348,9 @@ export class DashboardPageComponent {
 
   protected openAddExpensePage() {
     this.router.navigateByUrl('/expenses/new');
+  }
+
+  protected monthlyBarHeight(amount: number) {
+    return Math.max(18, amount / 20);
   }
 }

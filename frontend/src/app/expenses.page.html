@@ -6,6 +6,49 @@
   </section>
 } @else {
   <section class="expenses-page-shell">
+    <section class="desktop-expenses-view">
+      <article class="desktop-expenses-head-card">
+        <div class="desktop-expenses-head-top">
+          <h2>Expense History</h2>
+          <div class="desktop-expenses-head-actions">
+            <span class="panel-tip">{{ filterForm.value.timeRange === 'all' ? 'All time' : filterForm.value.timeRange }}</span>
+            <button type="button" (click)="downloadStatementPdf()">Export</button>
+          </div>
+        </div>
+
+        <div class="desktop-expenses-chip-row">
+          <span class="desktop-expenses-chip desktop-expenses-chip-active">All</span>
+          @for (category of store.categories(); track category.id) {
+            <span class="desktop-expenses-chip">{{ category.name }}</span>
+          }
+        </div>
+      </article>
+
+      <article class="desktop-expenses-table-card">
+        <div class="desktop-expenses-table">
+          <div class="desktop-expenses-table-head">
+            <span>Date</span>
+            <span>Merchant</span>
+            <span>Category</span>
+            <span>Payment Method</span>
+            <span>Amount</span>
+          </div>
+
+          @for (expense of filteredExpenses(); track expense.id) {
+            <div class="desktop-expenses-table-row">
+              <span>{{ expense.expenseDate | date:'MMM d, y' }}</span>
+              <div class="desktop-expenses-merchant">
+                <strong>{{ expense.merchantName || expense.title }}</strong>
+              </div>
+              <span class="desktop-expenses-badge">{{ expense.category?.name || 'Other' }}</span>
+              <span>{{ expense.paymentMethod || 'Cash' }}</span>
+              <strong>{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
+            </div>
+          }
+        </div>
+      </article>
+    </section>
+
     <section class="mobile-history-view">
       <div class="mobile-history-chip-row">
         <button type="button" class="mobile-history-chip" [class.mobile-history-chip-active]="filterForm.value.categoryId === 'all'" (click)="filterForm.patchValue({ categoryId: 'all' })">All</button>

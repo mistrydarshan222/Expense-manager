@@ -106,6 +106,88 @@
   margin-inline: auto;
 }
 
+.app-auth-shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.app-auth-main {
+  min-width: 0;
+  display: grid;
+  gap: 22px;
+}
+
+.desktop-sidebar {
+  display: grid;
+  align-content: start;
+  gap: 22px;
+  padding: 18px 16px;
+  border: 1px solid rgba(18, 59, 103, 0.08);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.08);
+}
+
+.desktop-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.desktop-sidebar-brand span span {
+  color: #22c55e;
+}
+
+.desktop-sidebar-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.desktop-sidebar-nav {
+  display: grid;
+  gap: 8px;
+}
+
+.desktop-sidebar-nav a {
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.desktop-sidebar-nav a.active-link,
+.desktop-sidebar-nav a:hover {
+  background: linear-gradient(135deg, rgba(220, 252, 231, 0.9) 0%, rgba(240, 253, 244, 1) 100%);
+  color: #15803d;
+}
+
+.desktop-sidebar-upgrade {
+  margin-top: auto;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 249, 219, 0.9) 0%, rgba(255, 255, 255, 0.98) 100%);
+  color: #a16207;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.desktop-sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px 0;
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
 .app-footer {
   position: relative;
   overflow: hidden;
@@ -201,6 +283,55 @@
   background: rgba(255, 253, 248, 0.85);
   box-shadow: var(--shadow-shell);
   backdrop-filter: blur(20px);
+}
+
+.desktop-page-copy {
+  display: block;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+}
+
+.desktop-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.desktop-header-icon,
+.desktop-header-caret {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.desktop-header-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.desktop-header-avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
+  color: #16a34a;
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
 .topbar-logged-out {
@@ -334,7 +465,12 @@
 .mobile-page-copy,
 .mobile-header-right,
 .mobile-header-avatar,
-.mobile-bottom-nav-label {
+.mobile-bottom-nav-label,
+.desktop-page-copy,
+.desktop-header-actions,
+.desktop-header-icon,
+.desktop-header-avatar,
+.desktop-header-caret {
   display: none;
 }
 
@@ -394,6 +530,30 @@
 
 .topbar-menu-shell {
   display: contents;
+}
+
+.app-auth-shell .topbar {
+  margin-bottom: 0;
+  padding: 14px 18px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.06);
+}
+
+.app-auth-shell .brand {
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.app-auth-shell .brand-logo,
+.app-auth-shell .mobile-menu-button,
+.app-auth-shell .mobile-brand-copy,
+.app-auth-shell .mobile-page-copy,
+.app-auth-shell .mobile-header-right,
+.app-auth-shell .topbar-menu-shell {
+  display: none;
 }
 
 .topbar-actions {
@@ -1249,6 +1409,40 @@ button:hover,
 }
 
 @media (max-width: 900px) {
+  .app-auth-shell {
+    display: block;
+    max-width: none;
+  }
+
+  .desktop-sidebar,
+  .desktop-page-copy,
+  .desktop-header-actions {
+    display: none;
+  }
+
+  .app-auth-main {
+    display: block;
+  }
+
+  .app-auth-shell .topbar {
+    margin-bottom: 28px;
+    padding: 14px 16px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    border-radius: 28px;
+  }
+
+  .app-auth-shell .brand-logo,
+  .app-auth-shell .mobile-brand-copy,
+  .app-auth-shell .mobile-page-copy,
+  .app-auth-shell .mobile-header-right,
+  .app-auth-shell .topbar-menu-shell {
+    display: initial;
+  }
+
+  .app-auth-shell .brand-logo {
+    display: block;
+  }
+
   .shell {
     padding: 16px;
   }

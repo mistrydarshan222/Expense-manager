@@ -79,6 +79,111 @@
   </section>
 } @else {
   <section class="dashboard-shell" id="overview">
+    <section class="desktop-dashboard-view">
+      <section class="desktop-dashboard-stats">
+        <article class="desktop-stat-card">
+          <span>Current Balance</span>
+          <strong>{{ store.formatCurrency(store.totalSpent(), store.preferredCurrency()) }}</strong>
+        </article>
+        <article class="desktop-stat-card">
+          <span>Total Expenses</span>
+          <strong>{{ store.formatCurrency(store.totalSpent(), store.preferredCurrency()) }}</strong>
+        </article>
+        <article class="desktop-stat-card">
+          <span>Categories</span>
+          <strong>{{ store.categories().length }}</strong>
+        </article>
+        <article class="desktop-stat-card">
+          <span>Saved Methods</span>
+          <strong>{{ store.paymentMethods().length }}</strong>
+        </article>
+      </section>
+
+      <section class="desktop-dashboard-main">
+        <article class="desktop-overview-card">
+          <div class="desktop-card-head">
+            <strong>Spending Overview</strong>
+            <span>This Month</span>
+          </div>
+          <div class="desktop-overview-body">
+            <div class="desktop-overview-donut" [style.background]="mobileDonutBackground()">
+              <div class="desktop-overview-center">
+                <strong>{{ store.formatCurrency(mobileMonthSpent(), store.preferredCurrency()) }}</strong>
+                <span>Spent this month</span>
+              </div>
+            </div>
+            <div class="desktop-overview-legend">
+              @for (item of mobileCategoryBreakdown(); track item.name) {
+                <div class="desktop-legend-row">
+                  <span class="desktop-legend-dot" [style.background]="item.color"></span>
+                  <span>{{ item.name }}</span>
+                  <strong>{{ store.formatCurrency(item.amount, store.preferredCurrency()) }}</strong>
+                </div>
+              }
+            </div>
+          </div>
+        </article>
+
+        <article class="desktop-transactions-card">
+          <div class="desktop-card-head">
+            <strong>Recent Transactions</strong>
+            <a routerLink="/expenses">View All</a>
+          </div>
+          <div class="desktop-transaction-list">
+            @for (expense of desktopRecentExpenses(); track expense.id) {
+              <div class="desktop-transaction-row">
+                <div>
+                  <strong>{{ expense.title }}</strong>
+                  <span>{{ expense.category?.name || 'Uncategorized' }}</span>
+                </div>
+                <div>
+                  <strong>{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
+                  <span>{{ expense.expenseDate | date:'MMM d' }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </article>
+      </section>
+
+      <section class="desktop-dashboard-bottom">
+        <article class="desktop-categories-card">
+          <div class="desktop-card-head">
+            <strong>Top Categories</strong>
+            <a routerLink="/expenses">View All</a>
+          </div>
+          <div class="desktop-category-list">
+            @for (item of mobileCategoryBreakdown(); track item.name) {
+              <div class="desktop-category-row">
+                <div>
+                  <strong>{{ item.name }}</strong>
+                </div>
+                <div class="desktop-category-progress">
+                  <span [style.width.%]="item.ratio * 100" [style.background]="item.color"></span>
+                </div>
+                <strong>{{ store.formatCurrency(item.amount, store.preferredCurrency()) }}</strong>
+              </div>
+            }
+          </div>
+        </article>
+
+        <article class="desktop-trend-card">
+          <div class="desktop-card-head">
+            <strong>Monthly Trend</strong>
+            <span>Last 6 Months</span>
+          </div>
+            <div class="desktop-trend-chart">
+              @for (month of desktopMonthlyTrend(); track month.label) {
+                <div class="desktop-trend-bar-group">
+                <span class="desktop-trend-bar" [style.height.px]="monthlyBarHeight(month.amount)"></span>
+                <small>{{ month.label }}</small>
+              </div>
+            }
+          </div>
+        </article>
+      </section>
+    </section>
+
     <section class="mobile-dashboard-view">
       <article class="mobile-balance-card">
         <div class="mobile-balance-copy">
@@ -107,8 +212,14 @@
         </div>
 
         <div class="mobile-dashboard-actions">
-          <button type="button" class="ghost-button" (click)="openAddExpensePage()">Add Expense</button>
-          <a class="ghost-button" routerLink="/receipts">Upload Receipt</a>
+          <button type="button" class="ghost-button mobile-dashboard-action-button" (click)="openAddExpensePage()">
+            <span class="mobile-dashboard-action-icon" aria-hidden="true">+</span>
+            <span>Add Expense</span>
+          </button>
+          <a class="ghost-button mobile-dashboard-action-button" routerLink="/receipts">
+            <span class="mobile-dashboard-action-icon mobile-dashboard-action-icon-upload" aria-hidden="true"></span>
+            <span>Upload Receipt</span>
+          </a>
         </div>
       </article>
 
