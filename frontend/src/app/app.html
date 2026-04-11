@@ -35,18 +35,15 @@
   <header class="topbar" [class.topbar-logged-out]="!store.token()">
     <a class="brand" routerLink="/" aria-label="Go to ExpenseFlow home" (click)="closeMobileMenu()">
       <img class="brand-logo" src="transparent-logo.svg" alt="ExpenseFlow logo" />
+      @if (store.token()) {
+        <span class="mobile-brand-copy">
+          <strong>Expense<span>Flow</span></strong>
+          <small>{{ mobileHeaderTitle() }}</small>
+        </span>
+      }
     </a>
 
     @if (store.token()) {
-      <div class="mobile-header-copy">
-        <span class="mobile-header-kicker">
-          <span class="mobile-header-dot" aria-hidden="true"></span>
-          ExpenseFlow
-        </span>
-        <strong>{{ mobileHeaderTitle() }}</strong>
-        <span class="mobile-header-subtitle">{{ mobileHeaderSubtitle() }}</span>
-      </div>
-
       <button
         type="button"
         class="mobile-menu-button"
