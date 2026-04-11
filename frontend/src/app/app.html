@@ -49,20 +49,35 @@
     <a class="brand" routerLink="/" aria-label="Go to ExpenseFlow home" (click)="closeMobileMenu()">
       <img class="brand-logo" src="transparent-logo.svg" alt="ExpenseFlow logo" />
       @if (store.token()) {
-        <span class="mobile-brand-copy">
-          <strong>Expense<span>Flow</span></strong>
-          <small>{{ mobileHeaderTitle() }}</small>
-        </span>
+        @if (mobileHeaderMode() === 'brand') {
+          <span class="mobile-brand-copy">
+            <strong>Expense<span>Flow</span></strong>
+          </span>
+        } @else {
+          <span class="mobile-page-copy">
+            <strong>{{ mobileHeaderTitle() }}</strong>
+          </span>
+        }
       }
     </a>
 
     @if (store.token()) {
-      <button type="button" class="mobile-header-action" aria-label="Notifications">
+      <div class="mobile-header-right">
+      <button type="button" class="mobile-header-action" [attr.aria-label]="mobileHeaderActionLabel()">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 5C9.79 5 8 6.79 8 9V11.2C8 12.28 7.72 13.34 7.18 14.27L6 16.3H18L16.82 14.27C16.28 13.34 16 12.28 16 11.2V9C16 6.79 14.21 5 12 5Z" />
-          <path d="M10 18C10.46 19.2 11.08 20 12 20C12.92 20 13.54 19.2 14 18" />
+          @if (mobileHeaderActionLabel() === 'Settings') {
+            <path d="M12 8.5A3.5 3.5 0 1 0 12 15.5A3.5 3.5 0 1 0 12 8.5Z" />
+            <path d="M19 12L17.6 12.4C17.47 12.86 17.29 13.29 17.04 13.68L17.8 14.94L16.94 15.8L15.68 15.04C15.29 15.29 14.86 15.47 14.4 15.6L14 17H12.8L12.4 15.6C11.94 15.47 11.51 15.29 11.12 15.04L9.86 15.8L9 14.94L9.76 13.68C9.51 13.29 9.33 12.86 9.2 12.4L7.8 12V10.8L9.2 10.4C9.33 9.94 9.51 9.51 9.76 9.12L9 7.86L9.86 7L11.12 7.76C11.51 7.51 11.94 7.33 12.4 7.2L12.8 5.8H14L14.4 7.2C14.86 7.33 15.29 7.51 15.68 7.76L16.94 7L17.8 7.86L17.04 9.12C17.29 9.51 17.47 9.94 17.6 10.4L19 10.8V12Z" />
+          } @else {
+            <path d="M12 5C9.79 5 8 6.79 8 9V11.2C8 12.28 7.72 13.34 7.18 14.27L6 16.3H18L16.82 14.27C16.28 13.34 16 12.28 16 11.2V9C16 6.79 14.21 5 12 5Z" />
+            <path d="M10 18C10.46 19.2 11.08 20 12 20C12.92 20 13.54 19.2 14 18" />
+          }
         </svg>
       </button>
+      @if (mobileHeaderHasAvatar()) {
+        <div class="mobile-header-avatar">{{ store.userName().slice(0, 2).toUpperCase() }}</div>
+      }
+      </div>
 
       <div class="topbar-menu-shell" [class.mobile-open]="mobileMenuOpen()">
         <nav class="topnav" aria-label="Primary">
@@ -122,6 +137,7 @@
             <path d="M4 10.5L12 4L20 10.5V19C20 19.55 19.55 20 19 20H15V14H9V20H5C4.45 20 4 19.55 4 19V10.5Z" />
           </svg>
         </span>
+        <span class="mobile-bottom-nav-label">Dashboard</span>
       </a>
       <a
         routerLink="/expenses"
@@ -136,6 +152,7 @@
             <path d="M9 16H13" />
           </svg>
         </span>
+        <span class="mobile-bottom-nav-label">Expenses</span>
       </a>
       <a
         routerLink="/receipts"
@@ -153,6 +170,7 @@
             <path d="M16.5 16.5H16.51" />
           </svg>
         </span>
+        <span class="mobile-bottom-nav-label">Upload</span>
       </a>
       <a
         routerLink="/profile"
@@ -165,18 +183,7 @@
             <path d="M5 20C5.9 16.9 8.58 15 12 15C15.42 15 18.1 16.9 19 20" />
           </svg>
         </span>
-      </a>
-      <a
-        href="#"
-        aria-label="Logout"
-        (click)="$event.preventDefault(); logout()">
-        <span class="mobile-bottom-nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M10 7V5C10 4.45 10.45 4 11 4H18C18.55 4 19 4.45 19 5V19C19 19.55 18.55 20 18 20H11C10.45 20 10 19.55 10 19V17" />
-            <path d="M15 12H4" />
-            <path d="M7 9L4 12L7 15" />
-          </svg>
-        </span>
+        <span class="mobile-bottom-nav-label">Profile</span>
       </a>
     </nav>
   }

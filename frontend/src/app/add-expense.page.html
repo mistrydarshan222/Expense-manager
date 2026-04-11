@@ -1,0 +1,66 @@
+@if (!store.token()) {
+  <section class="panel add-expense-page-shell">
+    <p class="eyebrow">Expenses</p>
+    <h2>Sign in to add an expense</h2>
+    <p class="add-expense-copy">Login first, then come back here to save a new expense with category, amount, and payment method.</p>
+  </section>
+} @else {
+  <section class="add-expense-page-shell">
+    <article class="panel add-expense-hero">
+      <p class="eyebrow">Expense Entry</p>
+      <h2>Add expense</h2>
+      <p class="add-expense-copy">Capture a new transaction cleanly and save it straight into your expense history.</p>
+      <div class="add-expense-hero-meta">
+        <span class="panel-tip">Default currency: {{ store.preferredCurrency() }}</span>
+        <a class="ghost-button" routerLink="/expenses">Back to history</a>
+      </div>
+    </article>
+
+    <article class="panel add-expense-form-panel">
+      <form [formGroup]="expenseForm" (ngSubmit)="saveExpense()" class="form-grid add-expense-form-grid">
+        <label>
+          <span>Title</span>
+          <input type="text" formControlName="title" placeholder="Lunch with team" />
+        </label>
+        <label>
+          <span>Category</span>
+          <select formControlName="categoryId">
+            <option value="" disabled>Select a category</option>
+            @for (category of store.categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Date</span>
+          <input type="date" formControlName="expenseDate" />
+        </label>
+        <label>
+          <span>Total amount</span>
+          <input type="number" step="0.01" formControlName="finalAmount" placeholder="70.10" />
+        </label>
+        <label>
+          <span>Merchant</span>
+          <input type="text" formControlName="merchantName" placeholder="Amazon, Walmart, Starbucks" />
+        </label>
+        <label>
+          <span>Payment method</span>
+          <select formControlName="paymentMethod">
+            <option value="" disabled>Select a payment method</option>
+            @for (method of store.paymentMethods(); track method.id) {
+              <option [value]="method.name">{{ method.name }}</option>
+            }
+          </select>
+        </label>
+        <label class="full-width">
+          <span>Notes</span>
+          <textarea rows="4" formControlName="notes" placeholder="Optional note"></textarea>
+        </label>
+        <div class="form-actions full-width">
+          <button type="submit">{{ store.isSubmitting() ? 'Saving expense...' : 'Save expense' }}</button>
+          <a class="ghost-button" routerLink="/expenses">Cancel</a>
+        </div>
+      </form>
+    </article>
+  </section>
+}

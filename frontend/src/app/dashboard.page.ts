@@ -1,7 +1,7 @@
 import { DatePipe, DOCUMENT, NgClass } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { startWith } from 'rxjs';
 
@@ -19,6 +19,7 @@ export class DashboardPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly activeTab = signal<'login' | 'register'>('login');
   protected readonly editingExpenseId = signal<string | null>(null);
@@ -81,6 +82,68 @@ export class DashboardPageComponent {
   });
 
   protected readonly recentExpensePreview = computed(() => this.filteredExpenses().slice(0, 5));
+  protected readonly mobileMonthSpent = computed(() => {
+    const now = new Date();
+
+    return this.store.expenses()
+      .filter((expense) => {
+        const expenseDate = new Date(expense.expenseDate);
+        return expenseDate.getFullYear() === now.getFullYear() && expenseDate.getMonth() === now.getMonth();
+      })
+      .reduce((sum, expense) => sum + Number(expense.finalAmount), 0);
+  });
+  protected readonly mobileCategoryBreakdown = computed(() => {
+    const totals = new Map<string, { amount: number; expenseDate: string }>();
+
+    for (const expense of this.store.expenses()) {
+      const key = expense.category?.name || 'Other';
+      const current = totals.get(key);
+      const nextAmount = (current?.amount ?? 0) + Number(expense.finalAmount);
+      const nextDate = current?.expenseDate && new Date(current.expenseDate) > new Date(expense.expenseDate)
+        ? current.expenseDate
+        : expense.expenseDate;
+
+      totals.set(key, {
+        amount: nextAmount,
+        expenseDate: nextDate
+      });
+    }
+
+    const totalAmount = Array.from(totals.values()).reduce((sum, item) => sum + item.amount, 0) || 1;
+    const colors = ['#22C55E', '#4ADE80', '#14B8A6', '#3B82F6'];
+
+    return Array.from(totals.entries())
+      .map(([name, value], index) => ({
+        name,
+        amount: value.amount,
+        expenseDate: value.expenseDate,
+        ratio: Math.max(0.12, value.amount / totalAmount),
+        color: colors[index % colors.length]
+      }))
+      .sort((left, right) => right.amount - left.amount)
+      .slice(0, 4);
+  });
+  protected readonly mobileDonutBackground = computed(() => {
+    const breakdown = this.mobileCategoryBreakdown();
+
+    if (breakdown.length === 0) {
+      return 'conic-gradient(#DCFCE7 0deg 360deg)';
+    }
+
+    let currentAngle = 0;
+    const segments = breakdown.map((item) => {
+      const angle = item.ratio * 360;
+      const segment = `${item.color} ${currentAngle}deg ${currentAngle + angle}deg`;
+      currentAngle += angle;
+      return segment;
+    });
+
+    if (currentAngle < 360) {
+      segments.push(`#E5E7EB ${currentAngle}deg 360deg`);
+    }
+
+    return `conic-gradient(${segments.join(', ')})`;
+  });
 
   constructor() {
     this.route.queryParamMap.subscribe((params) => {
@@ -261,5 +324,9 @@ export class DashboardPageComponent {
       paymentMethod: this.store.paymentMethods()[0]?.name ?? '',
       notes: ''
     });
+  }
+
+  protected openAddExpensePage() {
+    this.router.navigateByUrl('/expenses/new');
   }
 }

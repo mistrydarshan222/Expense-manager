@@ -2,7 +2,6 @@ import { promises as fs } from "fs";
 import path from "path";
 import sharp from "sharp";
 import Tesseract from "tesseract.js";
-import { ReceiptScanner, createOpenAIProvider, type ReceiptData } from "receipt-ai-scanner";
 
 import { env } from "../../config/env";
 import { prisma } from "../../config/db";
@@ -36,24 +35,54 @@ type ParsedReceiptWithRawText = ParsedReceipt & {
   rawText: string | null;
 };
 
+type ReceiptData = {
+  merchant: { name: string | null };
+  date: string | null;
+  subtotal: number | null;
+  taxes: Array<{ amount: number }>;
+  total: number | null;
+  currency: string | null;
+  payment: { cardLastFour: string | null };
+  warnings?: string[];
+  confidence?: number;
+  rawText?: string | null;
+};
+
+type AiReceiptScanner = {
+  scan(filePath: string, options: { userPrompt: string }): Promise<{ data: ReceiptData }>;
+};
+
 const receiptQueue: string[] = [];
 let isQueueProcessing = false;
 const MAX_STORED_AMOUNT = 99_999_999.99;
 const AI_SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]);
+let aiReceiptScannerPromise: Promise<AiReceiptScanner | null> | null = null;
 
-const aiReceiptScanner = env.openAiApiKey
-  ? new ReceiptScanner({
-      provider: createOpenAIProvider({
-        apiKey: env.openAiApiKey,
-        defaultModel: env.receiptAiModel,
-        baseURL: env.receiptAiBaseUrl,
-      }),
-      model: env.receiptAiModel,
-      temperature: 0,
-      strictValidation: false,
-      timeoutMs: 45_000,
-    })
-  : null;
+async function getAiReceiptScanner() {
+  if (!env.openAiApiKey) {
+    return null;
+  }
+
+  if (!aiReceiptScannerPromise) {
+    aiReceiptScannerPromise = import("receipt-ai-scanner")
+      .then(({ ReceiptScanner, createOpenAIProvider }) => {
+        return new ReceiptScanner({
+          provider: createOpenAIProvider({
+            apiKey: env.openAiApiKey,
+            defaultModel: env.receiptAiModel,
+            baseURL: env.receiptAiBaseUrl,
+          }),
+          model: env.receiptAiModel,
+          temperature: 0,
+          strictValidation: false,
+          timeoutMs: 45_000,
+        }) as AiReceiptScanner;
+      })
+      .catch(() => null);
+  }
+
+  return aiReceiptScannerPromise;
+}
 
 function parseAmount(value: string) {
   const trimmed = value.trim();
@@ -564,7 +593,7 @@ function parseAiReceiptResult(data: ReceiptData): ParsedReceiptWithRawText {
   const expectedTotal = subtotal !== null && tax !== null ? Number((subtotal + tax).toFixed(2)) : null;
   const hasMismatch = expectedTotal !== null && total !== null && Math.abs(expectedTotal - total) > 0.01;
   const warnings = data.warnings ?? [];
-  const confidence = Number.isFinite(data.confidence) ? data.confidence : 0;
+  const confidence = typeof data.confidence === "number" && Number.isFinite(data.confidence) ? data.confidence : 0;
 
   return {
     merchantName: data.merchant.name ?? null,
@@ -582,11 +611,17 @@ function parseAiReceiptResult(data: ReceiptData): ParsedReceiptWithRawText {
 }
 
 async function readReceiptWithAi(filePath: string, mimeType: string) {
-  if (!aiReceiptScanner || !AI_SUPPORTED_MIME_TYPES.has(mimeType)) {
+  if (!AI_SUPPORTED_MIME_TYPES.has(mimeType)) {
     return null;
   }
 
   try {
+    const aiReceiptScanner = await getAiReceiptScanner();
+
+    if (!aiReceiptScanner) {
+      return null;
+    }
+
     const result = await aiReceiptScanner.scan(filePath, {
       userPrompt:
         "This receipt is for personal expense tracking. Prioritize the merchant name, subtotal, taxes, total, date, currency, and any card last four digits.",

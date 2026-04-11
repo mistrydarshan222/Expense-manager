@@ -36,13 +36,17 @@ export class App {
 
   protected mobileNavActive(path: string) {
     const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
-    return path === '' ? currentPath === '' : currentPath === path;
+    return path === ''
+      ? currentPath === ''
+      : currentPath === path || currentPath.startsWith(`${path}/`);
   }
 
   protected mobileHeaderTitle() {
     const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
 
     switch (currentPath) {
+      case 'expenses/new':
+        return 'Add Expense';
       case 'expenses':
         return 'Expense History';
       case 'receipts':
@@ -69,5 +73,20 @@ export class App {
       default:
         return 'Your money workspace';
     }
+  }
+
+  protected mobileHeaderMode() {
+    const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
+    return currentPath === 'receipts' ? 'title' : 'brand';
+  }
+
+  protected mobileHeaderHasAvatar() {
+    const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
+    return currentPath === 'profile';
+  }
+
+  protected mobileHeaderActionLabel() {
+    const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
+    return currentPath === 'receipts' ? 'Settings' : 'Notifications';
   }
 }

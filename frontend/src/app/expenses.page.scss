@@ -2,6 +2,10 @@
   display: block;
 }
 
+.mobile-history-view {
+  display: none;
+}
+
 .history-snapshot-grid {
   margin-top: 18px;
   display: grid;
@@ -67,6 +71,109 @@
 }
 
 @media (max-width: 640px) {
+  .mobile-history-view {
+    display: grid;
+    gap: 14px;
+  }
+
+  .mobile-history-chip-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .mobile-history-chip {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: var(--text-secondary);
+    box-shadow: none;
+  }
+
+  .mobile-history-chip-active {
+    background: #dcfce7;
+    color: var(--accent-strong);
+  }
+
+  .mobile-history-filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mobile-history-filter-row label {
+    gap: 0;
+  }
+
+  .mobile-history-filter-row select {
+    min-height: 42px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: #ffffff;
+  }
+
+  .mobile-history-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .mobile-history-item {
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+  }
+
+  .mobile-history-avatar {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
+    color: var(--accent-strong);
+    font-weight: 800;
+  }
+
+  .mobile-history-copy,
+  .mobile-history-meta {
+    display: grid;
+    gap: 3px;
+  }
+
+  .mobile-history-copy strong,
+  .mobile-history-meta strong {
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+
+  .mobile-history-copy span,
+  .mobile-history-meta span {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .mobile-history-meta {
+    justify-items: end;
+    text-align: right;
+  }
+
+  .expenses-hero-panel,
+  .recent-panel {
+    display: none;
+  }
+
+  #expense-editor {
+    margin-bottom: 16px;
+  }
+
   .history-snapshot-card {
     padding: 16px;
     border-radius: 18px;

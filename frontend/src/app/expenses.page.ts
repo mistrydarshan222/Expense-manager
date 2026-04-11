@@ -82,6 +82,7 @@ export class ExpensesPageComponent {
 
     return Array.from(totals.entries()).map(([currency, amount]) => ({ currency, amount }));
   });
+  protected readonly mobileCategoryChips = computed(() => this.store.categories().slice(0, 4));
 
   constructor() {
     effect(() => {
@@ -234,6 +235,10 @@ export class ExpensesPageComponent {
     }
 
     return 'method-badge-default';
+  }
+
+  protected expenseAvatar(expense: Expense) {
+    return (expense.merchantName || expense.title || 'E').slice(0, 1).toUpperCase();
   }
 
   private labelForTimeRange(timeRange: TimeRange) {

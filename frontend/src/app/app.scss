@@ -331,9 +331,17 @@
   display: none;
 }
 
+.mobile-page-copy,
+.mobile-header-right,
+.mobile-header-avatar,
+.mobile-bottom-nav-label {
+  display: none;
+}
+
 .mobile-header-action {
   display: none;
 }
+
 .profile-copy strong {
   display: block;
   line-height: 1.1;
@@ -1468,8 +1476,8 @@ button:hover,
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 6px;
-    padding: 14px 16px 12px;
-    margin-bottom: 14px;
+    padding: 8px 16px 6px;
+    margin-bottom: 8px;
     position: relative;
     overflow: hidden;
     border-inline: 0;
@@ -1533,7 +1541,8 @@ button:hover,
   }
 
   .topbar:not(.topbar-logged-out) .brand {
-    justify-content: center;
+    justify-content: flex-start;
+    grid-column: 1 / 2;
   }
 
   .brand {
@@ -1550,16 +1559,23 @@ button:hover,
   .mobile-brand-copy {
     min-width: 0;
     display: grid;
-    justify-items: center;
-    gap: 3px;
+    justify-items: start;
+    gap: 0;
+  }
+
+  .mobile-page-copy {
+    display: grid;
+    justify-items: start;
   }
 
   .mobile-brand-copy strong {
-    color: var(--text-primary);
-    font-size: 1.04rem;
+    margin: 0;
+    color: black;
+    font-size: 19px;
     font-weight: 800;
     line-height: 1.02;
-    letter-spacing: -0.04em;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
   }
 
   .mobile-brand-copy strong span {
@@ -1567,26 +1583,19 @@ button:hover,
   }
 
   .mobile-brand-copy small {
-    color: var(--text-secondary);
-    font-size: 0.74rem;
-    font-weight: 600;
-    line-height: 1.2;
+    display: none;
+  }
+
+  .mobile-page-copy strong {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
   }
 
   .topbar:not(.topbar-logged-out) .mobile-menu-button {
-    display: inline-flex;
-    width: 40px;
-    height: 40px;
-    justify-self: start;
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .topbar:not(.topbar-logged-out) .mobile-menu-button span {
-    width: 18px;
-    background: var(--text-primary);
+    display: none;
   }
 
   .mobile-header-action {
@@ -1680,14 +1689,20 @@ button:hover,
   }
 
   .topbar:not(.topbar-logged-out) {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
     align-items: center;
   }
 
+  .topbar:not(.topbar-logged-out) .mobile-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
   .topbar:not(.topbar-logged-out) .mobile-header-action {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     display: inline-grid;
     place-items: center;
     padding: 0;
@@ -1706,13 +1721,27 @@ button:hover,
   }
 
   .topbar:not(.topbar-logged-out) .mobile-header-action svg {
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     stroke: currentColor;
     stroke-width: 1.9;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
+
+  .topbar:not(.topbar-logged-out) .mobile-header-avatar {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
 
   .mobile-bottom-nav {
     position: fixed;
@@ -1721,7 +1750,7 @@ button:hover,
     bottom: 0;
     z-index: 35;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 2px;
     padding: 7px 0px calc(1px + env(safe-area-inset-bottom, 0px));
     border-radius: 26px 26px 0 0;
@@ -1738,7 +1767,8 @@ button:hover,
     min-width: 0;
     display: grid;
     justify-items: center;
-    padding: 10px 2px;
+    gap: 3px;
+    padding: 8px 2px 6px;
     border-radius: 18px;
     color: rgba(31, 41, 55, 0.9);
     text-decoration: none;
@@ -1755,6 +1785,14 @@ button:hover,
     background: transparent;
     color: currentColor;
     box-shadow: none;
+  }
+
+  .mobile-bottom-nav-label {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: inherit;
   }
 
   .mobile-bottom-nav-icon svg {
@@ -1806,6 +1844,10 @@ button:hover,
     box-shadow:
       0 18px 30px rgba(22, 163, 74, 0.28),
       inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  }
+
+  .mobile-bottom-nav-center .mobile-bottom-nav-label {
+    font-weight: 800;
   }
 
   .topbar:not(.topbar-logged-out) + .dashboard-shell,

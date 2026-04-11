@@ -5,6 +5,46 @@
     <p class="profile-copy">Login first, then come back here to update your name, email, password, and default currency.</p>
   </section>
 } @else {
+  <section class="mobile-profile-view">
+    <article class="mobile-profile-hero-card">
+      <div class="mobile-profile-avatar">{{ userInitials() }}</div>
+      <strong>{{ store.currentUser()?.name || 'John Doe' }}</strong>
+      <span>{{ store.currentUser()?.email || 'john@example.com' }}</span>
+    </article>
+
+    <article class="mobile-profile-settings-card">
+      <h3>Account Settings</h3>
+      <button type="button" class="mobile-profile-row">
+        <span>Language</span>
+        <strong>English</strong>
+      </button>
+      <button type="button" class="mobile-profile-row">
+        <span>Currency</span>
+        <strong>{{ store.preferredCurrency() }}</strong>
+      </button>
+      <button type="button" class="mobile-profile-row">
+        <span>Manage Accounts</span>
+        <strong>{{ store.paymentMethods().length }}</strong>
+      </button>
+    </article>
+
+    <article class="mobile-profile-settings-card">
+      <h3>Security</h3>
+      <button type="button" class="mobile-profile-row">
+        <span>Change Password</span>
+        <strong>›</strong>
+      </button>
+      <button type="button" class="mobile-profile-row">
+        <span>Two-Factor Authentication</span>
+        <strong>On</strong>
+      </button>
+      <button type="button" class="mobile-profile-row">
+        <span>Other</span>
+        <strong>›</strong>
+      </button>
+    </article>
+  </section>
+
   <section class="panel profile-panel">
     <div class="profile-hero">
       <div class="profile-hero-copy">

@@ -79,6 +79,64 @@
   </section>
 } @else {
   <section class="dashboard-shell" id="overview">
+    <section class="mobile-dashboard-view">
+      <article class="mobile-balance-card">
+        <div class="mobile-balance-copy">
+          <strong>{{ store.formatCurrency(store.totalSpent(), store.preferredCurrency()) }}</strong>
+          <span>Current Balance</span>
+        </div>
+        <div class="mobile-balance-trend">
+          <strong>↗ 12.5%</strong>
+          <span>vs last month</span>
+        </div>
+      </article>
+
+      <article class="mobile-dashboard-card">
+        <div class="mobile-dashboard-head">
+          <p>Spending Report</p>
+          <a routerLink="/expenses">View All</a>
+        </div>
+
+        <div class="mobile-dashboard-chart">
+          <div class="mobile-dashboard-donut" [style.background]="mobileDonutBackground()">
+            <div class="mobile-dashboard-donut-center">
+              <strong>{{ store.formatCurrency(mobileMonthSpent(), store.preferredCurrency()) }}</strong>
+              <span>Spent this month</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mobile-dashboard-actions">
+          <button type="button" class="ghost-button" (click)="openAddExpensePage()">Add Expense</button>
+          <a class="ghost-button" routerLink="/receipts">Upload Receipt</a>
+        </div>
+      </article>
+
+      <article class="mobile-dashboard-card">
+        <div class="mobile-dashboard-head">
+          <p>Quick Access</p>
+          <a routerLink="/expenses">View All</a>
+        </div>
+
+        <div class="mobile-quick-list">
+          @for (item of mobileCategoryBreakdown(); track item.name) {
+            <div class="mobile-quick-item">
+              <div class="mobile-quick-copy">
+                <strong>{{ item.name }}</strong>
+                <span>{{ item.expenseDate | date:'MMM d' }}</span>
+              </div>
+              <div class="mobile-quick-meta">
+                <strong>{{ store.formatCurrency(item.amount, store.preferredCurrency()) }}</strong>
+                <div class="mobile-quick-track">
+                  <span [style.width.%]="item.ratio * 100" [style.background]="item.color"></span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </article>
+    </section>
+
     <section class="dashboard-top-grid">
       <article class="panel overview-panel">
         <p class="eyebrow">Workspace</p>

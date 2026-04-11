@@ -5,6 +5,69 @@
     <p class="profile-copy">Login first, then come back here to track receipt processing and create expenses from the extracted totals.</p>
   </section>
 } @else {
+  <section class="mobile-receipts-view" [formGroup]="receiptForm">
+    <article class="mobile-receipt-upload-card">
+      <div class="mobile-receipt-dropzone">
+        <div class="mobile-receipt-dropzone-icon">📷</div>
+        <strong>Snap a photo of your receipt</strong>
+      </div>
+
+      <div class="mobile-receipt-actions">
+        <button type="button" (click)="receiptFileInput.click()">Take Photo</button>
+        <button type="button" class="ghost-button" (click)="receiptFileInput.click()">Choose from Library</button>
+        <input
+          #receiptFileInput
+          type="file"
+          accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,.txt,.csv,.json,.log,application/pdf,image/png,image/jpeg,image/webp,image/bmp,text/plain,text/csv,application/json"
+          (change)="onReceiptFileSelected($event)"
+          hidden />
+      </div>
+
+      <div class="mobile-receipt-inline-fields">
+        <label>
+          <span>Category</span>
+          <select formControlName="categoryId">
+            <option value="" disabled>Select a category</option>
+            @for (category of store.categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Payment</span>
+          <select formControlName="paymentMethod">
+            <option value="" disabled>Select a payment method</option>
+            @for (method of store.paymentMethods(); track method.id) {
+              <option [value]="method.name">{{ method.name }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="mobile-receipt-recent">
+        <div class="mobile-receipt-section-head">
+          <strong>Recent Uploads</strong>
+        </div>
+
+        @for (receipt of recentReceipts(); track receipt.id) {
+          <button type="button" class="mobile-receipt-recent-item" (click)="openReceipt(receipt)">
+            <div class="mobile-receipt-thumb"></div>
+            <div class="mobile-receipt-recent-copy">
+              <strong>{{ receiptDisplayName(receipt) }}</strong>
+              <span>{{ receipt.createdAt | date:'MMM d · h:mm a' }}</span>
+            </div>
+            <span class="mobile-receipt-check" [attr.data-status]="receipt.status">✓</span>
+          </button>
+        } @empty {
+          <div class="mobile-receipt-empty">No uploads yet</div>
+        }
+      </div>
+
+      <button type="button" class="mobile-receipt-submit" (click)="processReceipt()">Submit Receipt</button>
+      <span class="mobile-receipt-note">Secure upload, fast processing.</span>
+    </article>
+  </section>
+
   <section class="panel receipt-panel">
     <div class="panel-heading">
       <div>

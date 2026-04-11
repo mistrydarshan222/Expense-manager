@@ -92,6 +92,12 @@ export class ProfilePageComponent {
     this.store.deletePaymentMethod(id);
   }
 
+  protected userInitials() {
+    const name = this.store.currentUser()?.name?.trim() || 'User';
+    const parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+    return parts.map((part) => part[0]?.toUpperCase() ?? '').join('') || 'U';
+  }
+
   protected paymentMethodKind(name: string) {
     const value = name.toLowerCase();
 

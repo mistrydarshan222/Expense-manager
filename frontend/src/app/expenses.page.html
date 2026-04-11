@@ -6,6 +6,53 @@
   </section>
 } @else {
   <section class="expenses-page-shell">
+    <section class="mobile-history-view">
+      <div class="mobile-history-chip-row">
+        <button type="button" class="mobile-history-chip" [class.mobile-history-chip-active]="filterForm.value.categoryId === 'all'" (click)="filterForm.patchValue({ categoryId: 'all' })">All</button>
+        @for (category of mobileCategoryChips(); track category.id) {
+          <button type="button" class="mobile-history-chip" [class.mobile-history-chip-active]="filterForm.value.categoryId === category.id" (click)="filterForm.patchValue({ categoryId: category.id })">
+            {{ category.name }}
+          </button>
+        }
+      </div>
+
+      <div class="mobile-history-filter-row" [formGroup]="filterForm">
+        <label>
+          <select formControlName="timeRange">
+            <option value="thisMonth">This month</option>
+            <option value="lastMonth">Last month</option>
+            <option value="thisWeek">This week</option>
+            <option value="today">Today</option>
+            <option value="all">All time</option>
+          </select>
+        </label>
+        <label>
+          <select formControlName="categoryId">
+            <option value="all">All categories</option>
+            @for (category of store.categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="mobile-history-list">
+        @for (expense of filteredExpenses(); track expense.id) {
+          <article class="mobile-history-item">
+            <div class="mobile-history-avatar">{{ expenseAvatar(expense) }}</div>
+            <div class="mobile-history-copy">
+              <strong>{{ expense.title }}</strong>
+              <span>{{ expense.category?.name || 'Uncategorized' }}</span>
+            </div>
+            <div class="mobile-history-meta">
+              <strong>{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
+              <span>{{ expense.expenseDate | date:'MMM d' }}</span>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
     @if (isEditingExpense()) {
       <section class="panel form-panel" id="expense-editor">
         <div class="panel-heading">
