@@ -2,7 +2,9 @@ import { promises as fs } from "fs";
 import path from "path";
 import sharp from "sharp";
 import Tesseract from "tesseract.js";
+import { ReceiptScanner, createOpenAIProvider, type ReceiptData } from "receipt-ai-scanner";
 
+import { env } from "../../config/env";
 import { prisma } from "../../config/db";
 import { CreateExpenseFromReceiptInput, EnqueueReceiptInput } from "./receipts.validation";
 
@@ -30,9 +32,28 @@ type OcrCandidate = {
   score: number;
 };
 
+type ParsedReceiptWithRawText = ParsedReceipt & {
+  rawText: string | null;
+};
+
 const receiptQueue: string[] = [];
 let isQueueProcessing = false;
 const MAX_STORED_AMOUNT = 99_999_999.99;
+const AI_SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]);
+
+const aiReceiptScanner = env.openAiApiKey
+  ? new ReceiptScanner({
+      provider: createOpenAIProvider({
+        apiKey: env.openAiApiKey,
+        defaultModel: env.receiptAiModel,
+        baseURL: env.receiptAiBaseUrl,
+      }),
+      model: env.receiptAiModel,
+      temperature: 0,
+      strictValidation: false,
+      timeoutMs: 45_000,
+    })
+  : null;
 
 function parseAmount(value: string) {
   const trimmed = value.trim();
@@ -71,6 +92,15 @@ function normalizeStoredAmount(value: number | null) {
   }
 
   return rounded;
+}
+
+function parseIsoDate(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function findAmountForLabels(text: string, labels: string[]) {
@@ -525,6 +555,49 @@ function scoreParsedReceipt(parsed: ParsedReceipt) {
   return score;
 }
 
+function parseAiReceiptResult(data: ReceiptData): ParsedReceiptWithRawText {
+  const subtotal = normalizeStoredAmount(data.subtotal);
+  const taxTotal = data.taxes.reduce((sum, tax) => sum + (Number.isFinite(tax.amount) ? tax.amount : 0), 0);
+  const tax = normalizeStoredAmount(taxTotal > 0 ? taxTotal : null);
+  const total = normalizeStoredAmount(data.total);
+  const finalAmount = normalizeStoredAmount(total);
+  const expectedTotal = subtotal !== null && tax !== null ? Number((subtotal + tax).toFixed(2)) : null;
+  const hasMismatch = expectedTotal !== null && total !== null && Math.abs(expectedTotal - total) > 0.01;
+  const warnings = data.warnings ?? [];
+  const confidence = Number.isFinite(data.confidence) ? data.confidence : 0;
+
+  return {
+    merchantName: data.merchant.name ?? null,
+    expenseDate: parseIsoDate(data.date),
+    subtotal,
+    tax,
+    total,
+    finalAmount,
+    currency: data.currency ?? null,
+    cardLastFour: data.payment.cardLastFour ?? null,
+    needsReview: warnings.length > 0 || confidence < 0.8 || hasMismatch,
+    parserConfidence: Math.max(0, Math.min(1, confidence)),
+    rawText: data.rawText ?? null,
+  };
+}
+
+async function readReceiptWithAi(filePath: string, mimeType: string) {
+  if (!aiReceiptScanner || !AI_SUPPORTED_MIME_TYPES.has(mimeType)) {
+    return null;
+  }
+
+  try {
+    const result = await aiReceiptScanner.scan(filePath, {
+      userPrompt:
+        "This receipt is for personal expense tracking. Prioritize the merchant name, subtotal, taxes, total, date, currency, and any card last four digits.",
+    });
+
+    return parseAiReceiptResult(result.data);
+  } catch {
+    return null;
+  }
+}
+
 async function readUploadedReceiptText(filePath: string, mimeType: string, originalFileName: string): Promise<OcrReadResult> {
   const extension = path.extname(originalFileName).toLowerCase();
   const textLikeMimeTypes = new Set(["text/plain", "text/csv", "application/json"]);
@@ -690,12 +763,15 @@ async function processQueuedReceipt(receiptId: string) {
       : receipt.filePath !== "inline"
         ? await readUploadedReceiptText(receipt.filePath, receipt.mimeType, receipt.originalFileName)
         : { fullText: "", headerText: "" };
+    const aiParsed = receipt.filePath !== "inline"
+      ? await readReceiptWithAi(receipt.filePath, receipt.mimeType)
+      : null;
+    const parsed = aiParsed ?? parseReceiptText(extractedResult.fullText, extractedResult.headerText);
+    const resolvedRawText = aiParsed?.rawText ?? extractedResult.fullText;
 
-    if (!extractedResult.fullText.trim()) {
+    if (!resolvedRawText.trim() && parsed.finalAmount === null) {
       throw new Error("Could not read any text from this receipt.");
     }
-
-    const parsed = parseReceiptText(extractedResult.fullText, extractedResult.headerText);
 
     if (parsed.finalAmount === null) {
       throw new Error("Could not determine a valid receipt amount from this file.");
@@ -717,7 +793,7 @@ async function processQueuedReceipt(receiptId: string) {
       data: {
         status: "processed",
         title: receipt.title || parsed.merchantName || path.parse(receipt.originalFileName).name,
-        ocrRawText: extractedResult.fullText,
+        ocrRawText: resolvedRawText,
         merchantName: receipt.merchantName || parsed.merchantName,
         expenseDate: receipt.expenseDate ?? parsed.expenseDate ?? new Date(),
         currency: receipt.currency ?? parsed.currency ?? receipt.user.preferredCurrency,
