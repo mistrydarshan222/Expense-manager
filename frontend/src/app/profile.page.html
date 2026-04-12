@@ -51,10 +51,6 @@
         <p class="eyebrow">Profile Settings</p>
         <h2>Manage your account</h2>
         <p class="profile-copy">Update your personal details and choose the default currency for new expenses.</p>
-        <div class="profile-hero-pills">
-          <span class="panel-tip">Default currency: {{ store.preferredCurrency() }}</span>
-          <span class="panel-tip muted-pill">{{ store.paymentMethods().length }} payment method{{ store.paymentMethods().length === 1 ? '' : 's' }}</span>
-        </div>
       </div>
       <div class="profile-summary-strip">
         <article class="profile-summary-card">
@@ -125,27 +121,42 @@
           <span>Card last 4 digits</span>
           <input type="text" formControlName="lastFour" maxlength="4" placeholder="7620" />
         </label>
-        <button type="submit">Add payment method</button>
+        <button type="submit">{{ editingPaymentMethodId() ? 'Update payment method' : 'Add payment method' }}</button>
+        @if (editingPaymentMethodId()) {
+          <button type="button" class="ghost-button" (click)="cancelEditPaymentMethod()">Cancel</button>
+        }
       </form>
     </div>
 
     <div class="payment-method-list">
       @for (method of store.paymentMethods(); track method.id) {
-        <article class="payment-method-card">
-          <div class="payment-method-card-main">
-            <div class="payment-method-icon">{{ paymentMethodIcon(method.name) }}</div>
-            <div class="payment-method-copy">
-              <strong>{{ method.name }}</strong>
-              <div class="payment-method-meta-row">
-                <span class="payment-method-kind">{{ paymentMethodKind(method.name) }}</span>
-                @if (method.lastFour) {
-                  <span class="payment-method-last-four">Ending With {{ method.lastFour }}</span>
-                }
+        <div class="payment-method-swipe-row">
+          <div class="payment-method-delete-slot">
+            <strong>Delete</strong>
+          </div>
+          <article
+            class="payment-method-card"
+            [style.transform]="'translateX(' + currentPaymentMethodSwipeOffset(method.id) + 'px)'"
+            (touchstart)="beginPaymentMethodSwipe($event, method.id)"
+            (touchmove)="updatePaymentMethodSwipe($event)"
+            (touchend)="endPaymentMethodSwipe(method)"
+            (touchcancel)="endPaymentMethodSwipe(method)"
+            (click)="startEditPaymentMethod(method)">
+            <div class="payment-method-card-main">
+              <div class="payment-method-icon">{{ paymentMethodIcon(method.name) }}</div>
+              <div class="payment-method-copy">
+                <strong>{{ method.name }}</strong>
+                <div class="payment-method-meta-row">
+                  <span class="payment-method-kind">{{ paymentMethodKind(method.name) }}</span>
+                  @if (method.lastFour) {
+                    <span class="payment-method-last-four">Ending With {{ method.lastFour }}</span>
+                  }
+                </div>
               </div>
             </div>
-          </div>
-          <button type="button" class="danger-button" (click)="deletePaymentMethod(method.id)">Delete</button>
-        </article>
+            <button type="button" class="danger-button payment-method-desktop-delete" (click)="deletePaymentMethod(method.id); $event.stopPropagation()">Delete</button>
+          </article>
+        </div>
       }
     </div>
   </section>

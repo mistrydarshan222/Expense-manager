@@ -11,3 +11,9 @@ export const createPaymentMethodSchema = z.object({
 });
 
 export type CreatePaymentMethodInput = z.infer<typeof createPaymentMethodSchema>;
+export const updatePaymentMethodSchema = createPaymentMethodSchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  "At least one field is required",
+);
+
+export type UpdatePaymentMethodInput = z.infer<typeof updatePaymentMethodSchema>;

@@ -456,6 +456,28 @@ export class AppStore {
     });
   }
 
+  updatePaymentMethod(id: string, payload: { name?: string; lastFour?: string }, onDone?: () => void) {
+    if (!this.token()) {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.showFeedback('Updating payment method...', 'info');
+
+    this.api.updatePaymentMethod(this.token(), id, payload).subscribe({
+      next: () => {
+        this.loadPaymentMethods();
+        this.isSubmitting.set(false);
+        this.showFeedback('Payment method updated successfully.', 'success');
+        onDone?.();
+      },
+      error: (error) => {
+        this.isSubmitting.set(false);
+        this.showFeedback(error.error?.message ?? 'Could not update payment method.', 'error');
+      }
+    });
+  }
+
   deletePaymentMethod(id: string) {
     if (!this.token()) {
       return;

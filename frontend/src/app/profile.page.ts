@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AppStore } from './app.store';
@@ -12,6 +12,13 @@ import { AppStore } from './app.store';
 export class ProfilePageComponent {
   protected readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
+  protected readonly editingPaymentMethodId = signal<string | null>(null);
+  protected readonly swipingPaymentMethodId = signal<string | null>(null);
+  protected readonly paymentMethodSwipeOffset = signal(0);
+  protected readonly isPaymentMethodModalOpen = computed(() => this.editingPaymentMethodId() !== null);
+  private paymentTouchStartX = 0;
+  private paymentTouchCurrentX = 0;
+  private paymentTouchMoved = false;
 
   protected readonly profileForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -83,13 +90,82 @@ export class ProfilePageComponent {
       return;
     }
 
+    const editingId = this.editingPaymentMethodId();
+
+    if (editingId) {
+      this.store.updatePaymentMethod(editingId, this.paymentMethodForm.getRawValue(), () => {
+        this.resetPaymentMethodForm();
+      });
+      return;
+    }
+
     this.store.createPaymentMethod(this.paymentMethodForm.getRawValue(), () => {
-      this.paymentMethodForm.reset({ name: '', lastFour: '' });
+      this.resetPaymentMethodForm();
     });
   }
 
   protected deletePaymentMethod(id: string) {
     this.store.deletePaymentMethod(id);
+  }
+
+  protected startEditPaymentMethod(method: { id: string; name: string; lastFour: string | null }) {
+    this.editingPaymentMethodId.set(method.id);
+    this.resetPaymentMethodSwipeState();
+    this.paymentMethodForm.patchValue({
+      name: method.name,
+      lastFour: method.lastFour ?? ''
+    });
+  }
+
+  protected cancelEditPaymentMethod() {
+    this.resetPaymentMethodForm();
+  }
+
+  protected beginPaymentMethodSwipe(event: TouchEvent, id: string) {
+    this.swipingPaymentMethodId.set(id);
+    this.paymentTouchStartX = event.touches[0]?.clientX ?? 0;
+    this.paymentTouchCurrentX = this.paymentTouchStartX;
+    this.paymentTouchMoved = false;
+    this.paymentMethodSwipeOffset.set(0);
+  }
+
+  protected updatePaymentMethodSwipe(event: TouchEvent) {
+    if (!this.swipingPaymentMethodId()) {
+      return;
+    }
+
+    this.paymentTouchCurrentX = event.touches[0]?.clientX ?? this.paymentTouchStartX;
+    const deltaX = this.paymentTouchCurrentX - this.paymentTouchStartX;
+
+    if (Math.abs(deltaX) > 8) {
+      this.paymentTouchMoved = true;
+    }
+
+    this.paymentMethodSwipeOffset.set(Math.min(0, Math.max(deltaX, -112)));
+  }
+
+  protected endPaymentMethodSwipe(method: { id: string; name: string; lastFour: string | null }) {
+    if (!this.swipingPaymentMethodId()) {
+      return;
+    }
+
+    const deltaX = this.paymentTouchCurrentX - this.paymentTouchStartX;
+
+    if (deltaX <= -88) {
+      this.deletePaymentMethod(method.id);
+      this.resetPaymentMethodSwipeState();
+      return;
+    }
+
+    if (!this.paymentTouchMoved || Math.abs(deltaX) < 10) {
+      this.startEditPaymentMethod(method);
+    }
+
+    this.resetPaymentMethodSwipeState();
+  }
+
+  protected currentPaymentMethodSwipeOffset(id: string) {
+    return this.swipingPaymentMethodId() === id ? this.paymentMethodSwipeOffset() : 0;
   }
 
   protected userInitials() {
@@ -146,5 +222,18 @@ export class ProfilePageComponent {
     }
 
     return 'PM';
+  }
+
+  private resetPaymentMethodForm() {
+    this.editingPaymentMethodId.set(null);
+    this.paymentMethodForm.reset({ name: '', lastFour: '' });
+  }
+
+  private resetPaymentMethodSwipeState() {
+    this.swipingPaymentMethodId.set(null);
+    this.paymentMethodSwipeOffset.set(0);
+    this.paymentTouchStartX = 0;
+    this.paymentTouchCurrentX = 0;
+    this.paymentTouchMoved = false;
   }
 }

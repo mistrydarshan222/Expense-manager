@@ -6,8 +6,9 @@ import {
   createPaymentMethod,
   deletePaymentMethod,
   listPaymentMethods,
+  updatePaymentMethod,
 } from "./payment-methods.service";
-import { createPaymentMethodSchema } from "./payment-methods.validation";
+import { createPaymentMethodSchema, updatePaymentMethodSchema } from "./payment-methods.validation";
 
 function formatZodError(error: ZodError) {
   return error.issues.map((issue) => ({
@@ -79,6 +80,41 @@ export async function removePaymentMethod(req: AuthenticatedRequest, res: Respon
   } catch (error) {
     return res.status(400).json({
       message: error instanceof Error ? error.message : "Failed to delete payment method",
+    });
+  }
+}
+
+export async function putPaymentMethod(req: AuthenticatedRequest, res: Response) {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!id) {
+      return res.status(400).json({ message: "Payment method id is required" });
+    }
+
+    const input = updatePaymentMethodSchema.parse(req.body);
+    const paymentMethod = await updatePaymentMethod(userId, id, input);
+
+    return res.status(200).json({
+      message: "Payment method updated successfully",
+      paymentMethod,
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: formatZodError(error),
+      });
+    }
+
+    return res.status(400).json({
+      message: error instanceof Error ? error.message : "Failed to update payment method",
     });
   }
 }

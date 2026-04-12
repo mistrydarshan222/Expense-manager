@@ -122,6 +122,18 @@ export class ApiService {
     );
   }
 
+  updatePaymentMethod(
+    token: string,
+    id: string,
+    payload: { name?: string; lastFour?: string }
+  ): Observable<{ message: string; paymentMethod: PaymentMethod }> {
+    return this.http.put<{ message: string; paymentMethod: PaymentMethod }>(
+      `${this.baseUrl}/payment-methods/${id}`,
+      payload,
+      { headers: this.authHeaders(token) }
+    );
+  }
+
   deletePaymentMethod(token: string, id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/payment-methods/${id}`, {
       headers: this.authHeaders(token)

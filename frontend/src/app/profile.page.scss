@@ -102,6 +102,11 @@
   align-items: center;
 }
 
+.payment-method-swipe-row,
+.payment-method-delete-slot {
+  display: none;
+}
+
 @media (max-width: 1100px) {
   .profile-summary-strip {
     grid-template-columns: 1fr;
@@ -133,10 +138,10 @@
   .mobile-profile-settings-card {
     margin: 8px 12px;
     padding: 20px 18px;
-    border: 1px solid var(--border-strong);
+    border: 1px solid var(--border-soft);
     border-radius: 20px;
     background: #ffffff;
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 10px 24px rgba(31, 41, 55, 0.05);
   }
 
   .mobile-profile-hero-card {
@@ -215,6 +220,10 @@
     gap: 14px;
   }
 
+  .profile-hero-copy {
+    padding: 2px 2px 0;
+  }
+
   .profile-hero-copy h2,
   .payment-methods-copy h2 {
     margin: 0;
@@ -232,6 +241,7 @@
 
   .profile-hero-pills {
     gap: 8px;
+    justify-content: center;
   }
 
   .panel-tip {
@@ -316,6 +326,34 @@
     line-height: 1.35;
   }
 
+  .payment-method-form-shell {
+    border-radius: 20px;
+  }
+
+  .payment-method-swipe-row {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 18px;
+  }
+
+  .payment-method-delete-slot {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 22px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+    color: #ffffff;
+  }
+
+  .payment-method-delete-slot strong {
+    font-size: 0.92rem;
+    letter-spacing: -0.02em;
+  }
+
   .payment-method-card {
     padding: 16px;
     border: 1px solid var(--border-soft);
@@ -325,6 +363,8 @@
     grid-template-columns: 1fr;
     justify-items: stretch;
     gap: 14px;
+    transition: transform 0.18s ease;
+    touch-action: pan-y;
   }
 
   .payment-method-card-main {
@@ -339,9 +379,7 @@
     gap: 8px;
   }
 
-  .payment-method-card .danger-button {
-    width: 100%;
-    justify-content: center;
-    text-align: center;
+  .payment-method-desktop-delete {
+    display: none;
   }
 }
