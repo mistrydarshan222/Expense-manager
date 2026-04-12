@@ -20,7 +20,13 @@ export class ExpensesPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly document = inject(DOCUMENT);
   protected readonly editingExpenseId = signal<string | null>(null);
+  protected readonly swipingExpenseId = signal<string | null>(null);
+  protected readonly swipeOffset = signal(0);
   protected readonly isEditingExpense = computed(() => this.editingExpenseId() !== null);
+  protected readonly isMobileEditModalOpen = computed(() => this.isEditingExpense());
+  private touchStartX = 0;
+  private touchCurrentX = 0;
+  private touchMoved = false;
 
   protected readonly expenseForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
@@ -128,6 +134,7 @@ export class ExpensesPageComponent {
 
   protected startEditExpense(expense: Expense) {
     this.editingExpenseId.set(expense.id);
+    this.resetSwipeState();
     this.expenseForm.patchValue({
       title: expense.title,
       categoryId: expense.categoryId ?? '',
@@ -138,6 +145,11 @@ export class ExpensesPageComponent {
       notes: expense.notes ?? ''
     });
     this.store.statusMessage.set(`Editing "${expense.title}". Update any field and save.`);
+
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches) {
+      return;
+    }
+
     queueMicrotask(() => {
       const editSection = this.document.getElementById('expense-editor');
       editSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -174,6 +186,57 @@ export class ExpensesPageComponent {
       paymentMethod: this.store.paymentMethods()[0]?.name ?? '',
       notes: ''
     });
+  }
+
+  protected beginMobileSwipe(event: TouchEvent, expenseId: string) {
+    this.swipingExpenseId.set(expenseId);
+    this.touchStartX = event.touches[0]?.clientX ?? 0;
+    this.touchCurrentX = this.touchStartX;
+    this.touchMoved = false;
+    this.swipeOffset.set(0);
+  }
+
+  protected updateMobileSwipe(event: TouchEvent) {
+    if (!this.swipingExpenseId()) {
+      return;
+    }
+
+    this.touchCurrentX = event.touches[0]?.clientX ?? this.touchStartX;
+    const deltaX = this.touchCurrentX - this.touchStartX;
+
+    if (Math.abs(deltaX) > 8) {
+      this.touchMoved = true;
+    }
+
+    this.swipeOffset.set(Math.min(0, Math.max(deltaX, -112)));
+  }
+
+  protected endMobileSwipe(expense: Expense) {
+    if (!this.swipingExpenseId()) {
+      return;
+    }
+
+    const deltaX = this.touchCurrentX - this.touchStartX;
+
+    if (deltaX <= -88) {
+      this.deleteExpense(expense.id);
+      this.resetSwipeState();
+      return;
+    }
+
+    if (!this.touchMoved || Math.abs(deltaX) < 10) {
+      this.startEditExpense(expense);
+    }
+
+    this.resetSwipeState();
+  }
+
+  protected currentSwipeOffset(expenseId: string) {
+    return this.swipingExpenseId() === expenseId ? this.swipeOffset() : 0;
+  }
+
+  protected closeMobileEditModal() {
+    this.cancelEditExpense();
   }
 
   protected async downloadStatementPdf() {
@@ -699,5 +762,13 @@ export class ExpensesPageComponent {
       default:
         return true;
     }
+  }
+
+  private resetSwipeState() {
+    this.swipingExpenseId.set(null);
+    this.swipeOffset.set(0);
+    this.touchStartX = 0;
+    this.touchCurrentX = 0;
+    this.touchMoved = false;
   }
 }

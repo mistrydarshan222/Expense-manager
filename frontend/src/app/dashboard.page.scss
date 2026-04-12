@@ -258,10 +258,10 @@
 
 .auth-form-panel {
   display: grid;
-  gap: 22px;
+  gap: 16px;
   align-content: start;
   min-height: 100%;
-  padding: 28px;
+  padding: 24px;
   border-radius: 20px;
   border: 1px solid var(--border-strong);
   box-shadow: var(--shadow-card);
@@ -279,7 +279,7 @@
 
 .auth-panel-head {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .auth-form-panel-login .eyebrow,
@@ -382,7 +382,7 @@
 
 .auth-form-actions {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .auth-form-actions button {
@@ -414,7 +414,7 @@
 
 .auth-google-block {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .auth-google-button-host {

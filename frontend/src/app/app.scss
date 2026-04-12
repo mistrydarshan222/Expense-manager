@@ -465,6 +465,10 @@ strong {
   display: none;
 }
 
+.mobile-header-notification-count {
+  display: none;
+}
+
 .profile-copy strong {
   display: block;
   line-height: 1.1;
@@ -1963,6 +1967,7 @@ button:hover {
   }
 
   .topbar:not(.topbar-logged-out) .mobile-header-action {
+    position: relative;
     width: 32px;
     height: 32px;
     display: inline-grid;
@@ -1991,6 +1996,24 @@ button:hover {
     stroke-linejoin: round;
   }
 
+  .topbar:not(.topbar-logged-out) .mobile-header-notification-count {
+    position: absolute;
+    top: -3px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #19b394 0%, #34d399 100%);
+    color: #ffffff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 6px 12px rgba(25, 179, 148, 0.22);
+  }
+
   .topbar:not(.topbar-logged-out) .mobile-header-avatar {
     width: 34px;
     height: 34px;
@@ -2003,7 +2026,6 @@ button:hover {
     font-weight: 800;
     letter-spacing: -0.02em;
   }
-
 
   .mobile-bottom-nav {
     position: fixed;

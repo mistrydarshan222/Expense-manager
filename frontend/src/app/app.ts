@@ -44,6 +44,12 @@ export class App {
     this.store.logout();
   }
 
+  protected openNotificationsPage() {
+    this.closeMobileMenu();
+    this.store.markNotificationsRead();
+    void this.router.navigateByUrl('/notifications');
+  }
+
   protected authMode() {
     const auth = this.router.parseUrl(this.router.url).queryParams['auth'];
     return auth === 'register' ? 'register' : 'login';
@@ -64,6 +70,8 @@ export class App {
         return 'Add Expense';
       case 'expenses':
         return 'Expense History';
+      case 'notifications':
+        return 'Notifications';
       case 'receipts':
         return 'Receipt Scanner';
       case 'profile':
@@ -80,6 +88,8 @@ export class App {
     switch (currentPath) {
       case 'expenses':
         return 'Track every amount clearly';
+      case 'notifications':
+        return 'Recent updates';
       case 'receipts':
         return 'Scan and review faster';
       case 'profile':
@@ -101,7 +111,6 @@ export class App {
   }
 
   protected mobileHeaderActionLabel() {
-    const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
-    return currentPath === 'receipts' ? 'Settings' : 'Notifications';
+    return 'Notifications';
   }
 }

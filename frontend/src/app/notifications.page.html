@@ -1,0 +1,55 @@
+@if (!store.token()) {
+  <section class="panel notifications-shell">
+    <p class="eyebrow">Notifications</p>
+    <h2>Sign in to view notifications</h2>
+    <p class="notifications-copy">Your recent action history appears here once you're signed in.</p>
+  </section>
+} @else {
+  <section class="notifications-shell">
+    <section class="panel notifications-hero">
+      <div class="notifications-hero-copy">
+        <p class="eyebrow">Notifications</p>
+        <h2>Recent updates</h2>
+        <p class="notifications-copy">We keep the last 24 hours of important action updates here so you can review saves, deletes, uploads, and errors anytime.</p>
+      </div>
+      <div class="notifications-hero-actions">
+        <div class="panel-tip">{{ store.notifications().length }} notification{{ store.notifications().length === 1 ? '' : 's' }}</div>
+        @if (store.notifications().length > 0) {
+          <button type="button" class="ghost-button" (click)="store.clearNotifications()">Clear all</button>
+        }
+      </div>
+    </section>
+
+    @if (store.notifications().length === 0) {
+      <section class="panel notifications-empty">
+        <strong>No recent notifications</strong>
+        <p>New actions will show up here automatically for the next 24 hours.</p>
+        <a routerLink="/" class="ghost-button">Back to dashboard</a>
+      </section>
+    } @else {
+      <section class="notifications-list">
+        @for (item of store.notifications(); track item.id) {
+          <article class="panel notifications-item" [attr.data-tone]="item.tone">
+            <div class="notifications-item-top">
+              <span class="notifications-item-pill">
+                @switch (item.tone) {
+                  @case ('success') {
+                    Success
+                  }
+                  @case ('error') {
+                    Error
+                  }
+                  @default {
+                    Update
+                  }
+                }
+              </span>
+              <time>{{ item.createdAt | date:'MMM d, h:mm a' }}</time>
+            </div>
+            <strong>{{ item.message }}</strong>
+          </article>
+        }
+      </section>
+    }
+  </section>
+}

@@ -15,6 +15,17 @@ type ActionFeedback = {
   tone: ActionFeedbackTone;
 };
 
+type StoredNotification = {
+  id: string;
+  message: string;
+  tone: ActionFeedbackTone;
+  createdAt: string;
+  read: boolean;
+};
+
+const notificationsStorageKey = 'expense-notifications';
+const notificationRetentionMs = 24 * 60 * 60 * 1000;
+
 const fallbackCurrencyOptions: CurrencyOption[] = [
   { code: 'CAD', label: 'Canadian Dollar' },
   { code: 'USD', label: 'US Dollar' },
@@ -70,12 +81,14 @@ export class AppStore {
   readonly currentReceipt = signal<Receipt | null>(null);
   readonly statusMessage = signal('Ready to connect your expense manager.');
   readonly actionFeedback = signal<ActionFeedback | null>(null);
+  readonly notifications = signal<StoredNotification[]>(this.loadStoredNotifications());
   readonly isSubmitting = signal(false);
   private receiptPollTimer: number | null = null;
   private feedbackTimer: number | null = null;
 
   readonly userName = computed(() => this.currentUser()?.name ?? 'Guest');
   readonly preferredCurrency = computed(() => this.currentUser()?.preferredCurrency ?? 'CAD');
+  readonly unreadNotificationsCount = computed(() => this.notifications().filter((item) => !item.read).length);
 
   readonly totalSpent = computed(() =>
     this.expenses().reduce((sum, expense) => sum + Number(expense.finalAmount), 0)
@@ -468,6 +481,7 @@ export class AppStore {
     localStorage.removeItem('expense-token');
     localStorage.removeItem('expense-user-name');
     localStorage.removeItem('expense-preferred-currency');
+    localStorage.removeItem(notificationsStorageKey);
     this.token.set('');
     this.currentUser.set(null);
     this.categories.set([]);
@@ -475,6 +489,7 @@ export class AppStore {
     this.paymentMethods.set([]);
     this.receipts.set([]);
     this.currentReceipt.set(null);
+    this.notifications.set([]);
     this.stopReceiptPolling();
     this.showFeedback('Logged out. You can sign in again anytime.', 'success');
   }
@@ -486,6 +501,17 @@ export class AppStore {
     }
 
     this.actionFeedback.set(null);
+  }
+
+  markNotificationsRead() {
+    const next = this.notifications().map((item) => ({ ...item, read: true }));
+    this.notifications.set(next);
+    this.persistNotifications(next);
+  }
+
+  clearNotifications() {
+    this.notifications.set([]);
+    this.persistNotifications([]);
   }
 
   formatCurrency(amount: number | string, currency: string) {
@@ -614,6 +640,7 @@ export class AppStore {
   private showFeedback(message: string, tone: ActionFeedbackTone, durationMs = 1000) {
     this.statusMessage.set(message);
     this.actionFeedback.set({ message, tone });
+    this.addNotification(message, tone);
 
     if (this.feedbackTimer !== null) {
       window.clearTimeout(this.feedbackTimer);
@@ -626,5 +653,49 @@ export class AppStore {
         this.feedbackTimer = null;
       }, durationMs);
     }
+  }
+
+  private addNotification(message: string, tone: ActionFeedbackTone) {
+    const next = this.pruneNotifications([
+      {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        message,
+        tone,
+        createdAt: new Date().toISOString(),
+        read: false
+      },
+      ...this.notifications()
+    ]).slice(0, 20);
+
+    this.notifications.set(next);
+    this.persistNotifications(next);
+  }
+
+  private loadStoredNotifications(): StoredNotification[] {
+    const stored = localStorage.getItem(notificationsStorageKey);
+
+    if (!stored) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(stored) as StoredNotification[];
+      return Array.isArray(parsed) ? this.pruneNotifications(parsed) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private persistNotifications(notifications: StoredNotification[]) {
+    localStorage.setItem(notificationsStorageKey, JSON.stringify(this.pruneNotifications(notifications)));
+  }
+
+  private pruneNotifications(notifications: StoredNotification[]) {
+    const cutoff = Date.now() - notificationRetentionMs;
+
+    return notifications.filter((item) => {
+      const timestamp = new Date(item.createdAt).getTime();
+      return Number.isFinite(timestamp) && timestamp >= cutoff;
+    });
   }
 }

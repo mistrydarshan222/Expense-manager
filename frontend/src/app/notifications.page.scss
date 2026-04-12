@@ -1,0 +1,142 @@
+:host {
+  display: block;
+}
+
+.notifications-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.notifications-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.notifications-hero-copy {
+  max-width: 760px;
+}
+
+.notifications-copy {
+  margin-top: 10px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.notifications-hero-actions {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.notifications-empty {
+  display: grid;
+  gap: 12px;
+}
+
+.notifications-empty strong {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.notifications-empty p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.notifications-empty .ghost-button {
+  width: fit-content;
+  text-decoration: none;
+}
+
+.notifications-list {
+  display: grid;
+  gap: 14px;
+}
+
+.notifications-item {
+  display: grid;
+  gap: 10px;
+}
+
+.notifications-item[data-tone='success'] {
+  border-color: rgba(27, 127, 107, 0.16);
+  background: #eaf8f4;
+}
+
+.notifications-item[data-tone='error'] {
+  border-color: rgba(214, 69, 69, 0.16);
+  background: #fdecec;
+}
+
+.notifications-item[data-tone='info'] {
+  border-color: rgba(59, 91, 219, 0.14);
+  background: #eaf2ff;
+}
+
+.notifications-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notifications-item-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--text-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.notifications-item time {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.notifications-item strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .notifications-shell {
+    width: calc(100% - 24px);
+    gap: 14px;
+  }
+
+  .notifications-hero {
+    flex-direction: column;
+  }
+
+  .notifications-hero-actions {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .notifications-hero-actions .ghost-button,
+  .notifications-empty .ghost-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .notifications-item {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .notifications-item-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
