@@ -9,9 +9,8 @@
 .profile-panel {
   margin: 0 auto 24px;
   background:
-    radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 28%),
-    radial-gradient(circle at top left, rgba(239, 149, 74, 0.08), transparent 22%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 241, 232, 0.72) 100%);
+    radial-gradient(circle at top right, rgba(25, 179, 148, 0.08), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
 }
 
 .profile-hero {
@@ -34,10 +33,10 @@
 
 .profile-summary-card {
   padding: 18px 20px;
-  border: 1px solid rgba(205, 190, 164, 0.5);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 14px 30px rgba(119, 92, 49, 0.07);
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(31, 41, 55, 0.05);
 }
 
 .profile-summary-card span {
@@ -47,13 +46,13 @@
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(43, 33, 22, 0.72);
+  color: var(--text-secondary);
 }
 
 .profile-summary-card strong {
   display: block;
   font-size: 1.15rem;
-  color: var(--ink-strong);
+  color: var(--text-primary);
   word-break: break-word;
 }
 
@@ -61,9 +60,9 @@
 .payment-method-form-shell {
   margin-top: 24px;
   padding: 22px;
-  border: 1px solid rgba(214, 200, 175, 0.54);
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  background: #ffffff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
@@ -124,10 +123,10 @@
   .mobile-profile-settings-card {
     margin: 10px 20px;
     padding: 20px 18px;
-    border: 1px solid #e5e7eb;
-    border-radius: 26px;
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
     background: #ffffff;
-    box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+    box-shadow: var(--shadow-card);
   }
 
   .mobile-profile-hero-card {
@@ -143,7 +142,7 @@
     display: grid;
     place-items: center;
     border-radius: 999px;
-    background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
+    background: #e8f7f3;
     color: var(--accent-strong);
     font-size: 1.55rem;
     font-weight: 800;
@@ -173,7 +172,7 @@
     background: transparent;
     color: var(--text-primary);
     box-shadow: none;
-    border-bottom: 1px solid #edf2f7;
+    border-bottom: 1px solid var(--border-soft);
   }
 
   .mobile-profile-row:last-child {

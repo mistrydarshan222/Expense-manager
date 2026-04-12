@@ -14,10 +14,18 @@
 .desktop-expenses-head-card,
 .desktop-expenses-table-card {
   padding: 20px;
-  border: 1px solid #e5e7eb;
-  border-radius: 24px;
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
   background: #ffffff;
-  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.desktop-expenses-head-card:hover,
+.desktop-expenses-table-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(25, 179, 148, 0.18);
+  box-shadow: 0 16px 30px rgba(31, 41, 55, 0.08);
 }
 
 .desktop-expenses-head-top {
@@ -47,14 +55,16 @@
 .desktop-expenses-chip {
   padding: 9px 14px;
   border-radius: 999px;
-  background: #f8fafc;
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
   color: var(--text-secondary);
   font-weight: 700;
 }
 
 .desktop-expenses-chip-active {
-  background: #dcfce7;
-  color: #15803d;
+  background: #e8f7f3;
+  color: var(--accent-strong);
+  border-color: rgba(25, 179, 148, 0.18);
 }
 
 .desktop-expenses-table {
@@ -80,7 +90,7 @@
 
 .desktop-expenses-table-row {
   padding: 16px 0;
-  border-top: 1px solid #eef2f7;
+  border-top: 1px solid var(--border-soft);
 }
 
 .desktop-expenses-merchant strong,
@@ -94,7 +104,7 @@
   width: fit-content;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #f3f4f6;
+  background: var(--surface-muted);
   color: var(--text-secondary);
   font-size: 0.78rem;
   font-weight: 700;
@@ -109,10 +119,10 @@
 
 .history-snapshot-card {
   padding: 18px;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 14px 30px rgba(105, 84, 49, 0.08);
+  border-radius: 18px;
+  border: 1px solid var(--border-soft);
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(31, 41, 55, 0.05);
 }
 
 .history-snapshot-card span {
@@ -185,14 +195,16 @@
     flex: 0 0 auto;
     padding: 10px 14px;
     border-radius: 999px;
-    background: #f1f5f9;
+    background: #ffffff;
+    border: 1px solid var(--border-strong);
     color: var(--text-secondary);
     box-shadow: none;
   }
 
   .mobile-history-chip-active {
-    background: #dcfce7;
+    background: #e8f7f3;
     color: var(--accent-strong);
+    border-color: rgba(25, 179, 148, 0.18);
   }
 
   .mobile-history-filter-row {
@@ -223,10 +235,10 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 12px;
-    border: 1px solid #e5e7eb;
-    border-radius: 20px;
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
     background: #ffffff;
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 10px 22px rgba(31, 41, 55, 0.05);
   }
 
   .mobile-history-avatar {
@@ -235,7 +247,7 @@
     display: grid;
     place-items: center;
     border-radius: 14px;
-    background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
+    background: #e8f7f3;
     color: var(--accent-strong);
     font-weight: 800;
   }
@@ -289,9 +301,7 @@
 
 @media (min-width: 641px) {
   .mobile-history-view,
-  .expenses-hero-panel,
-  .recent-panel,
-  #expense-editor {
+  .desktop-expenses-view {
     display: none;
   }
 }
