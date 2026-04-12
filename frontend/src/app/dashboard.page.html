@@ -33,6 +33,13 @@
           </div>
         </form>
 
+      @if (isGoogleAuthEnabled) {
+        <div class="auth-divider"><span>or continue with</span></div>
+        <div class="auth-google-block">
+          <div id="google-login-button" class="auth-google-button-host"></div>
+        </div>
+      }
+
       <div class="auth-status-card" aria-live="polite">
         <span>Status</span>
         <strong>{{ store.statusMessage() }}</strong>
@@ -69,6 +76,13 @@
             <button type="submit">{{ store.isSubmitting() ? 'Creating account...' : 'Create account' }}</button>
           </div>
         </form>
+
+      @if (isGoogleAuthEnabled) {
+        <div class="auth-divider"><span>or continue with</span></div>
+        <div class="auth-google-block">
+          <div id="google-register-button" class="auth-google-button-host"></div>
+        </div>
+      }
 
       <div class="auth-mini-points auth-register-points">
         <span>Default categories included</span>

@@ -1,5 +1,5 @@
 import { DatePipe, DOCUMENT, NgClass } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -7,6 +7,37 @@ import { startWith } from 'rxjs';
 
 import { Expense } from './api.types';
 import { AppStore } from './app.store';
+import { environment } from '../environments/environment';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: { credential: string }) => void;
+            auto_select?: boolean;
+            cancel_on_tap_outside?: boolean;
+          }) => void;
+          renderButton: (
+            parent: HTMLElement,
+            options: {
+              type?: string;
+              theme?: string;
+              size?: string;
+              shape?: string;
+              text?: string;
+              width?: string | number;
+              logo_alignment?: string;
+            }
+          ) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
 
 @Component({
   selector: 'app-dashboard-page',
@@ -14,16 +45,19 @@ import { AppStore } from './app.store';
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss'
 })
-export class DashboardPageComponent {
+export class DashboardPageComponent implements AfterViewInit {
   protected readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly googleClientId = environment.googleClientId;
+  private googleButtonsRendered = false;
 
   protected readonly activeTab = signal<'login' | 'register'>('login');
   protected readonly editingExpenseId = signal<string | null>(null);
   protected readonly isEditingExpense = computed(() => this.editingExpenseId() !== null);
+  protected readonly isGoogleAuthEnabled = !!this.googleClientId;
 
   protected readonly registerForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -194,6 +228,10 @@ export class DashboardPageComponent {
     });
   }
 
+  ngAfterViewInit() {
+    this.initializeGoogleButton();
+  }
+
   protected setActiveTab(tab: 'login' | 'register') {
     this.activeTab.set(tab);
     this.store.statusMessage.set(
@@ -201,6 +239,17 @@ export class DashboardPageComponent {
         ? 'Login with your account to load categories and expenses.'
         : 'Create a new account and default categories will be added automatically.'
     );
+  }
+
+  protected continueWithGoogle() {
+    const googleId = this.document.defaultView?.google?.accounts?.id;
+
+    if (!this.isGoogleAuthEnabled || !googleId) {
+      this.store.statusMessage.set('Google login is not configured yet.');
+      return;
+    }
+
+    googleId.prompt();
   }
 
   protected register() {
@@ -352,5 +401,59 @@ export class DashboardPageComponent {
 
   protected monthlyBarHeight(amount: number) {
     return Math.max(18, amount / 20);
+  }
+
+  private initializeGoogleButton() {
+    if (!this.isGoogleAuthEnabled || this.googleButtonsRendered) {
+      return;
+    }
+
+    const tryRender = () => {
+      const googleId = this.document.defaultView?.google?.accounts?.id;
+      const loginContainer = this.document.getElementById('google-login-button');
+      const registerContainer = this.document.getElementById('google-register-button');
+
+      if (!googleId || !loginContainer || !registerContainer) {
+        this.document.defaultView?.setTimeout(tryRender, 250);
+        return;
+      }
+
+      googleId.initialize({
+        client_id: this.googleClientId,
+        callback: ({ credential }) => {
+          if (!credential) {
+            this.store.statusMessage.set('Google login did not return a credential.');
+            return;
+          }
+
+          this.store.googleLogin(credential, () => {
+            this.loginForm.reset({ email: '', password: '' });
+            this.registerForm.reset({ name: '', email: '', password: '' });
+            this.resetExpenseForm();
+          });
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true
+      });
+
+      loginContainer.innerHTML = '';
+      registerContainer.innerHTML = '';
+
+      for (const container of [loginContainer, registerContainer]) {
+        googleId.renderButton(container, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          shape: 'pill',
+          text: 'continue_with',
+          width: Math.min(container.clientWidth || 320, 360),
+          logo_alignment: 'left'
+        });
+      }
+
+      this.googleButtonsRendered = true;
+    };
+
+    tryRender();
   }
 }

@@ -16,6 +16,10 @@ type LoginPayload = {
   password: string;
 };
 
+type GoogleLoginPayload = {
+  idToken: string;
+};
+
 type ExpensePayload = {
   title: string;
   categoryId: string;
@@ -40,6 +44,10 @@ export class ApiService {
 
   login(payload: LoginPayload): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/auth/login`, payload);
+  }
+
+  googleLogin(payload: GoogleLoginPayload): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.baseUrl}/auth/google`, payload);
   }
 
   getCurrentUser(token: string): Observable<{ user: CurrentUser }> {

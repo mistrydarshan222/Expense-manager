@@ -3,8 +3,8 @@ import { ZodError } from "zod";
 
 import { AuthenticatedRequest } from "../../common/middleware/auth.middleware";
 import { signAccessToken } from "../../common/utils/jwt";
-import { getCurrentUser, loginUser, registerUser } from "./auth.service";
-import { loginSchema, registerSchema } from "./auth.validation";
+import { getCurrentUser, loginUser, loginWithGoogle, registerUser } from "./auth.service";
+import { googleLoginSchema, loginSchema, registerSchema } from "./auth.validation";
 
 function formatZodError(error: ZodError) {
   return error.issues.map((issue) => ({
@@ -71,6 +71,38 @@ export async function login(req: Request, res: Response) {
 
     return res.status(401).json({
       message: error instanceof Error ? error.message : "Login failed",
+    });
+  }
+}
+
+export async function googleLogin(req: Request, res: Response) {
+  try {
+    const input = googleLoginSchema.parse(req.body);
+    const result = await loginWithGoogle(input);
+    const token = signAccessToken({ userId: result.user.id, email: result.user.email });
+
+    return res.status(200).json({
+      message: "Google login successful",
+      token,
+      user: {
+        id: result.user.id,
+        name: result.user.name,
+        email: result.user.email,
+        preferredCurrency: result.user.preferredCurrency,
+      },
+      categories: result.categories,
+      paymentMethods: result.paymentMethods,
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: formatZodError(error),
+      });
+    }
+
+    return res.status(401).json({
+      message: error instanceof Error ? error.message : "Google login failed",
     });
   }
 }

@@ -390,6 +390,43 @@
   justify-self: stretch;
 }
 
+.auth-divider {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  border-top: 1px solid var(--border-soft);
+}
+
+.auth-divider span {
+  position: relative;
+  padding: 0 12px;
+  background: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.auth-google-block {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-google-button-host {
+  min-height: 44px;
+  display: grid;
+  justify-items: center;
+}
+
+.auth-google-fallback {
+  width: 100%;
+}
+
 .auth-status-card {
   padding: 18px;
   border-radius: 18px;

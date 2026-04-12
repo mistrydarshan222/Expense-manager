@@ -137,6 +137,25 @@ export class AppStore {
     });
   }
 
+  googleLogin(idToken: string, onDone?: () => void) {
+    this.isSubmitting.set(true);
+    this.showFeedback('Signing in with Google...', 'info');
+
+    this.api.googleLogin({ idToken }).subscribe({
+      next: (response) => {
+        this.finishAuth(response.token, response.user);
+        this.categories.set(response.categories ?? []);
+        this.paymentMethods.set(response.paymentMethods ?? []);
+        onDone?.();
+        this.showFeedback('Google login successful.', 'success');
+      },
+      error: (error) => {
+        this.isSubmitting.set(false);
+        this.showFeedback(error.error?.message ?? 'Google login failed.', 'error');
+      }
+    });
+  }
+
   createCategory(name: string, onDone?: () => void) {
     if (!this.token()) {
       return;
