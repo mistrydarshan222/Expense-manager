@@ -50,6 +50,20 @@
     </section>
 
     <section class="mobile-history-view">
+      <div class="mobile-history-actions">
+        <div class="mobile-history-actions-copy">
+          <strong>{{ filteredExpenses().length }} matching expense{{ filteredExpenses().length === 1 ? '' : 's' }}</strong>
+          @if (filteredTotalsByCurrency().length > 0) {
+            <span>
+              @for (total of filteredTotalsByCurrency(); track total.currency; let isLast = $last) {
+                {{ total.currency }}: {{ store.formatCurrency(total.amount, total.currency) }}{{ isLast ? '' : ' · ' }}
+              }
+            </span>
+          }
+        </div>
+        <button type="button" class="mobile-history-download" (click)="downloadStatementPdf()">Download PDF</button>
+      </div>
+
       <div class="mobile-history-chip-row">
         <button type="button" class="mobile-history-chip" [class.mobile-history-chip-active]="filterForm.value.categoryId === 'all'" (click)="filterForm.patchValue({ categoryId: 'all' })">All</button>
         @for (category of mobileCategoryChips(); track category.id) {

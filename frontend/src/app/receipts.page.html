@@ -66,6 +66,121 @@
       <button type="button" class="mobile-receipt-submit" (click)="processReceipt()">Submit Receipt</button>
       <span class="mobile-receipt-note">Secure upload, fast processing.</span>
     </article>
+
+    @if (store.currentReceipt(); as receipt) {
+      <article class="mobile-receipt-review-card">
+        <div class="mobile-receipt-review-head">
+          <div class="mobile-receipt-review-copy">
+            <p class="eyebrow">Review</p>
+            <h3>{{ receiptDisplayName(receipt) }}</h3>
+            <p class="mobile-receipt-note-left">Check the extracted details before saving this expense.</p>
+          </div>
+          <span class="receipt-status-pill" [attr.data-status]="receipt.status">{{ receipt.status }}</span>
+        </div>
+
+        @if (receipt.status === 'queued' || receipt.status === 'processing') {
+          <div class="mobile-receipt-banner mobile-receipt-banner-processing">
+            This receipt is still being processed. The page refreshes automatically when OCR finishes.
+          </div>
+        }
+
+        @if (receipt.status === 'failed') {
+          <div class="mobile-receipt-banner mobile-receipt-banner-error">
+            Processing failed: {{ receipt.processingError || 'Unknown error' }}
+          </div>
+
+          <div class="mobile-receipt-preview-grid">
+            <div class="mobile-receipt-preview-item">
+              <span>Title</span>
+              <strong>{{ reviewForm.getRawValue().title || 'Receipt expense' }}</strong>
+            </div>
+            <div class="mobile-receipt-preview-item">
+              <span>Category</span>
+              <strong>{{ store.categories().find(category => category.id === reviewForm.getRawValue().categoryId)?.name || 'Not selected' }}</strong>
+            </div>
+            <div class="mobile-receipt-preview-item">
+              <span>Date</span>
+              <strong>{{ reviewForm.getRawValue().expenseDate || 'Not available' }}</strong>
+            </div>
+            <div class="mobile-receipt-preview-item">
+              <span>Payment</span>
+              <strong>{{ reviewForm.getRawValue().paymentMethod || 'Not available' }}</strong>
+            </div>
+            <div class="mobile-receipt-preview-item mobile-receipt-preview-item-full">
+              <span>Merchant</span>
+              <strong>{{ reviewForm.getRawValue().merchantName || 'Not available' }}</strong>
+            </div>
+          </div>
+        }
+
+        @if (receipt.status === 'processed' || receipt.status === 'completed') {
+          <div class="mobile-receipt-result-grid">
+            <div class="mobile-receipt-result-card">
+              <span>Detected total</span>
+              <strong>{{ store.formatCurrency(amountForReview(receipt), receipt.currency || store.preferredCurrency()) }}</strong>
+            </div>
+            <div class="mobile-receipt-result-card">
+              <span>Subtotal</span>
+              <strong>{{ store.formatCurrency(receipt.extractedSubtotal || 0, receipt.currency || store.preferredCurrency()) }}</strong>
+            </div>
+            <div class="mobile-receipt-result-card">
+              <span>Tax</span>
+              <strong>{{ store.formatCurrency(receipt.extractedTax || 0, receipt.currency || store.preferredCurrency()) }}</strong>
+            </div>
+            <div class="mobile-receipt-result-card">
+              <span>Confidence</span>
+              <strong>{{ receipt.parserConfidence ? (receipt.parserConfidence * 100).toFixed(0) : '0' }}%</strong>
+            </div>
+          </div>
+
+          <form [formGroup]="reviewForm" (ngSubmit)="createExpenseFromReceipt()" class="mobile-receipt-review-form">
+            <label>
+              <span>Title</span>
+              <input type="text" formControlName="title" />
+            </label>
+            <label>
+              <span>Category</span>
+              <select formControlName="categoryId">
+                <option value="" disabled>Select a category</option>
+                @for (category of store.categories(); track category.id) {
+                  <option [value]="category.id">{{ category.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              <span>Date</span>
+              <input type="date" formControlName="expenseDate" />
+            </label>
+            <label>
+              <span>Payment method</span>
+              <select formControlName="paymentMethod">
+                <option value="" disabled>Select a payment method</option>
+                @for (method of store.paymentMethods(); track method.id) {
+                  <option [value]="method.name">{{ method.name }}</option>
+                }
+              </select>
+            </label>
+            <label class="full-width">
+              <span>Merchant</span>
+              <input type="text" formControlName="merchantName" />
+            </label>
+            <label class="full-width">
+              <span>Notes</span>
+              <textarea rows="4" formControlName="notes" placeholder="Add any context before saving this expense"></textarea>
+            </label>
+            <div class="mobile-receipt-review-actions full-width">
+              @if (receipt.status === 'completed') {
+                <span class="file-helper">Expense already created from this receipt.</span>
+                <button type="button" class="ghost-button" (click)="cancelReview()">Back to dashboard</button>
+              } @else {
+                <button type="submit">Create expense</button>
+                <button type="button" class="ghost-button" (click)="cancelReview()">Cancel</button>
+              }
+            </div>
+          </form>
+        }
+      </article>
+    }
   </section>
 
   <section class="panel receipt-panel">

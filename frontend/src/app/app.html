@@ -34,31 +34,7 @@
 
   @if (store.token()) {
     <div class="app-auth-shell">
-      <aside class="desktop-sidebar">
-        <a class="desktop-sidebar-brand" routerLink="/" aria-label="Go to ExpenseFlow home">
-          <img class="desktop-sidebar-logo" src="transparent-logo.svg" alt="ExpenseFlow logo" />
-          <span>Expense<span>Flow</span></span>
-        </a>
-
-        <nav class="desktop-sidebar-nav" aria-label="Desktop primary navigation">
-          <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
-          <a routerLink="/expenses" routerLinkActive="active-link">Expenses</a>
-          <a routerLink="/receipts" routerLinkActive="active-link">Upload Receipt</a>
-          <a routerLink="/profile" routerLinkActive="active-link">Profile</a>
-        </nav>
-
-        <div class="desktop-sidebar-upgrade">Upgrade to Pro</div>
-
-        <div class="desktop-sidebar-user">
-          <div class="profile-avatar">{{ store.userName().slice(0, 2).toUpperCase() }}</div>
-          <div class="profile-copy">
-            <strong>{{ store.userName() }}</strong>
-            <span>{{ store.currentUser()?.email }}</span>
-          </div>
-        </div>
-      </aside>
-
-      <div class="app-auth-main">
+      <div class="app-auth-main app-auth-main-authenticated">
         <header class="topbar" [class.topbar-logged-out]="!store.token()">
           <button
             type="button"
@@ -82,19 +58,7 @@
                 <strong>{{ mobileHeaderTitle() }}</strong>
               </span>
             }
-            <span class="desktop-page-copy">{{ mobileHeaderTitle() }}</span>
           </a>
-
-          <div class="desktop-header-actions">
-            <button type="button" class="desktop-header-icon" aria-label="Notifications">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M12 5C9.79 5 8 6.79 8 9V11.2C8 12.28 7.72 13.34 7.18 14.27L6 16.3H18L16.82 14.27C16.28 13.34 16 12.28 16 11.2V9C16 6.79 14.21 5 12 5Z" />
-                <path d="M10 18C10.46 19.2 11.08 20 12 20C12.92 20 13.54 19.2 14 18" />
-              </svg>
-            </button>
-            <div class="desktop-header-avatar">{{ store.userName().slice(0, 2).toUpperCase() }}</div>
-            <button type="button" class="desktop-header-caret" (click)="logout()">⌄</button>
-          </div>
 
           <div class="mobile-header-right">
             <button type="button" class="mobile-header-action" [attr.aria-label]="mobileHeaderActionLabel()">

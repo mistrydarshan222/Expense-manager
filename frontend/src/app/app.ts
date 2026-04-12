@@ -77,7 +77,7 @@ export class App {
 
   protected mobileHeaderMode() {
     const currentPath = this.router.parseUrl(this.router.url).root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
-    return currentPath === 'receipts' ? 'title' : 'brand';
+    return 'brand';
   }
 
   protected mobileHeaderHasAvatar() {
