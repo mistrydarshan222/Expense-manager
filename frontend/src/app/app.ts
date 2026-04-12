@@ -1,5 +1,5 @@
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { Component, ViewEncapsulation, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ViewEncapsulation, inject, signal } from '@angular/core';
 
 import { AppStore } from './app.store';
 
@@ -13,8 +13,23 @@ import { AppStore } from './app.store';
 export class App {
   protected readonly store = inject(AppStore);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly mobileMenuOpen = signal(false);
   protected readonly currentYear = new Date().getFullYear();
+  protected readonly isOnline = signal(typeof navigator === 'undefined' ? true : navigator.onLine);
+
+  constructor() {
+    const handleOnline = () => this.isOnline.set(true);
+    const handleOffline = () => this.isOnline.set(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    });
+  }
 
   protected toggleMobileMenu() {
     this.mobileMenuOpen.update((value) => !value);

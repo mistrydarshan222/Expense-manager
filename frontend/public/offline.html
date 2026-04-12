@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ExpenseFlow Offline</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f4ee;
+      --card: #ffffff;
+      --border: #e8e1d8;
+      --text: #1f2937;
+      --muted: #667085;
+      --accent: #19b394;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top left, rgba(25, 179, 148, 0.08), transparent 24%),
+        linear-gradient(180deg, var(--bg) 0%, #fbfaf7 100%);
+      font-family: Inter, sans-serif;
+      color: var(--text);
+    }
+
+    .offline-card {
+      width: min(100%, 520px);
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: var(--card);
+      box-shadow: 0 18px 40px rgba(31, 41, 55, 0.08);
+      text-align: center;
+    }
+
+    .offline-card img {
+      width: 124px;
+      height: auto;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 0.98rem;
+    }
+
+    .offline-pill {
+      margin: 18px auto 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #e8f7f3;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <section class="offline-card">
+    <img src="./transparent-logo.svg" alt="ExpenseFlow logo">
+    <h1>You’re offline</h1>
+    <p>ExpenseFlow is available again as soon as your connection comes back. Cached pages may still work, but live actions like uploads, login, and syncing need internet access.</p>
+    <div class="offline-pill">Reconnect to continue</div>
+  </section>
+</body>
+</html>

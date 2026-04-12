@@ -1,4 +1,11 @@
 <main class="shell">
+  @if (!isOnline()) {
+    <section class="offline-banner" aria-live="polite">
+      <strong>You’re offline.</strong>
+      <span>You can still browse cached pages. New API actions will resume once your connection is back.</span>
+    </section>
+  }
+
   @if (store.actionFeedback(); as feedback) {
     <section
       class="action-feedback-banner"

@@ -37,6 +37,7 @@
           "configurations": {
             "production": {
               "baseHref": "/Expenseflow/",
+              "serviceWorker": "ngsw-config.json",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",

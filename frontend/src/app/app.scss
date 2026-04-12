@@ -50,6 +50,30 @@ strong {
     linear-gradient(180deg, var(--bg-base) 0%, var(--bg-soft) 100%);
 }
 
+.offline-banner {
+  max-width: 1280px;
+  margin: 0 auto 18px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(183, 110, 0, 0.16);
+  border-radius: 18px;
+  background: #fff4e5;
+  color: #b76e00;
+  box-shadow: 0 10px 24px rgba(31, 41, 55, 0.05);
+}
+
+.offline-banner strong {
+  color: inherit;
+}
+
+.offline-banner span {
+  color: inherit;
+  text-align: right;
+}
+
 .action-feedback-banner {
   position: fixed;
   top: 24px;
