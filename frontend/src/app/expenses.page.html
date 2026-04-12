@@ -61,7 +61,7 @@
             </span>
           }
         </div>
-        <button type="button" class="mobile-history-download" (click)="downloadStatementPdf()">Download PDF</button>
+        <button type="button" class="mobile-history-download" (click)="downloadStatementPdf()">Download Statement</button>
       </div>
 
       <div class="mobile-history-chip-row">
@@ -246,7 +246,7 @@
         </div>
         <div class="expense-hero-actions">
           <div class="panel-tip">{{ filteredExpenses().length }} matching expense{{ filteredExpenses().length === 1 ? '' : 's' }}</div>
-          <button type="button" (click)="downloadStatementPdf()">Download PDF</button>
+          <button type="button" (click)="downloadStatementPdf()">Download Statement</button>
         </div>
       </div>
 

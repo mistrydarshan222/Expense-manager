@@ -274,14 +274,46 @@
 
   .profile-summary-strip {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
+    margin-top: 2px;
+    padding: 4px 0 0;
   }
 
   .profile-summary-card {
-    padding: 16px;
-    border-radius: 18px;
-    border-color: var(--border-soft);
+    padding: 14px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border: 0;
+    border-bottom: 1px solid var(--border-soft);
+    border-radius: 0;
+    background: transparent;
     box-shadow: none;
+  }
+
+  .profile-summary-card:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .profile-summary-card:first-child {
+    padding-top: 0;
+  }
+
+  .profile-summary-card span {
+    margin-bottom: 0;
+    font-size: 0.76rem;
+    line-height: 1.2;
+    color: var(--text-secondary);
+  }
+
+  .profile-summary-card strong {
+    flex: 0 0 auto;
+    max-width: 58%;
+    font-size: 1rem;
+    text-align: right;
+    line-height: 1.35;
   }
 
   .payment-method-card {

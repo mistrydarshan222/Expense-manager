@@ -1,6 +1,16 @@
 import { prisma } from "../../config/db";
 import { CreateExpenseInput, UpdateExpenseInput } from "./expenses.validation";
 
+function parseExpenseDate(value: string) {
+  const [year, month, day] = value.split("-").map((part) => Number(part));
+
+  if (!year || !month || !day) {
+    throw new Error("Expense date is invalid");
+  }
+
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+}
+
 export async function listExpenses(userId: string) {
   return prisma.expense.findMany({
     where: { userId },
@@ -19,7 +29,7 @@ export async function createExpense(userId: string, input: CreateExpenseInput) {
       userId,
       title: input.title,
       categoryId: input.categoryId,
-      expenseDate: new Date(input.expenseDate),
+      expenseDate: parseExpenseDate(input.expenseDate),
       finalAmount: input.finalAmount,
       total: input.finalAmount,
       currency: input.currency,
@@ -47,7 +57,7 @@ export async function updateExpense(userId: string, expenseId: string, input: Up
     data: {
       title: input.title,
       categoryId: input.categoryId,
-      expenseDate: input.expenseDate ? new Date(input.expenseDate) : undefined,
+      expenseDate: input.expenseDate ? parseExpenseDate(input.expenseDate) : undefined,
       finalAmount: input.finalAmount,
       total: input.finalAmount,
       currency: input.currency,
