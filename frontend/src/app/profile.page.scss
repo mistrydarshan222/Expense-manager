@@ -210,6 +210,11 @@
     font-size: 0.95rem;
   }
 
+  .mobile-profile-row-danger span,
+  .mobile-profile-row-danger strong {
+    color: #d64545;
+  }
+
   .profile-form,
   .payment-method-form,
   .payment-method-list {
@@ -237,6 +242,10 @@
     font-size: 0.96rem;
     line-height: 1.55;
     color: var(--text-secondary);
+  }
+
+  .profile-hero-copy .profile-copy {
+    display: none;
   }
 
   .profile-hero-pills {

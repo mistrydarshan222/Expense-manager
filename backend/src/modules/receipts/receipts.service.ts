@@ -2,7 +2,6 @@ import { promises as fs } from "fs";
 import path from "path";
 import sharp from "sharp";
 import Tesseract from "tesseract.js";
-
 import { env } from "../../config/env";
 import { prisma } from "../../config/db";
 import { CreateExpenseFromReceiptInput, EnqueueReceiptInput } from "./receipts.validation";
