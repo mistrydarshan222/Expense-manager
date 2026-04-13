@@ -22,7 +22,7 @@
 .desktop-transactions-card,
 .desktop-categories-card,
 .desktop-trend-card {
-  padding: 20px;
+  padding: 24px;
   border: 1px solid var(--border-strong);
   border-radius: 20px;
   background: #ffffff;
@@ -51,7 +51,7 @@
 .desktop-stat-card strong {
   display: block;
   margin-top: 10px;
-  font-size: 1.65rem;
+  font-size: 1.85rem;
   color: var(--text-primary);
 }
 
@@ -74,7 +74,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .desktop-card-head strong,
@@ -102,16 +102,16 @@
 }
 
 .desktop-overview-donut {
-  width: 220px;
-  height: 220px;
+  width: 236px;
+  height: 236px;
   display: grid;
   place-items: center;
   border-radius: 999px;
 }
 
 .desktop-overview-center {
-  width: 140px;
-  height: 140px;
+  width: 148px;
+  height: 148px;
   display: grid;
   place-items: center;
   text-align: center;
@@ -122,7 +122,7 @@
 }
 
 .desktop-overview-center strong {
-  font-size: 1.8rem;
+  font-size: 1.95rem;
 }
 
 .desktop-overview-legend,
