@@ -222,7 +222,8 @@
 
   .mobile-profile-logout-wrap {
     display: block;
-    margin: 0 12px;
+    width: calc(100% - 24px);
+    margin: 8px auto calc(88px + env(safe-area-inset-bottom, 0px));
   }
 
   .mobile-profile-logout-button {
@@ -323,7 +324,9 @@
   }
 
   .payment-method-list {
-    margin-top: 14px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
   }
 
   .profile-summary-card {
@@ -374,6 +377,10 @@
     border-radius: 18px;
   }
 
+  .payment-method-swipe-row + .payment-method-swipe-row {
+    margin-top: 10px;
+  }
+
   .payment-method-delete-slot {
     position: absolute;
     inset: 0;
@@ -396,7 +403,7 @@
     border: 1px solid var(--border-soft);
     border-radius: 18px;
     background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
-    box-shadow: 0 10px 22px rgba(31, 41, 55, 0.05);
+    box-shadow: none;
     grid-template-columns: 1fr;
     justify-items: stretch;
     gap: 14px;

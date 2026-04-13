@@ -27,10 +27,6 @@
         <strong>{{ store.paymentMethods().length }}</strong>
       </button>
     </article>
-
-    <div class="mobile-profile-logout-wrap">
-      <button type="button" class="mobile-profile-logout-button" (click)="store.logout()">Logout</button>
-    </div>
   </section>
 
   <section class="panel profile-panel">
@@ -116,38 +112,42 @@
           <button type="button" class="ghost-button" (click)="cancelEditPaymentMethod()">Cancel</button>
         }
       </form>
-    </div>
 
-    <div class="payment-method-list">
-      @for (method of store.paymentMethods(); track method.id) {
-        <div class="payment-method-swipe-row">
-          <div class="payment-method-delete-slot">
-            <strong>Delete</strong>
-          </div>
-          <article
-            class="payment-method-card"
-            [style.transform]="'translateX(' + currentPaymentMethodSwipeOffset(method.id) + 'px)'"
-            (touchstart)="beginPaymentMethodSwipe($event, method.id)"
-            (touchmove)="updatePaymentMethodSwipe($event)"
-            (touchend)="endPaymentMethodSwipe(method)"
-            (touchcancel)="endPaymentMethodSwipe(method)"
-            (click)="startEditPaymentMethod(method)">
-            <div class="payment-method-card-main">
-              <div class="payment-method-icon">{{ paymentMethodIcon(method.name) }}</div>
-              <div class="payment-method-copy">
-                <strong>{{ method.name }}</strong>
-                <div class="payment-method-meta-row">
-                  <span class="payment-method-kind">{{ paymentMethodKind(method.name) }}</span>
-                  @if (method.lastFour) {
-                    <span class="payment-method-last-four">Ending With {{ method.lastFour }}</span>
-                  }
+      <div class="payment-method-list">
+        @for (method of store.paymentMethods(); track method.id) {
+          <div class="payment-method-swipe-row">
+            <div class="payment-method-delete-slot">
+              <strong>Delete</strong>
+            </div>
+            <article
+              class="payment-method-card"
+              [style.transform]="'translateX(' + currentPaymentMethodSwipeOffset(method.id) + 'px)'"
+              (touchstart)="beginPaymentMethodSwipe($event, method.id)"
+              (touchmove)="updatePaymentMethodSwipe($event)"
+              (touchend)="endPaymentMethodSwipe(method)"
+              (touchcancel)="endPaymentMethodSwipe(method)"
+              (click)="startEditPaymentMethod(method)">
+              <div class="payment-method-card-main">
+                <div class="payment-method-icon">{{ paymentMethodIcon(method.name) }}</div>
+                <div class="payment-method-copy">
+                  <strong>{{ method.name }}</strong>
+                  <div class="payment-method-meta-row">
+                    <span class="payment-method-kind">{{ paymentMethodKind(method.name) }}</span>
+                    @if (method.lastFour) {
+                      <span class="payment-method-last-four">Ending With {{ method.lastFour }}</span>
+                    }
+                  </div>
                 </div>
               </div>
-            </div>
-            <button type="button" class="danger-button payment-method-desktop-delete" (click)="deletePaymentMethod(method.id); $event.stopPropagation()">Delete</button>
-          </article>
-        </div>
-      }
+              <button type="button" class="danger-button payment-method-desktop-delete" (click)="deletePaymentMethod(method.id); $event.stopPropagation()">Delete</button>
+            </article>
+          </div>
+        }
+      </div>
     </div>
   </section>
+
+  <div class="mobile-profile-logout-wrap">
+    <button type="button" class="mobile-profile-logout-button" (click)="store.logout()">Logout</button>
+  </div>
 }
