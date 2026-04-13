@@ -107,6 +107,11 @@
   display: none;
 }
 
+.mobile-profile-logout-wrap,
+.mobile-profile-logout-button {
+  display: none;
+}
+
 @media (max-width: 1100px) {
   .profile-summary-strip {
     grid-template-columns: 1fr;
@@ -120,18 +125,18 @@
 @media (max-width: 640px) {
   .mobile-profile-view {
     display: grid;
-    gap: 16px;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 12px;
   }
 
   .profile-panel {
     width: calc(100% - 24px);
     margin: 0 auto 16px;
-    padding: 20px 16px;
-    border: 1px solid var(--border-soft);
-    border-radius: 22px;
-    background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
-    box-shadow: 0 12px 30px rgba(31, 41, 55, 0.06);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .mobile-profile-hero-card,
@@ -215,6 +220,25 @@
     color: #d64545;
   }
 
+  .mobile-profile-logout-wrap {
+    display: block;
+    margin: 0 12px;
+  }
+
+  .mobile-profile-logout-button {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 18px;
+    border: 1px solid rgba(214, 69, 69, 0.16);
+    border-radius: 18px;
+    background: #fdecec;
+    color: #d64545;
+    font-weight: 700;
+    box-shadow: none;
+  }
+
   .profile-form,
   .payment-method-form,
   .payment-method-list {
@@ -222,11 +246,11 @@
   }
 
   .profile-hero {
-    gap: 14px;
+    gap: 0;
   }
 
   .profile-hero-copy {
-    padding: 2px 2px 0;
+    display: none;
   }
 
   .profile-hero-copy h2,
@@ -248,11 +272,6 @@
     display: none;
   }
 
-  .profile-hero-pills {
-    gap: 8px;
-    justify-content: center;
-  }
-
   .panel-tip {
     min-height: 36px;
     padding: 0 14px;
@@ -263,12 +282,20 @@
 
   .profile-form-shell,
   .payment-method-form-shell {
-    margin-top: 16px;
+    margin-top: 0;
     padding: 18px 16px;
     border-radius: 20px;
     border: 1px solid var(--border-soft);
     background: #ffffff;
     box-shadow: 0 8px 22px rgba(31, 41, 55, 0.05);
+  }
+
+  .mobile-form-title {
+    margin: 0 0 16px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
   }
 
   .profile-form-shell label,
@@ -287,15 +314,16 @@
     margin-top: 6px;
   }
 
-  .profile-hero-pills {
-    margin-top: 14px;
+  .profile-summary-strip {
+    display: none;
   }
 
-  .profile-summary-strip {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    margin-top: 2px;
-    padding: 4px 0 0;
+  .payment-methods-head {
+    display: none;
+  }
+
+  .payment-method-list {
+    margin-top: 14px;
   }
 
   .profile-summary-card {

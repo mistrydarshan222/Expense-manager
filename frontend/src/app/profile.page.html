@@ -28,25 +28,9 @@
       </button>
     </article>
 
-    <article class="mobile-profile-settings-card">
-      <h3>Security</h3>
-      <button type="button" class="mobile-profile-row">
-        <span>Change Password</span>
-        <strong>›</strong>
-      </button>
-      <button type="button" class="mobile-profile-row">
-        <span>Two-Factor Authentication</span>
-        <strong>On</strong>
-      </button>
-      <button type="button" class="mobile-profile-row">
-        <span>Other</span>
-        <strong>›</strong>
-      </button>
-      <button type="button" class="mobile-profile-row mobile-profile-row-danger" (click)="store.logout()">
-        <span>Logout</span>
-        <strong>›</strong>
-      </button>
-    </article>
+    <div class="mobile-profile-logout-wrap">
+      <button type="button" class="mobile-profile-logout-button" (click)="store.logout()">Logout</button>
+    </div>
   </section>
 
   <section class="panel profile-panel">
@@ -73,6 +57,7 @@
     </div>
 
     <div class="profile-form-shell">
+      <h3 class="mobile-form-title">Edit Profile</h3>
       <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="profile-form">
         <label>
           <span>Name</span>
@@ -116,6 +101,7 @@
     </div>
 
     <div class="payment-method-form-shell">
+      <h3 class="mobile-form-title">Edit Payment Method</h3>
       <form [formGroup]="paymentMethodForm" (ngSubmit)="addPaymentMethod()" class="payment-method-form">
         <label>
           <span>Payment method name</span>
