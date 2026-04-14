@@ -12,7 +12,7 @@ for (const envVar of requiredEnvVars) {
 
 export const env = {
   port: Number(process.env.PORT ?? 5000),
-  databaseUrl: process.env.DATABASE_URL ?? "postgresql://postgres:root@localhost:5432/expense_management",
+  databaseUrl: process.env.DATABASE_URL ?? "",
   jwtSecret: process.env.JWT_SECRET ?? "change-me",
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? "264247484027-7mog89oe5r9ttdcnej8ivf4p5r8uvvul.apps.googleusercontent.com",
   openAiApiKey: process.env.OPENAI_API_KEY ?? "sk-xXKgQB8ktJDh16euGN4oSexUYI8iSF8Wv9oQVOWSYTNfH",

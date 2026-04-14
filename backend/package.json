@@ -11,6 +11,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "seed": "ts-node prisma/seed.ts",
+    "db:test": "ts-node prisma/test-psql.ts",
     "currency:inr-to-usd": "ts-node prisma/update-inr-to-usd.ts",
     "test": "echo \"Add tests here\""
   },
