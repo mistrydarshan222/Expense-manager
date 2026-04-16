@@ -649,7 +649,7 @@ export class AppStore {
 
     this.receiptPollTimer = window.setTimeout(() => {
       this.loadReceipt(receiptId);
-    }, 2500);
+    }, 800);
   }
 
   private stopReceiptPolling() {

@@ -48,7 +48,8 @@ type AiReceiptReadResult =
   | { parsed: null; error: string };
 
 const receiptQueue: string[] = [];
-let isQueueProcessing = false;
+let activeProcessingCount = 0;
+const MAX_CONCURRENT_RECEIPTS = 3;
 const MAX_STORED_AMOUNT = 99_999_999.99;
 const AI_SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]);
 let aiReceiptScannerPromise: Promise<AiReceiptScanner | null> | null = null;
@@ -79,7 +80,7 @@ async function getAiReceiptScanner() {
           model: env.receiptAiModel,
           temperature: 0,
           strictValidation: false,
-          timeoutMs: 45_000,
+          timeoutMs: 30_000,
         }) as AiReceiptScanner;
       })
       .catch((error) => {
@@ -798,23 +799,22 @@ async function processQueuedReceipt(receiptId: string) {
 }
 
 async function processQueue() {
-  if (isQueueProcessing) {
-    return;
-  }
-
-  isQueueProcessing = true;
-
-  try {
-    while (receiptQueue.length > 0) {
-      const receiptId = receiptQueue.shift();
-      if (!receiptId) {
-        continue;
-      }
-
-      await processQueuedReceipt(receiptId);
+  while (receiptQueue.length > 0 && activeProcessingCount < MAX_CONCURRENT_RECEIPTS) {
+    const receiptId = receiptQueue.shift();
+    if (!receiptId) {
+      continue;
     }
-  } finally {
-    isQueueProcessing = false;
+
+    activeProcessingCount++;
+    // Process in the background without awaiting
+    processQueuedReceipt(receiptId)
+      .finally(() => {
+        activeProcessingCount--;
+        // Continue processing if there are more items
+        if (receiptQueue.length > 0) {
+          void processQueue();
+        }
+      });
   }
 }
 
