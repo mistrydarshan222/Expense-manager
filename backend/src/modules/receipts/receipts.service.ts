@@ -1,7 +1,5 @@
 import { promises as fs } from "fs";
 import path from "path";
-import sharp from "sharp";
-import Tesseract from "tesseract.js";
 import { env } from "../../config/env";
 import { prisma } from "../../config/db";
 import { CreateExpenseFromReceiptInput, EnqueueReceiptInput } from "./receipts.validation";
@@ -22,12 +20,6 @@ type ParsedReceipt = {
 type OcrReadResult = {
   fullText: string;
   headerText: string;
-};
-
-type OcrCandidate = {
-  fullText: string;
-  headerText: string;
-  score: number;
 };
 
 type ParsedReceiptWithRawText = ParsedReceipt & {
@@ -51,11 +43,16 @@ type AiReceiptScanner = {
   scan(filePath: string, options: { userPrompt: string }): Promise<{ data: ReceiptData }>;
 };
 
+type AiReceiptReadResult =
+  | { parsed: ParsedReceiptWithRawText; error: null }
+  | { parsed: null; error: string };
+
 const receiptQueue: string[] = [];
 let isQueueProcessing = false;
 const MAX_STORED_AMOUNT = 99_999_999.99;
 const AI_SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]);
 let aiReceiptScannerPromise: Promise<AiReceiptScanner | null> | null = null;
+let aiReceiptScannerInitError: string | null = null;
 
 async function getAiReceiptScanner() {
   if (!env.openAiApiKey) {
@@ -64,20 +61,31 @@ async function getAiReceiptScanner() {
 
   if (!aiReceiptScannerPromise) {
     aiReceiptScannerPromise = import("receipt-ai-scanner")
-      .then(({ ReceiptScanner, createOpenAIProvider }) => {
+      .then(({ ReceiptScanner, createOpenAICompatibleProvider, createOpenAIProvider }) => {
+        const provider = env.receiptAiBaseUrl
+          ? createOpenAICompatibleProvider({
+              baseURL: env.receiptAiBaseUrl,
+              apiKey: env.openAiApiKey,
+              defaultModel: env.receiptAiModel,
+              name: "receipt-ai",
+            })
+          : createOpenAIProvider({
+              apiKey: env.openAiApiKey,
+              defaultModel: env.receiptAiModel,
+            });
+
         return new ReceiptScanner({
-          provider: createOpenAIProvider({
-            apiKey: env.openAiApiKey,
-            defaultModel: env.receiptAiModel,
-            baseURL: env.receiptAiBaseUrl,
-          }),
+          provider,
           model: env.receiptAiModel,
           temperature: 0,
           strictValidation: false,
           timeoutMs: 45_000,
         }) as AiReceiptScanner;
       })
-      .catch(() => null);
+      .catch((error) => {
+        aiReceiptScannerInitError = error instanceof Error ? error.message : "Unknown receipt AI initialization error.";
+        return null;
+      });
   }
 
   return aiReceiptScannerPromise;
@@ -609,16 +617,24 @@ function parseAiReceiptResult(data: ReceiptData): ParsedReceiptWithRawText {
   };
 }
 
-async function readReceiptWithAi(filePath: string, mimeType: string) {
+async function readReceiptWithAi(filePath: string, mimeType: string): Promise<AiReceiptReadResult> {
   if (!AI_SUPPORTED_MIME_TYPES.has(mimeType)) {
-    return null;
+    return {
+      parsed: null,
+      error: `Unsupported receipt file type: ${mimeType}. Supported types are PNG, JPEG, WEBP, and GIF.`,
+    };
   }
 
   try {
     const aiReceiptScanner = await getAiReceiptScanner();
 
     if (!aiReceiptScanner) {
-      return null;
+      return {
+        parsed: null,
+        error:
+          aiReceiptScannerInitError ??
+          "Receipt AI scanner is not configured. Add a valid OPENAI_API_KEY to enable image receipt extraction.",
+      };
     }
 
     const result = await aiReceiptScanner.scan(filePath, {
@@ -626,102 +642,27 @@ async function readReceiptWithAi(filePath: string, mimeType: string) {
         "This receipt is for personal expense tracking. Prioritize the merchant name, subtotal, taxes, total, date, currency, and any card last four digits.",
     });
 
-    return parseAiReceiptResult(result.data);
-  } catch {
-    return null;
+    return {
+      parsed: parseAiReceiptResult(result.data),
+      error: null,
+    };
+  } catch (error) {
+    return {
+      parsed: null,
+      error: error instanceof Error ? error.message : "Receipt AI scanner failed to extract receipt data.",
+    };
   }
 }
 
 async function readUploadedReceiptText(filePath: string, mimeType: string, originalFileName: string): Promise<OcrReadResult> {
   const extension = path.extname(originalFileName).toLowerCase();
   const textLikeMimeTypes = new Set(["text/plain", "text/csv", "application/json"]);
-  const imageLikeMimeTypes = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/bmp"]);
-  const pdfLikeMimeTypes = new Set(["application/pdf"]);
 
   if (textLikeMimeTypes.has(mimeType) || [".txt", ".csv", ".json", ".log"].includes(extension)) {
     const text = await fs.readFile(filePath, "utf8");
     return {
       fullText: text,
       headerText: text,
-    };
-  }
-
-  if (
-    imageLikeMimeTypes.has(mimeType) ||
-    pdfLikeMimeTypes.has(mimeType) ||
-    [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".pdf"].includes(extension)
-  ) {
-    const candidates: OcrCandidate[] = [];
-    const generatedPaths: string[] = [];
-
-    try {
-      const isPdf = pdfLikeMimeTypes.has(mimeType) || extension === ".pdf";
-      const createBaseImage = () => (isPdf ? sharp(filePath, { density: 300, page: 0 }) : sharp(filePath));
-      const baseImage = createBaseImage();
-      const metadata = await baseImage.metadata();
-
-      const rotations = [0, 90, 270, 180];
-
-      for (const rotation of rotations) {
-        const processedFullPath = `${filePath}.ocr-${rotation}.png`;
-        generatedPaths.push(processedFullPath);
-
-        await createBaseImage()
-          .rotate(rotation)
-          .grayscale()
-          .normalize()
-          .withMetadata({ density: 300 })
-          .png()
-          .toFile(processedFullPath);
-
-        const fullResult = await Tesseract.recognize(processedFullPath, "eng");
-        const fullText = fullResult.data.text ?? "";
-
-        let headerText = "";
-
-        const rotatedMetadata = await sharp(processedFullPath).metadata();
-        if (rotatedMetadata.width && rotatedMetadata.height) {
-          const headerHeight = Math.max(Math.floor(rotatedMetadata.height * 0.32), 200);
-          const headerPath = `${filePath}.header-${rotation}.png`;
-          generatedPaths.push(headerPath);
-
-          await sharp(processedFullPath)
-            .extract({
-              left: 0,
-              top: 0,
-              width: rotatedMetadata.width,
-              height: Math.min(headerHeight, rotatedMetadata.height),
-            })
-            .png()
-            .toFile(headerPath);
-
-          const headerResult = await Tesseract.recognize(headerPath, "eng");
-          headerText = headerResult.data.text ?? "";
-        }
-
-        const parsed = parseReceiptText(fullText, headerText);
-        candidates.push({
-          fullText,
-          headerText,
-          score: scoreParsedReceipt(parsed),
-        });
-      }
-    } catch {
-      return {
-        fullText: "",
-        headerText: "",
-      };
-    } finally {
-      for (const tempPath of generatedPaths) {
-        await fs.unlink(tempPath).catch(() => undefined);
-      }
-    }
-
-    const bestCandidate = candidates.sort((left, right) => right.score - left.score)[0];
-
-    return {
-      fullText: bestCandidate?.fullText ?? "",
-      headerText: bestCandidate?.headerText ?? "",
     };
   }
 
@@ -797,14 +738,18 @@ async function processQueuedReceipt(receiptId: string) {
       : receipt.filePath !== "inline"
         ? await readUploadedReceiptText(receipt.filePath, receipt.mimeType, receipt.originalFileName)
         : { fullText: "", headerText: "" };
-    const aiParsed = receipt.filePath !== "inline"
+    const aiResult = receipt.filePath !== "inline"
       ? await readReceiptWithAi(receipt.filePath, receipt.mimeType)
-      : null;
+      : { parsed: null, error: null as string | null };
+    const aiParsed = aiResult.parsed;
     const parsed = aiParsed ?? parseReceiptText(extractedResult.fullText, extractedResult.headerText);
     const resolvedRawText = aiParsed?.rawText ?? extractedResult.fullText;
 
     if (!resolvedRawText.trim() && parsed.finalAmount === null) {
-      throw new Error("Could not read any text from this receipt.");
+      throw new Error(
+        aiResult.error ??
+          "Could not extract receipt data. Upload a supported image receipt or paste the receipt text manually.",
+      );
     }
 
     if (parsed.finalAmount === null) {
