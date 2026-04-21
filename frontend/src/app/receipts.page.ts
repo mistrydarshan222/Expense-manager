@@ -17,6 +17,7 @@ export class ReceiptsPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   protected readonly selectedReceiptFile = signal<File | null>(null);
+  protected readonly processingNow = signal(Date.now());
   protected readonly pendingReceiptContext = signal<{
     title: string;
     categoryId: string;
@@ -56,6 +57,9 @@ export class ReceiptsPageComponent {
 
   constructor() {
     this.store.loadReceiptsPageData();
+    window.setInterval(() => {
+      this.processingNow.set(Date.now());
+    }, 1000);
 
     effect(() => {
       const categories = this.store.categories();
@@ -217,6 +221,33 @@ export class ReceiptsPageComponent {
   protected processingPreviewNote() {
     const pending = this.pendingReceiptContext();
     return pending?.notes || 'We will keep your selected details ready while extraction finishes.';
+  }
+
+  protected processingElapsedLabel(receipt: Receipt) {
+    this.processingNow();
+
+    const startedAt = new Date(receipt.createdAt).getTime();
+    if (!Number.isFinite(startedAt)) {
+      return 'Calculating...';
+    }
+
+    const elapsedMs = Math.max(0, Date.now() - startedAt);
+    const totalSeconds = Math.floor(elapsedMs / 1000);
+
+    if (totalSeconds < 60) {
+      return `${totalSeconds}s`;
+    }
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    if (minutes < 60) {
+      return `${minutes}m ${seconds}s`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
   }
 
   protected receiptDisplayName(receipt: Receipt) {

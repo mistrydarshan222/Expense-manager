@@ -92,6 +92,14 @@
               <span>Status</span>
               <strong>{{ receipt.status === 'queued' ? 'Queued' : 'Processing' }}</strong>
             </div>
+            <div class="mobile-receipt-result-card mobile-receipt-result-card-loading">
+              <span>Elapsed time</span>
+              <strong>{{ processingElapsedLabel(receipt) }}</strong>
+            </div>
+            <div class="mobile-receipt-result-card mobile-receipt-result-card-loading">
+              <span>Refresh</span>
+              <strong>Auto</strong>
+            </div>
           </div>
 
           <div class="mobile-receipt-preview-grid">
@@ -351,12 +359,12 @@
               <strong>{{ receipt.status === 'queued' ? 'Queued' : 'Processing' }}</strong>
             </div>
             <div class="receipt-result-card receipt-result-card-loading">
-              <span>Confidence</span>
-              <strong>Pending</strong>
+              <span>Elapsed time</span>
+              <strong>{{ processingElapsedLabel(receipt) }}</strong>
             </div>
             <div class="receipt-result-card receipt-result-card-loading">
-              <span>Refresh</span>
-              <strong>Auto</strong>
+              <span>Confidence</span>
+              <strong>Pending</strong>
             </div>
           </div>
 
