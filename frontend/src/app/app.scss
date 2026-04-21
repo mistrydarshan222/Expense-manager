@@ -1771,7 +1771,9 @@ button:hover {
     gap: 6px;
     padding: 8px 16px 6px;
     margin-bottom: 8px;
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 36;
     overflow: hidden;
     border-inline: 0;
     border-top: 0;
@@ -1965,7 +1967,8 @@ button:hover {
   }
 
   .panel {
-    padding: 18px;
+    padding: 20px;
+    border-radius: 22px;
   }
 
   .topbar:not(.topbar-logged-out) .topbar-menu-shell {
@@ -2161,12 +2164,20 @@ button:hover {
     padding-bottom: 6px;
   }
 
+  .topbar + .dashboard-shell,
+  .topbar + .expenses-page-shell,
+  .topbar + .profile-panel,
+  .topbar + .receipt-panel,
+  .topbar + .receipt-review-grid {
+    scroll-margin-top: 88px;
+  }
+
   h2 {
     font-size: 1.95rem;
   }
 
   .dashboard-shell {
-    gap: 18px;
+    gap: 20px;
   }
 
   .dashboard-top-grid {
@@ -2175,7 +2186,7 @@ button:hover {
 
   .expenses-page-shell,
   .receipt-review-grid {
-    gap: 16px;
+    gap: 18px;
   }
 
   .overview-panel {
@@ -2207,6 +2218,7 @@ button:hover {
     width: 100%;
     justify-content: center;
     text-align: center;
+    min-height: 44px;
   }
 
   .overview-stats {
@@ -2266,6 +2278,7 @@ button:hover {
     width: 100%;
     justify-content: center;
     text-align: center;
+    min-height: 48px;
     padding: 11px 10px;
   }
 
@@ -2312,8 +2325,8 @@ button:hover {
   }
 
   .expense-card {
-    padding: 18px;
-    gap: 14px;
+    padding: 20px;
+    gap: 16px;
   }
 
   .expense-title-row,
@@ -2416,5 +2429,57 @@ button:hover {
   .inline-form button,
   .payment-method-form button {
     width: 100%;
+    min-height: 50px;
+  }
+}
+
+@media (max-width: 420px) {
+  .shell {
+    padding: 16px 8px 92px;
+  }
+
+  .topbar-logged-out {
+    padding: 12px 10px;
+    margin-bottom: 12px;
+  }
+
+  .logged-out-actions-inline {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  h2,
+  .overview-panel h2,
+  .receipt-review-copy h2,
+  .expenses-hero-panel h2,
+  .profile-panel h2,
+  .receipt-panel h2 {
+    font-size: 1.5rem;
+    line-height: 1.12;
+  }
+
+  .dashboard-copy,
+  .profile-copy,
+  .help-note,
+  .empty-state,
+  .file-helper {
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .time-filter-row,
+  .expense-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-title,
+  .expense-note,
+  .expense-meta,
+  .summary-note {
+    overflow-wrap: anywhere;
   }
 }

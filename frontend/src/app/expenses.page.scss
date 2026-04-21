@@ -186,7 +186,7 @@
 
   .mobile-history-actions {
     display: grid;
-    gap: 10px;
+    gap: 12px;
     margin: 4px 10px 0;
   }
 
@@ -198,12 +198,14 @@
   .mobile-history-actions-copy strong {
     color: var(--text-primary);
     font-size: 0.98rem;
+    line-height: 1.25;
   }
 
   .mobile-history-actions-copy span {
     color: var(--text-secondary);
     font-size: 0.82rem;
     line-height: 1.45;
+    overflow-wrap: anywhere;
   }
 
   .mobile-history-download {
@@ -253,8 +255,8 @@
   }
 
   .mobile-history-filter-row select {
-    min-height: 42px;
-    padding: 10px 12px;
+    min-height: 48px;
+    padding: 12px 14px;
     border-radius: 14px;
     background: #ffffff;
   }
@@ -269,16 +271,17 @@
     margin: 2px 10px;
     overflow: hidden;
     border-radius: 18px;
+    background: #ffffff;
   }
 
   .mobile-history-delete-slot {
     position: absolute;
-    inset: 0;
+    inset: 2px;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     padding-right: 22px;
-    border-radius: 18px;
+    border-radius: 16px;
     background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
     color: #ffffff;
   }
@@ -290,14 +293,14 @@
 
   .mobile-history-item {
     margin: 0;
-    padding: 14px 16px;
+    padding: 16px;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 12px;
-    border: 1px solid var(--border-strong);
+    border: 1px solid rgba(25, 179, 148, 0.18);
     border-radius: 18px;
-    background: #ffffff;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%);
     box-shadow: 0 10px 22px rgba(31, 41, 55, 0.05);
     transition: transform 0.18s ease;
     touch-action: pan-y;
@@ -373,19 +376,23 @@
   .mobile-history-copy,
   .mobile-history-meta {
     display: grid;
-    gap: 3px;
+    gap: 4px;
+    min-width: 0;
   }
 
   .mobile-history-copy strong,
   .mobile-history-meta strong {
     font-size: 1rem;
     color: var(--text-primary);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
   }
 
   .mobile-history-copy span,
   .mobile-history-meta span {
     font-size: 0.8rem;
     color: var(--text-secondary);
+    overflow-wrap: anywhere;
   }
 
   .mobile-history-meta {
@@ -458,6 +465,7 @@
     text-align: center;
     min-width: 0;
     white-space: normal;
+    min-height: 50px;
   }
 
   .history-snapshot-card {
@@ -476,6 +484,26 @@
 }
 
 @media (max-width: 420px) {
+  .mobile-history-actions,
+  .mobile-history-swipe-row {
+    margin-inline: 0;
+  }
+
+  .mobile-history-filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-history-item {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .mobile-history-meta {
+    grid-column: 2 / 3;
+    justify-items: start;
+    text-align: left;
+  }
+
   .mobile-expense-modal-backdrop {
     padding: 16px 8px 100px;
   }

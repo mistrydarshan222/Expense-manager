@@ -726,7 +726,7 @@
   }
 
   .mobile-balance-card {
-    padding: 14px 18px;
+    padding: 16px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -777,7 +777,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
   }
 
   .mobile-dashboard-head p,
@@ -799,7 +799,7 @@
   .mobile-dashboard-chart {
     display: grid;
     place-items: center;
-    padding: 6px 0 10px;
+    padding: 4px 0 8px;
   }
 
   .mobile-dashboard-donut {
@@ -846,7 +846,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    margin-top: 18px;
+    margin-top: 14px;
   }
 
   .mobile-dashboard-actions .ghost-button {
@@ -874,8 +874,8 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 52px;
-    padding: 12px 10px;
+    min-height: 50px;
+    padding: 12px 12px;
     color: var(--text-primary);
     font-weight: 800;
     font-size: 0.98rem;
@@ -926,18 +926,22 @@
   .mobile-quick-meta {
     display: grid;
     gap: 4px;
+    min-width: 0;
   }
 
   .mobile-quick-copy strong,
   .mobile-quick-meta strong {
     color: var(--text-primary);
     font-size: 1rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
   }
 
   .mobile-quick-copy span,
   .mobile-quick-meta span {
     color: var(--text-secondary);
     font-size: 0.8rem;
+    overflow-wrap: anywhere;
   }
 
   .mobile-quick-meta {
@@ -963,6 +967,18 @@
       padding: 16px;
     }
 
+    .mobile-balance-card {
+      padding: 14px 16px;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .mobile-balance-trend {
+      width: 100%;
+      justify-items: start;
+      text-align: left;
+    }
+
     .mobile-dashboard-head {
       display: grid;
       grid-template-columns: 1fr;
@@ -976,6 +992,21 @@
 
     .mobile-dashboard-actions {
       grid-template-columns: 1fr;
+    }
+
+    .mobile-quick-item {
+      grid-template-columns: 1fr;
+      justify-items: start;
+      gap: 8px;
+    }
+
+    .mobile-quick-meta {
+      width: 100%;
+      justify-items: start;
+    }
+
+    .mobile-quick-track {
+      width: 100%;
     }
   }
 

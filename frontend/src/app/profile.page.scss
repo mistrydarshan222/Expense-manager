@@ -375,6 +375,7 @@
     display: block;
     overflow: hidden;
     border-radius: 18px;
+    background: #ffffff;
   }
 
   .payment-method-swipe-row + .payment-method-swipe-row {
@@ -383,12 +384,12 @@
 
   .payment-method-delete-slot {
     position: absolute;
-    inset: 0;
+    inset: 2px;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     padding-right: 22px;
-    border-radius: 18px;
+    border-radius: 16px;
     background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
     color: #ffffff;
   }
@@ -400,9 +401,9 @@
 
   .payment-method-card {
     padding: 16px;
-    border: 1px solid var(--border-soft);
+    border: 1px solid rgba(25, 179, 148, 0.18);
     border-radius: 18px;
-    background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
+    background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%);
     box-shadow: none;
     grid-template-columns: 1fr;
     justify-items: stretch;

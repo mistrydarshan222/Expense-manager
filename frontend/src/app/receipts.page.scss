@@ -19,9 +19,9 @@
   }
 
   .mobile-receipt-upload-card {
-    padding: 18px;
+    padding: 20px;
     display: grid;
-    gap: 16px;
+    gap: 18px;
     border: 1px solid var(--border-strong);
     border-radius: 20px;
     background: #ffffff;
@@ -30,9 +30,9 @@
 
   .mobile-receipt-review-card {
     margin-top: 14px;
-    padding: 18px;
+    padding: 20px;
     display: grid;
-    gap: 16px;
+    gap: 18px;
     border: 1px solid var(--border-strong);
     border-radius: 20px;
     background: #ffffff;
@@ -85,7 +85,7 @@
 
   .mobile-receipt-preview-item,
   .mobile-receipt-result-card {
-    padding: 14px;
+    padding: 16px;
     border: 1px solid var(--border-soft);
     border-radius: 16px;
     background: var(--surface-muted);
@@ -109,6 +109,7 @@
     color: var(--text-primary);
     font-size: 1rem;
     line-height: 1.3;
+    overflow-wrap: anywhere;
   }
 
   .receipt-category-display {
@@ -188,7 +189,7 @@
 
   .mobile-receipt-review-form {
     display: grid;
-    gap: 14px;
+    gap: 16px;
   }
 
   .mobile-receipt-review-actions {
@@ -240,6 +241,7 @@
     min-width: 0;
     white-space: normal;
     line-height: 1.3;
+    min-height: 50px;
   }
 
   .mobile-receipt-inline-fields {
@@ -249,13 +251,13 @@
   }
 
   .mobile-receipt-inline-fields label {
-    gap: 6px;
+    gap: 8px;
     min-width: 0;
   }
 
   .mobile-receipt-inline-fields select {
-    min-height: 42px;
-    padding: 10px 12px;
+    min-height: 48px;
+    padding: 12px 14px;
     border-radius: 14px;
     background: #ffffff;
     min-width: 0;
@@ -274,7 +276,7 @@
 
   .mobile-receipt-recent-item {
     width: 100%;
-    padding: 10px 12px;
+    padding: 12px 14px;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
@@ -307,6 +309,8 @@
   .mobile-receipt-recent-copy strong {
     font-size: 1rem;
     color: var(--text-primary);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
   }
 
   .mobile-receipt-recent-copy span {
@@ -349,6 +353,7 @@
     text-align: center;
     color: var(--text-secondary);
     font-size: 0.8rem;
+    line-height: 1.5;
   }
 
   .receipt-panel,
@@ -385,6 +390,16 @@
   .mobile-receipt-inline-fields select {
     min-height: 48px;
     font-size: 0.95rem;
+  }
+
+  .mobile-receipt-recent-item {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+  }
+
+  .mobile-receipt-check {
+    justify-self: end;
+    align-self: center;
   }
 }
 
