@@ -244,7 +244,7 @@
 
   .mobile-receipt-inline-fields {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 10px;
   }
 
@@ -289,8 +289,13 @@
   .mobile-receipt-thumb {
     width: 42px;
     height: 42px;
+    display: grid;
+    place-items: center;
     border-radius: 10px;
     background: linear-gradient(135deg, #f2efe9 0%, #fbfaf7 100%);
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1;
   }
 
   .mobile-receipt-recent-copy {

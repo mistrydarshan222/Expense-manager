@@ -51,7 +51,9 @@
 
         @for (receipt of recentReceipts(); track receipt.id) {
           <button type="button" class="mobile-receipt-recent-item" (click)="openReceipt(receipt)">
-            <div class="mobile-receipt-thumb"></div>
+            <div class="mobile-receipt-thumb" [ngClass]="categoryIconClass(categoryNameById(receipt.categoryId))">
+              {{ categoryIcon(categoryNameById(receipt.categoryId)) }}
+            </div>
             <div class="mobile-receipt-recent-copy">
               <strong>{{ receiptDisplayName(receipt) }}</strong>
               <span>{{ receipt.createdAt | date:'MMM d · h:mm a' }}</span>
