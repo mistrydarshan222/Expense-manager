@@ -338,6 +338,44 @@ export class ExpensesPageComponent {
     return '💳';
   }
 
+  protected expenseAvatarClass(expense: Expense) {
+    const category = (expense.category?.name || '').trim().toLowerCase();
+
+    if (category.includes('food') || category.includes('restaurant') || category.includes('grocery')) {
+      return 'mobile-history-avatar-food';
+    }
+
+    if (category.includes('bill') || category.includes('utility')) {
+      return 'mobile-history-avatar-bills';
+    }
+
+    if (category.includes('entertainment') || category.includes('movie') || category.includes('game')) {
+      return 'mobile-history-avatar-entertainment';
+    }
+
+    if (category.includes('health') || category.includes('medical') || category.includes('pharmacy')) {
+      return 'mobile-history-avatar-health';
+    }
+
+    if (category.includes('shopping') || category.includes('retail')) {
+      return 'mobile-history-avatar-shopping';
+    }
+
+    if (category.includes('travel') || category.includes('trip') || category.includes('transport')) {
+      return 'mobile-history-avatar-travel';
+    }
+
+    if (category.includes('education') || category.includes('school') || category.includes('book')) {
+      return 'mobile-history-avatar-education';
+    }
+
+    if (category.includes('salary') || category.includes('income')) {
+      return 'mobile-history-avatar-income';
+    }
+
+    return 'mobile-history-avatar-default';
+  }
+
   private labelForTimeRange(timeRange: TimeRange) {
     switch (timeRange) {
       case 'today':

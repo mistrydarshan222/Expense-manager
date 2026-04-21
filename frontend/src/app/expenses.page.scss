@@ -316,6 +316,60 @@
     box-shadow: inset 0 0 0 1px rgba(25, 179, 148, 0.08);
   }
 
+  .mobile-history-avatar-food {
+    background: #fff3e0;
+    color: #c96a00;
+    box-shadow: inset 0 0 0 1px rgba(201, 106, 0, 0.12);
+  }
+
+  .mobile-history-avatar-bills {
+    background: #eef2ff;
+    color: #4f46e5;
+    box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.12);
+  }
+
+  .mobile-history-avatar-entertainment {
+    background: #f3e8ff;
+    color: #9333ea;
+    box-shadow: inset 0 0 0 1px rgba(147, 51, 234, 0.12);
+  }
+
+  .mobile-history-avatar-health {
+    background: #fee2e2;
+    color: #dc2626;
+    box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.12);
+  }
+
+  .mobile-history-avatar-shopping {
+    background: #fce7f3;
+    color: #db2777;
+    box-shadow: inset 0 0 0 1px rgba(219, 39, 119, 0.12);
+  }
+
+  .mobile-history-avatar-travel {
+    background: #e0f2fe;
+    color: #0284c7;
+    box-shadow: inset 0 0 0 1px rgba(2, 132, 199, 0.12);
+  }
+
+  .mobile-history-avatar-education {
+    background: #ecfccb;
+    color: #4d7c0f;
+    box-shadow: inset 0 0 0 1px rgba(77, 124, 15, 0.12);
+  }
+
+  .mobile-history-avatar-income {
+    background: #dcfce7;
+    color: #15803d;
+    box-shadow: inset 0 0 0 1px rgba(21, 128, 61, 0.12);
+  }
+
+  .mobile-history-avatar-default {
+    background: #e8f7f3;
+    color: var(--accent-strong);
+    box-shadow: inset 0 0 0 1px rgba(25, 179, 148, 0.08);
+  }
+
   .mobile-history-copy,
   .mobile-history-meta {
     display: grid;

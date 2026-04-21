@@ -109,7 +109,10 @@
             </div>
             <div class="mobile-receipt-preview-item">
               <span>Category</span>
-              <strong>{{ processingPreviewCategory() }}</strong>
+              <strong class="receipt-category-display">
+                <span class="receipt-category-icon" [ngClass]="categoryIconClass(processingPreviewCategory())">{{ categoryIcon(processingPreviewCategory()) }}</span>
+                <span>{{ processingPreviewCategory() }}</span>
+              </strong>
             </div>
             <div class="mobile-receipt-preview-item">
               <span>Date</span>
@@ -142,7 +145,12 @@
             </div>
             <div class="mobile-receipt-preview-item">
               <span>Category</span>
-              <strong>{{ store.categories().find(category => category.id === reviewForm.getRawValue().categoryId)?.name || 'Not selected' }}</strong>
+              <strong class="receipt-category-display">
+                <span class="receipt-category-icon" [ngClass]="categoryIconClass(categoryNameById(reviewForm.getRawValue().categoryId))">
+                  {{ categoryIcon(categoryNameById(reviewForm.getRawValue().categoryId)) }}
+                </span>
+                <span>{{ categoryNameById(reviewForm.getRawValue().categoryId) }}</span>
+              </strong>
             </div>
             <div class="mobile-receipt-preview-item">
               <span>Date</span>

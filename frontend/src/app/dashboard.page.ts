@@ -403,6 +403,82 @@ export class DashboardPageComponent implements AfterViewInit {
     return Math.max(18, amount / 20);
   }
 
+  protected categoryIcon(categoryName: string | null | undefined) {
+    const category = (categoryName || '').trim().toLowerCase();
+
+    if (category.includes('food') || category.includes('restaurant') || category.includes('grocery')) {
+      return '🍽';
+    }
+
+    if (category.includes('bill') || category.includes('utility')) {
+      return '🧾';
+    }
+
+    if (category.includes('entertainment') || category.includes('movie') || category.includes('game')) {
+      return '🎬';
+    }
+
+    if (category.includes('health') || category.includes('medical') || category.includes('pharmacy')) {
+      return '💊';
+    }
+
+    if (category.includes('shopping') || category.includes('retail')) {
+      return '🛍';
+    }
+
+    if (category.includes('travel') || category.includes('trip') || category.includes('transport')) {
+      return '✈';
+    }
+
+    if (category.includes('education') || category.includes('school') || category.includes('book')) {
+      return '📚';
+    }
+
+    if (category.includes('salary') || category.includes('income')) {
+      return '💼';
+    }
+
+    return '💳';
+  }
+
+  protected categoryIconClass(categoryName: string | null | undefined) {
+    const category = (categoryName || '').trim().toLowerCase();
+
+    if (category.includes('food') || category.includes('restaurant') || category.includes('grocery')) {
+      return 'category-icon-food';
+    }
+
+    if (category.includes('bill') || category.includes('utility')) {
+      return 'category-icon-bills';
+    }
+
+    if (category.includes('entertainment') || category.includes('movie') || category.includes('game')) {
+      return 'category-icon-entertainment';
+    }
+
+    if (category.includes('health') || category.includes('medical') || category.includes('pharmacy')) {
+      return 'category-icon-health';
+    }
+
+    if (category.includes('shopping') || category.includes('retail')) {
+      return 'category-icon-shopping';
+    }
+
+    if (category.includes('travel') || category.includes('trip') || category.includes('transport')) {
+      return 'category-icon-travel';
+    }
+
+    if (category.includes('education') || category.includes('school') || category.includes('book')) {
+      return 'category-icon-education';
+    }
+
+    if (category.includes('salary') || category.includes('income')) {
+      return 'category-icon-income';
+    }
+
+    return 'category-icon-default';
+  }
+
   private initializeGoogleButton() {
     if (!this.isGoogleAuthEnabled || this.googleButtonsRendered) {
       return;

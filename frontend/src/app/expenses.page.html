@@ -106,7 +106,7 @@
               (touchmove)="updateMobileSwipe($event)"
               (touchend)="endMobileSwipe(expense)"
               (touchcancel)="endMobileSwipe(expense)">
-              <div class="mobile-history-avatar">{{ expenseAvatar(expense) }}</div>
+              <div class="mobile-history-avatar" [ngClass]="expenseAvatarClass(expense)">{{ expenseAvatar(expense) }}</div>
               <div class="mobile-history-copy">
                 <strong>{{ expense.title }}</strong>
                 <span>{{ expense.category?.name || 'Uncategorized' }}</span>

@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,7 +8,7 @@ import { AppStore } from './app.store';
 
 @Component({
   selector: 'app-receipts-page',
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, NgClass],
   templateUrl: './receipts.page.html',
   styleUrl: './receipts.page.scss'
 })
@@ -202,6 +202,90 @@ export class ReceiptsPageComponent {
     const categoryId = pending?.categoryId || this.reviewForm.getRawValue().categoryId;
 
     return this.store.categories().find((category) => category.id === categoryId)?.name ?? 'Selected category';
+  }
+
+  protected categoryNameById(categoryId: string | null | undefined) {
+    if (!categoryId) {
+      return 'Not selected';
+    }
+
+    return this.store.categories().find((category) => category.id === categoryId)?.name ?? 'Not selected';
+  }
+
+  protected categoryIcon(categoryName: string | null | undefined) {
+    const category = (categoryName || '').trim().toLowerCase();
+
+    if (category.includes('food') || category.includes('restaurant') || category.includes('grocery')) {
+      return '🍽';
+    }
+
+    if (category.includes('bill') || category.includes('utility')) {
+      return '🧾';
+    }
+
+    if (category.includes('entertainment') || category.includes('movie') || category.includes('game')) {
+      return '🎬';
+    }
+
+    if (category.includes('health') || category.includes('medical') || category.includes('pharmacy')) {
+      return '💊';
+    }
+
+    if (category.includes('shopping') || category.includes('retail')) {
+      return '🛍';
+    }
+
+    if (category.includes('travel') || category.includes('trip') || category.includes('transport')) {
+      return '✈';
+    }
+
+    if (category.includes('education') || category.includes('school') || category.includes('book')) {
+      return '📚';
+    }
+
+    if (category.includes('salary') || category.includes('income')) {
+      return '💼';
+    }
+
+    return '💳';
+  }
+
+  protected categoryIconClass(categoryName: string | null | undefined) {
+    const category = (categoryName || '').trim().toLowerCase();
+
+    if (category.includes('food') || category.includes('restaurant') || category.includes('grocery')) {
+      return 'receipt-category-icon-food';
+    }
+
+    if (category.includes('bill') || category.includes('utility')) {
+      return 'receipt-category-icon-bills';
+    }
+
+    if (category.includes('entertainment') || category.includes('movie') || category.includes('game')) {
+      return 'receipt-category-icon-entertainment';
+    }
+
+    if (category.includes('health') || category.includes('medical') || category.includes('pharmacy')) {
+      return 'receipt-category-icon-health';
+    }
+
+    if (category.includes('shopping') || category.includes('retail')) {
+      return 'receipt-category-icon-shopping';
+    }
+
+    if (category.includes('travel') || category.includes('trip') || category.includes('transport')) {
+      return 'receipt-category-icon-travel';
+    }
+
+    if (category.includes('education') || category.includes('school') || category.includes('book')) {
+      return 'receipt-category-icon-education';
+    }
+
+    if (category.includes('salary') || category.includes('income')) {
+      return 'receipt-category-icon-income';
+    }
+
+    return 'receipt-category-icon-default';
   }
 
   protected processingPreviewDate() {

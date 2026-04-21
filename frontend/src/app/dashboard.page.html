@@ -168,7 +168,7 @@
             <div class="desktop-overview-legend">
               @for (item of mobileCategoryBreakdown(); track item.name) {
                 <div class="desktop-legend-row">
-                  <span class="desktop-legend-dot" [style.background]="item.color"></span>
+                  <span class="category-icon-badge" [ngClass]="categoryIconClass(item.name)">{{ categoryIcon(item.name) }}</span>
                   <span>{{ item.name }}</span>
                   <strong>{{ store.formatCurrency(item.amount, store.preferredCurrency()) }}</strong>
                 </div>
@@ -187,7 +187,12 @@
               <div class="desktop-transaction-row">
                 <div>
                   <strong>{{ expense.title }}</strong>
-                  <span>{{ expense.category?.name || 'Uncategorized' }}</span>
+                  <span class="category-inline-copy">
+                    <span class="category-icon-badge category-icon-badge-small" [ngClass]="categoryIconClass(expense.category?.name || 'Uncategorized')">
+                      {{ categoryIcon(expense.category?.name || 'Uncategorized') }}
+                    </span>
+                    <span>{{ expense.category?.name || 'Uncategorized' }}</span>
+                  </span>
                 </div>
                 <div>
                   <strong>{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
@@ -208,7 +213,8 @@
           <div class="desktop-category-list">
             @for (item of mobileCategoryBreakdown(); track item.name) {
               <div class="desktop-category-row">
-                <div>
+                <div class="category-inline-copy">
+                  <span class="category-icon-badge" [ngClass]="categoryIconClass(item.name)">{{ categoryIcon(item.name) }}</span>
                   <strong>{{ item.name }}</strong>
                 </div>
                 <div class="desktop-category-progress">
@@ -286,7 +292,10 @@
           @for (item of mobileCategoryBreakdown(); track item.name) {
             <div class="mobile-quick-item">
               <div class="mobile-quick-copy">
-                <strong>{{ item.name }}</strong>
+                <span class="category-inline-copy">
+                  <span class="category-icon-badge category-icon-badge-small" [ngClass]="categoryIconClass(item.name)">{{ categoryIcon(item.name) }}</span>
+                  <strong>{{ item.name }}</strong>
+                </span>
                 <span>{{ item.expenseDate | date:'MMM d' }}</span>
               </div>
               <div class="mobile-quick-meta">
