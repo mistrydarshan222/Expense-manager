@@ -76,7 +76,8 @@
   }
 
   .mobile-receipt-preview-grid,
-  .mobile-receipt-result-grid {
+  .mobile-receipt-result-grid,
+  .mobile-receipt-processing-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
@@ -90,6 +91,10 @@
     background: var(--surface-muted);
     display: grid;
     gap: 6px;
+  }
+
+  .mobile-receipt-result-card-loading {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
   }
 
   .mobile-receipt-preview-item span,
@@ -273,4 +278,19 @@
     padding: 14px;
     border-radius: 16px;
   }
+}
+
+.receipt-result-grid-processing {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.receipt-result-card-loading {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
+}
+
+.receipt-form-grid-readonly input,
+.receipt-form-grid-readonly textarea {
+  color: var(--text-primary);
+  background: var(--surface-muted);
+  cursor: default;
 }

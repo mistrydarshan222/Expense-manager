@@ -80,7 +80,45 @@
 
         @if (receipt.status === 'queued' || receipt.status === 'processing') {
           <div class="mobile-receipt-banner mobile-receipt-banner-processing">
-            This receipt is still being processed. The page refreshes automatically when OCR finishes.
+            We are scanning your receipt now. Your review fields are being prepared automatically and will update as soon as extraction finishes.
+          </div>
+
+          <div class="mobile-receipt-processing-grid">
+            <div class="mobile-receipt-result-card mobile-receipt-result-card-loading">
+              <span>Detected total</span>
+              <strong>Analyzing...</strong>
+            </div>
+            <div class="mobile-receipt-result-card mobile-receipt-result-card-loading">
+              <span>Status</span>
+              <strong>{{ receipt.status === 'queued' ? 'Queued' : 'Processing' }}</strong>
+            </div>
+          </div>
+
+          <div class="mobile-receipt-preview-grid">
+            <div class="mobile-receipt-preview-item">
+              <span>Title</span>
+              <strong>{{ processingPreviewTitle(receipt) }}</strong>
+            </div>
+            <div class="mobile-receipt-preview-item">
+              <span>Category</span>
+              <strong>{{ processingPreviewCategory() }}</strong>
+            </div>
+            <div class="mobile-receipt-preview-item">
+              <span>Date</span>
+              <strong>{{ processingPreviewDate() }}</strong>
+            </div>
+            <div class="mobile-receipt-preview-item">
+              <span>Payment</span>
+              <strong>{{ processingPreviewPaymentMethod() }}</strong>
+            </div>
+            <div class="mobile-receipt-preview-item mobile-receipt-preview-item-full">
+              <span>Merchant</span>
+              <strong>{{ processingPreviewMerchant() }}</strong>
+            </div>
+            <div class="mobile-receipt-preview-item mobile-receipt-preview-item-full">
+              <span>Notes</span>
+              <strong>{{ processingPreviewNote() }}</strong>
+            </div>
           </div>
         }
 
@@ -300,7 +338,55 @@
 
         @if (receipt.status === 'queued' || receipt.status === 'processing') {
           <div class="receipt-info-banner">
-            This receipt is still being processed. The page refreshes automatically when OCR finishes.
+            We are scanning your receipt now. The review details below are kept ready and will fill in automatically as soon as extraction finishes.
+          </div>
+
+          <div class="receipt-result-grid receipt-result-grid-processing">
+            <div class="receipt-result-card receipt-result-card-loading">
+              <span>Detected total</span>
+              <strong>Analyzing...</strong>
+            </div>
+            <div class="receipt-result-card receipt-result-card-loading">
+              <span>Status</span>
+              <strong>{{ receipt.status === 'queued' ? 'Queued' : 'Processing' }}</strong>
+            </div>
+            <div class="receipt-result-card receipt-result-card-loading">
+              <span>Confidence</span>
+              <strong>Pending</strong>
+            </div>
+            <div class="receipt-result-card receipt-result-card-loading">
+              <span>Refresh</span>
+              <strong>Auto</strong>
+            </div>
+          </div>
+
+          <div class="receipt-review-body">
+            <form class="form-grid receipt-form-grid receipt-form-grid-readonly">
+              <label>
+                <span>Title</span>
+                <input type="text" [value]="processingPreviewTitle(receipt)" readonly />
+              </label>
+              <label>
+                <span>Category</span>
+                <input type="text" [value]="processingPreviewCategory()" readonly />
+              </label>
+              <label>
+                <span>Date</span>
+                <input type="text" [value]="processingPreviewDate()" readonly />
+              </label>
+              <label>
+                <span>Payment method</span>
+                <input type="text" [value]="processingPreviewPaymentMethod()" readonly />
+              </label>
+              <label>
+                <span>Merchant</span>
+                <input type="text" [value]="processingPreviewMerchant()" readonly />
+              </label>
+              <label class="full-width">
+                <span>Notes</span>
+                <textarea rows="4" readonly>{{ processingPreviewNote() }}</textarea>
+              </label>
+            </form>
           </div>
         }
 

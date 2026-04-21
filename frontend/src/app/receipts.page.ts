@@ -17,6 +17,15 @@ export class ReceiptsPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   protected readonly selectedReceiptFile = signal<File | null>(null);
+  protected readonly pendingReceiptContext = signal<{
+    title: string;
+    categoryId: string;
+    expenseDate: string;
+    paymentMethod: string;
+    merchantName: string;
+    notes: string;
+    fileName: string | null;
+  } | null>(null);
   protected readonly recentReceipts = computed(() => {
     const cutoff = Date.now() - 24 * 60 * 60 * 1000;
 
@@ -68,6 +77,10 @@ export class ReceiptsPageComponent {
         return;
       }
 
+      if (currentReceipt.status !== 'queued' && currentReceipt.status !== 'processing') {
+        this.pendingReceiptContext.set(null);
+      }
+
       const matchedPaymentMethod =
         currentReceipt.paymentMethod ||
         this.matchPaymentMethodFromReceiptText(currentReceipt.ocrRawText);
@@ -103,6 +116,16 @@ export class ReceiptsPageComponent {
       this.receiptForm.markAllAsTouched();
       return;
     }
+
+    this.pendingReceiptContext.set({
+      title: formValue.title.trim(),
+      categoryId: formValue.categoryId,
+      expenseDate: formValue.expenseDate || new Date().toISOString().slice(0, 10),
+      paymentMethod: formValue.paymentMethod,
+      merchantName: formValue.merchantName.trim(),
+      notes: formValue.notes.trim(),
+      fileName: this.selectedReceiptFile()?.name ?? null
+    });
 
     this.store.queueReceipt(
       {
@@ -154,6 +177,46 @@ export class ReceiptsPageComponent {
     }
 
     return subtotal ?? 0;
+  }
+
+  protected processingPreviewTitle(receipt: Receipt) {
+    const pending = this.pendingReceiptContext();
+
+    return (
+      receipt.title?.trim() ||
+      receipt.merchantName?.trim() ||
+      pending?.title ||
+      pending?.merchantName ||
+      pending?.fileName?.replace(/\.[^.]+$/, '') ||
+      'Receipt scan in progress'
+    );
+  }
+
+  protected processingPreviewCategory() {
+    const pending = this.pendingReceiptContext();
+    const categoryId = pending?.categoryId || this.reviewForm.getRawValue().categoryId;
+
+    return this.store.categories().find((category) => category.id === categoryId)?.name ?? 'Selected category';
+  }
+
+  protected processingPreviewDate() {
+    const pending = this.pendingReceiptContext();
+    return pending?.expenseDate || this.reviewForm.getRawValue().expenseDate || new Date().toISOString().slice(0, 10);
+  }
+
+  protected processingPreviewPaymentMethod() {
+    const pending = this.pendingReceiptContext();
+    return pending?.paymentMethod || this.reviewForm.getRawValue().paymentMethod || 'Detecting payment method';
+  }
+
+  protected processingPreviewMerchant() {
+    const pending = this.pendingReceiptContext();
+    return pending?.merchantName || 'Detecting merchant';
+  }
+
+  protected processingPreviewNote() {
+    const pending = this.pendingReceiptContext();
+    return pending?.notes || 'We will keep your selected details ready while extraction finishes.';
   }
 
   protected receiptDisplayName(receipt: Receipt) {

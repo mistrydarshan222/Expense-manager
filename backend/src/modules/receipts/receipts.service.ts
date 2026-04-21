@@ -49,7 +49,7 @@ type AiReceiptReadResult =
 
 const receiptQueue: string[] = [];
 let activeProcessingCount = 0;
-const MAX_CONCURRENT_RECEIPTS = 3;
+const MAX_CONCURRENT_RECEIPTS = 2;
 const MAX_STORED_AMOUNT = 99_999_999.99;
 const RECEIPT_AI_TIMEOUT_MS = 90_000;
 const AI_SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]);
@@ -645,7 +645,7 @@ async function readReceiptWithAi(filePath: string, mimeType: string): Promise<Ai
 
     const scanOptions = {
       userPrompt:
-        "This receipt is for personal expense tracking. Prioritize the merchant name, subtotal, taxes, total, date, currency, and any card last four digits.",
+        "Extract merchant, date, subtotal, tax, total, currency, and any card last four digits for expense tracking.",
     };
 
     try {
