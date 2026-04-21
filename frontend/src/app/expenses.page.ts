@@ -562,9 +562,8 @@ export class ExpensesPageComponent {
       const descriptionLines = this.wrapText(`${title} - ${category}`, 30);
       const merchantLines = this.wrapText(`Merchant: ${merchant}`, 30);
       const paymentLines = this.wrapText(paymentMethod, 12);
-      const noteLines = expense.notes ? this.wrapText(expense.notes, 70) : [];
-      const detailLineCount = Math.max(descriptionLines.length + merchantLines.length, paymentLines.length);
-      const blockHeight = 24 + detailLineCount * 12 + (noteLines.length > 0 ? noteLines.length * 11 + 10 : 0);
+        const detailLineCount = Math.max(descriptionLines.length + merchantLines.length, paymentLines.length);
+        const blockHeight = 24 + detailLineCount * 12;
 
       ensureSpace(blockHeight + 12);
       if (currentY === pageHeight - headerHeight - 22) {
@@ -593,17 +592,7 @@ export class ExpensesPageComponent {
 
       stream += this.drawText(amount, pageWidth - margin - 64, currentY - 18, 11, '#0F766E', 'F2');
 
-      if (noteLines.length > 0) {
-        let noteY = currentY - 24 - detailLineCount * 12;
-        stream += this.drawText('Note:', margin + 96, noteY, 9, '#6B7280', 'F2');
-        noteY -= 11;
-        for (const line of noteLines) {
-          stream += this.drawText(line, margin + 124, noteY, 9, '#6B7280', 'F1');
-          noteY -= 11;
-        }
-      }
-
-      currentY -= blockHeight;
+        currentY -= blockHeight;
     }
 
     pages.push(stream);
