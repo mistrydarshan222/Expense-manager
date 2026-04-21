@@ -32,6 +32,11 @@
   gap: 10px;
 }
 
+.notifications-count-pill {
+  max-width: 100%;
+  text-align: center;
+}
+
 .notifications-empty {
   display: grid;
   gap: 12px;
@@ -124,6 +129,15 @@
     justify-items: stretch;
   }
 
+  .notifications-count-pill,
+  .notifications-hero-actions .ghost-button {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: normal;
+  }
+
   .notifications-hero-actions .ghost-button,
   .notifications-empty .ghost-button {
     width: 100%;
@@ -138,5 +152,16 @@
   .notifications-item-top {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 420px) {
+  .notifications-shell {
+    width: calc(100% - 16px);
+  }
+
+  .notifications-hero,
+  .notifications-item {
+    padding: 16px;
   }
 }

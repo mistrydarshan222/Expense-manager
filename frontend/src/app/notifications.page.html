@@ -13,7 +13,7 @@
         <p class="notifications-copy">We keep the last 24 hours of important action updates here so you can review saves, deletes, uploads, and errors anytime.</p>
       </div>
       <div class="notifications-hero-actions">
-        <div class="panel-tip">{{ store.notifications().length }} notification{{ store.notifications().length === 1 ? '' : 's' }}</div>
+        <div class="panel-tip notifications-count-pill">{{ store.notifications().length }} Notification{{ store.notifications().length === 1 ? '' : 's' }}</div>
         @if (store.notifications().length > 0) {
           <button type="button" class="ghost-button" (click)="store.clearNotifications()">Clear all</button>
         }

@@ -369,10 +369,14 @@
   }
 
   .mobile-expense-modal-head {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: flex-start;
-    justify-content: space-between;
     gap: 12px;
+  }
+
+  .mobile-expense-modal-head > div {
+    min-width: 0;
   }
 
   .mobile-expense-modal-close {
@@ -386,6 +390,20 @@
     grid-template-columns: 1fr;
   }
 
+  .mobile-expense-modal-form .form-actions {
+    display: grid;
+    gap: 10px;
+  }
+
+  .mobile-expense-modal-form .form-actions button,
+  .mobile-expense-modal-form .form-actions .ghost-button {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    min-width: 0;
+    white-space: normal;
+  }
+
   .history-snapshot-card {
     padding: 16px;
     border-radius: 18px;
@@ -397,6 +415,26 @@
 
   .empty-state-actions .ghost-button {
     width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .mobile-expense-modal-backdrop {
+    padding: 16px 8px 100px;
+  }
+
+  .mobile-expense-modal {
+    padding: 16px;
+  }
+
+  .mobile-expense-modal-head {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-expense-modal-close {
+    width: 100%;
+    justify-content: center;
     text-align: center;
   }
 }

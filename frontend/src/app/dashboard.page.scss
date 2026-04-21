@@ -714,6 +714,7 @@
     font-size: 0.82rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    flex-shrink: 0;
   }
 
   .mobile-dashboard-chart {
@@ -776,6 +777,8 @@
     align-items: center;
     text-align: center;
     text-decoration: none;
+    min-width: 0;
+    white-space: normal;
     border-radius: 16px;
     background: #ffffff;
     border: 1px solid var(--border-strong);
@@ -874,6 +877,27 @@
     display: block;
     height: 100%;
     border-radius: inherit;
+  }
+
+  @media (max-width: 420px) {
+    .mobile-dashboard-card {
+      padding: 16px;
+    }
+
+    .mobile-dashboard-head {
+      display: grid;
+      grid-template-columns: 1fr;
+      justify-items: start;
+      gap: 6px;
+    }
+
+    .mobile-dashboard-head a {
+      font-size: 0.78rem;
+    }
+
+    .mobile-dashboard-actions {
+      grid-template-columns: 1fr;
+    }
   }
 
   .dashboard-top-grid,

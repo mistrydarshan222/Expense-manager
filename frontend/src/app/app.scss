@@ -981,26 +981,25 @@ button {
 
 .secondary-button,
 .ghost-button {
-  background: var(--surface);
-  color: var(--text-primary);
-  box-shadow: 0 8px 18px rgba(31, 41, 55, 0.05);
+  background: #000000;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
 }
 
 .secondary-button {
   padding: 12px 18px;
   border-radius: 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid #000000;
 }
 
 .ghost-button {
   padding: 12px 18px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid #000000;
 }
 
 .secondary-button:hover,
 .ghost-button:hover {
-  background: var(--surface-hover);
-  box-shadow: 0 12px 22px rgba(31, 41, 55, 0.08);
+  box-shadow: 0 12px 22px rgba(15, 23, 42, 0.22);
 }
 
 .danger-button {
@@ -1025,8 +1024,8 @@ button:hover {
 
 .secondary-button:hover,
 .ghost-button:hover {
-  background: var(--surface-hover);
-  border-color: rgba(25, 179, 148, 0.18);
+  background: #1f2937;
+  border-color: #1f2937;
 }
 
 .form-actions {
