@@ -74,6 +74,8 @@ export class AppStore {
 
   readonly token = signal(localStorage.getItem('expense-token') ?? '');
   readonly currentUser = signal<CurrentUser | null>(null);
+  readonly cachedUserName = signal(localStorage.getItem('expense-user-name') ?? '');
+  readonly cachedPreferredCurrency = signal(localStorage.getItem('expense-preferred-currency') ?? 'CAD');
   readonly categories = signal<Category[]>([]);
   readonly expenses = signal<Expense[]>([]);
   readonly paymentMethods = signal<PaymentMethod[]>([]);
@@ -86,8 +88,33 @@ export class AppStore {
   private receiptPollTimer: number | null = null;
   private feedbackTimer: number | null = null;
 
-  readonly userName = computed(() => this.currentUser()?.name ?? 'Guest');
-  readonly preferredCurrency = computed(() => this.currentUser()?.preferredCurrency ?? 'CAD');
+  readonly userName = computed(() => {
+    const liveName = this.currentUser()?.name?.trim();
+    if (liveName) {
+      return liveName;
+    }
+
+    const cachedName = this.cachedUserName().trim();
+    if (this.token() && cachedName) {
+      return cachedName;
+    }
+
+    return 'Guest';
+  });
+
+  readonly preferredCurrency = computed(() => {
+    const liveCurrency = this.currentUser()?.preferredCurrency?.trim();
+    if (liveCurrency) {
+      return liveCurrency;
+    }
+
+    const cachedCurrency = this.cachedPreferredCurrency().trim();
+    if (this.token() && cachedCurrency) {
+      return cachedCurrency;
+    }
+
+    return 'CAD';
+  });
   readonly unreadNotificationsCount = computed(() => this.notifications().filter((item) => !item.read).length);
 
   readonly totalSpent = computed(() =>
@@ -423,6 +450,8 @@ export class AppStore {
         this.currentUser.set(user);
         localStorage.setItem('expense-user-name', user.name);
         localStorage.setItem('expense-preferred-currency', user.preferredCurrency);
+        this.cachedUserName.set(user.name);
+        this.cachedPreferredCurrency.set(user.preferredCurrency);
         this.isSubmitting.set(false);
         this.showFeedback('Profile updated successfully.', 'success');
         onDone?.();
@@ -506,6 +535,8 @@ export class AppStore {
     localStorage.removeItem(notificationsStorageKey);
     this.token.set('');
     this.currentUser.set(null);
+    this.cachedUserName.set('');
+    this.cachedPreferredCurrency.set('CAD');
     this.categories.set([]);
     this.expenses.set([]);
     this.paymentMethods.set([]);
@@ -571,6 +602,8 @@ export class AppStore {
         this.currentUser.set(user);
         localStorage.setItem('expense-user-name', user.name);
         localStorage.setItem('expense-preferred-currency', user.preferredCurrency);
+        this.cachedUserName.set(user.name);
+        this.cachedPreferredCurrency.set(user.preferredCurrency);
       },
       error: () => {
         this.showFeedback('Could not load profile settings.', 'error');
@@ -636,6 +669,8 @@ export class AppStore {
     localStorage.setItem('expense-user-name', user.name);
     localStorage.setItem('expense-preferred-currency', user.preferredCurrency);
     this.token.set(token);
+    this.cachedUserName.set(user.name);
+    this.cachedPreferredCurrency.set(user.preferredCurrency);
     this.currentUser.set({
       ...user,
       createdAt: new Date().toISOString(),
