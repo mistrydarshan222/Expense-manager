@@ -88,16 +88,8 @@ export async function loginWithGoogle(input: GoogleLoginInput) {
   let user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
   });
-
-  let categories = await prisma.category.findMany({
-    where: { userId: user?.id ?? "" },
-    orderBy: { name: "asc" },
-  });
-
-  let paymentMethods = await prisma.paymentMethod.findMany({
-    where: { userId: user?.id ?? "" },
-    orderBy: { name: "asc" },
-  });
+  let categories = [];
+  let paymentMethods = [];
 
   if (!user) {
     const generatedPasswordHash = await bcrypt.hash(`google:${payload.sub}:${Date.now()}`, 10);
@@ -111,8 +103,10 @@ export async function loginWithGoogle(input: GoogleLoginInput) {
       },
     });
 
-    await createDefaultCategoriesForUser(user.id);
-    await createDefaultPaymentMethodForUser(user.id);
+    await Promise.all([
+      createDefaultCategoriesForUser(user.id),
+      createDefaultPaymentMethodForUser(user.id),
+    ]);
 
     [categories, paymentMethods] = await Promise.all([
       prisma.category.findMany({

@@ -21,22 +21,28 @@
         <form [formGroup]="loginForm" (ngSubmit)="login()" class="form-grid auth-form-grid">
           <label class="full-width">
             <span>Email address</span>
-            <input type="email" formControlName="email" placeholder="name@company.com" />
+            <input type="email" formControlName="email" placeholder="name@company.com" [disabled]="store.isSubmitting()" />
           </label>
           <label class="full-width">
             <span>Password</span>
-            <input type="password" formControlName="password" placeholder="Enter your password" />
+            <input type="password" formControlName="password" placeholder="Enter your password" [disabled]="store.isSubmitting()" />
           </label>
           <div class="auth-form-actions full-width">
-            <button type="submit">{{ store.isSubmitting() ? 'Signing in...' : 'Login' }}</button>
+            <button type="submit" [disabled]="store.isSubmitting()">{{ store.isSubmitting() ? 'Signing in...' : 'Login' }}</button>
             <p class="auth-form-footnote">Use your registered email and password to continue.</p>
           </div>
         </form>
 
       @if (isGoogleAuthEnabled) {
         <div class="auth-divider"><span>or continue with</span></div>
-        <div class="auth-google-block">
+        <div class="auth-google-block" [class.auth-google-block-disabled]="store.isSubmitting()">
           <div id="google-login-button" class="auth-google-button-host"></div>
+          @if (store.isSubmitting()) {
+            <div class="auth-google-overlay" aria-live="polite">
+              <strong>Please wait...</strong>
+              <span>{{ store.statusMessage() }}</span>
+            </div>
+          }
         </div>
       }
 
@@ -62,31 +68,70 @@
         <form [formGroup]="registerForm" (ngSubmit)="register()" class="form-grid auth-form-grid">
           <label class="full-width">
             <span>Full name</span>
-            <input type="text" formControlName="name" placeholder="Enter your full name" />
+            <input type="text" formControlName="name" placeholder="Enter your full name" [disabled]="store.isSubmitting()" />
           </label>
           <label class="full-width">
             <span>Email address</span>
-            <input type="email" formControlName="email" placeholder="name@company.com" />
+            <input type="email" formControlName="email" placeholder="name@company.com" [disabled]="store.isSubmitting()" />
           </label>
           <label class="full-width">
             <span>Password</span>
-            <input type="password" formControlName="password" placeholder="Use at least 6 characters" />
+            <input type="password" formControlName="password" placeholder="Use at least 6 characters" [disabled]="store.isSubmitting()" />
           </label>
           <div class="auth-form-actions full-width">
-            <button type="submit">{{ store.isSubmitting() ? 'Creating account...' : 'Create account' }}</button>
+            <button type="submit" [disabled]="store.isSubmitting()">{{ store.isSubmitting() ? 'Creating account...' : 'Create account' }}</button>
           </div>
         </form>
 
       @if (isGoogleAuthEnabled) {
         <div class="auth-divider"><span>or continue with</span></div>
-        <div class="auth-google-block">
+        <div class="auth-google-block" [class.auth-google-block-disabled]="store.isSubmitting()">
           <div id="google-register-button" class="auth-google-button-host"></div>
+          @if (store.isSubmitting()) {
+            <div class="auth-google-overlay" aria-live="polite">
+              <strong>Please wait...</strong>
+              <span>{{ store.statusMessage() }}</span>
+            </div>
+          }
         </div>
       }
     </article>
   </section>
 } @else {
   <section class="dashboard-shell" id="overview">
+    @if (store.isDashboardHydrating()) {
+      <section class="dashboard-loading-shell" aria-live="polite" aria-busy="true">
+        <article class="dashboard-loading-hero">
+          <span class="dashboard-loading-kicker">Almost there</span>
+          <strong>{{ store.dashboardHydrationLabel() }}</strong>
+          <p>Your account is ready. We are loading the latest expenses, receipts, and dashboard insights.</p>
+        </article>
+
+        <section class="dashboard-loading-stats">
+          @for (item of [1, 2, 3, 4]; track item) {
+            <article class="dashboard-skeleton-card">
+              <span class="skeleton-line skeleton-line-short"></span>
+              <span class="skeleton-line skeleton-line-medium"></span>
+            </article>
+          }
+        </section>
+
+        <section class="dashboard-loading-grid">
+          <article class="dashboard-skeleton-card dashboard-skeleton-card-tall">
+            <span class="skeleton-line skeleton-line-short"></span>
+            <span class="skeleton-circle"></span>
+            <span class="skeleton-line skeleton-line-medium"></span>
+          </article>
+
+          <article class="dashboard-skeleton-card dashboard-skeleton-card-list">
+            <span class="skeleton-line skeleton-line-short"></span>
+            @for (item of [1, 2, 3, 4]; track item) {
+              <span class="skeleton-line skeleton-line-full"></span>
+            }
+          </article>
+        </section>
+      </section>
+    } @else {
     <section class="desktop-dashboard-view">
       <section class="desktop-dashboard-stats">
         <article class="desktop-stat-card">
@@ -255,6 +300,7 @@
         </div>
       </article>
     </section>
+    }
 
     <section class="dashboard-top-grid">
       <article class="panel overview-panel">

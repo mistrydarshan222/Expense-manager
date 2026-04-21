@@ -85,8 +85,11 @@ export class AppStore {
   readonly actionFeedback = signal<ActionFeedback | null>(null);
   readonly notifications = signal<StoredNotification[]>(this.loadStoredNotifications());
   readonly isSubmitting = signal(false);
+  readonly isDashboardHydrating = signal(false);
+  readonly dashboardHydrationLabel = signal('Preparing your dashboard...');
   private receiptPollTimer: number | null = null;
   private feedbackTimer: number | null = null;
+  private hydrationRequestCount = 0;
 
   readonly userName = computed(() => {
     const liveName = this.currentUser()?.name?.trim();
@@ -143,13 +146,15 @@ export class AppStore {
 
   register(payload: { name: string; email: string; password: string }, onDone?: () => void) {
     this.isSubmitting.set(true);
+    this.statusMessage.set('Creating your account...');
     this.showFeedback('Creating your account and default categories...', 'info');
 
     this.api.register(payload).subscribe({
       next: (response) => {
-        this.finishAuth(response.token, response.user);
-        this.categories.set(response.categories ?? []);
-        this.paymentMethods.set(response.paymentMethods ?? []);
+        this.finishAuth(response.token, response.user, {
+          categories: response.categories,
+          paymentMethods: response.paymentMethods
+        });
         onDone?.();
         this.showFeedback('Account created. Default categories are ready.', 'success');
       },
@@ -162,6 +167,7 @@ export class AppStore {
 
   login(payload: { email: string; password: string }, onDone?: () => void) {
     this.isSubmitting.set(true);
+    this.statusMessage.set('Verifying your account...');
     this.showFeedback('Signing in and loading your dashboard...', 'info');
 
     this.api.login(payload).subscribe({
@@ -179,13 +185,15 @@ export class AppStore {
 
   googleLogin(idToken: string, onDone?: () => void) {
     this.isSubmitting.set(true);
+    this.statusMessage.set('Verifying your Google account...');
     this.showFeedback('Signing in with Google...', 'info');
 
     this.api.googleLogin({ idToken }).subscribe({
       next: (response) => {
-        this.finishAuth(response.token, response.user);
-        this.categories.set(response.categories ?? []);
-        this.paymentMethods.set(response.paymentMethods ?? []);
+        this.finishAuth(response.token, response.user, {
+          categories: response.categories,
+          paymentMethods: response.paymentMethods
+        });
         onDone?.();
         this.showFeedback('Google login successful.', 'success');
       },
@@ -347,7 +355,7 @@ export class AppStore {
     });
   }
 
-  loadReceipts() {
+  loadReceipts(trackHydration = false) {
     if (!this.token()) {
       return;
     }
@@ -355,9 +363,11 @@ export class AppStore {
     this.api.getReceipts(this.token()).subscribe({
       next: ({ receipts }) => {
         this.receipts.set(receipts);
+        this.completeHydrationRequest(trackHydration);
       },
       error: () => {
         this.showFeedback('Could not load receipts.', 'error');
+        this.completeHydrationRequest(trackHydration);
       }
     });
   }
@@ -544,6 +554,9 @@ export class AppStore {
     this.currentReceipt.set(null);
     this.notifications.set([]);
     this.stopReceiptPolling();
+    this.hydrationRequestCount = 0;
+    this.isDashboardHydrating.set(false);
+    this.dashboardHydrationLabel.set('Preparing your dashboard...');
     this.showFeedback('Logged out. You can sign in again anytime.', 'success');
   }
 
@@ -577,13 +590,50 @@ export class AppStore {
     }).format(Number.isFinite(numericAmount) ? numericAmount : 0);
   }
 
-  loadDashboardData() {
-    this.loadProfile();
-    this.loadCategories();
-    this.loadExpenses();
-    this.loadPaymentMethods();
-    this.loadReceipts();
-    this.isSubmitting.set(false);
+  loadDashboardData(options?: {
+    skipProfile?: boolean;
+    skipCategories?: boolean;
+    skipPaymentMethods?: boolean;
+    skipExpenses?: boolean;
+    skipReceipts?: boolean;
+    trackHydration?: boolean;
+    hydrationLabel?: string;
+  }) {
+    const pendingRequests = [
+      !options?.skipProfile,
+      !options?.skipCategories,
+      !options?.skipExpenses,
+      !options?.skipPaymentMethods,
+      !options?.skipReceipts
+    ].filter(Boolean).length;
+
+    if (options?.trackHydration && pendingRequests > 0) {
+      this.beginDashboardHydration(pendingRequests, options.hydrationLabel);
+    }
+
+    if (!options?.skipProfile) {
+      this.loadProfile(options?.trackHydration);
+    }
+
+    if (!options?.skipCategories) {
+      this.loadCategories(options?.trackHydration);
+    }
+
+    if (!options?.skipExpenses) {
+      this.loadExpenses(options?.trackHydration);
+    }
+
+    if (!options?.skipPaymentMethods) {
+      this.loadPaymentMethods(options?.trackHydration);
+    }
+
+    if (!options?.skipReceipts) {
+      this.loadReceipts(options?.trackHydration);
+    }
+
+    if (!options?.trackHydration) {
+      this.isSubmitting.set(false);
+    }
   }
 
   loadReceiptsPageData() {
@@ -592,7 +642,7 @@ export class AppStore {
     this.loadReceipts();
   }
 
-  private loadProfile() {
+  private loadProfile(trackHydration = false) {
     if (!this.token()) {
       return;
     }
@@ -604,14 +654,16 @@ export class AppStore {
         localStorage.setItem('expense-preferred-currency', user.preferredCurrency);
         this.cachedUserName.set(user.name);
         this.cachedPreferredCurrency.set(user.preferredCurrency);
+        this.completeHydrationRequest(trackHydration);
       },
       error: () => {
         this.showFeedback('Could not load profile settings.', 'error');
+        this.completeHydrationRequest(trackHydration);
       }
     });
   }
 
-  private loadCategories() {
+  private loadCategories(trackHydration = false) {
     if (!this.token()) {
       return;
     }
@@ -619,14 +671,16 @@ export class AppStore {
     this.api.getCategories(this.token()).subscribe({
       next: ({ categories }) => {
         this.categories.set(categories);
+        this.completeHydrationRequest(trackHydration);
       },
       error: () => {
         this.showFeedback('Could not load categories.', 'error');
+        this.completeHydrationRequest(trackHydration);
       }
     });
   }
 
-  private loadExpenses() {
+  private loadExpenses(trackHydration = false) {
     if (!this.token()) {
       return;
     }
@@ -634,14 +688,16 @@ export class AppStore {
     this.api.getExpenses(this.token()).subscribe({
       next: ({ expenses }) => {
         this.expenses.set(expenses);
+        this.completeHydrationRequest(trackHydration);
       },
       error: () => {
         this.showFeedback('Could not load expenses.', 'error');
+        this.completeHydrationRequest(trackHydration);
       }
     });
   }
 
-  private loadPaymentMethods() {
+  private loadPaymentMethods(trackHydration = false) {
     if (!this.token()) {
       return;
     }
@@ -649,9 +705,11 @@ export class AppStore {
     this.api.getPaymentMethods(this.token()).subscribe({
       next: ({ paymentMethods }) => {
         this.paymentMethods.set(paymentMethods);
+        this.completeHydrationRequest(trackHydration);
       },
       error: () => {
         this.showFeedback('Could not load payment methods.', 'error');
+        this.completeHydrationRequest(trackHydration);
       }
     });
   }
@@ -663,6 +721,10 @@ export class AppStore {
       name: string;
       email: string;
       preferredCurrency: string;
+    },
+    initialData?: {
+      categories?: Category[];
+      paymentMethods?: PaymentMethod[];
     }
   ) {
     localStorage.setItem('expense-token', token);
@@ -676,7 +738,43 @@ export class AppStore {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
-    this.loadDashboardData();
+    this.statusMessage.set('Signed in. Preparing your dashboard...');
+
+    if (initialData?.categories) {
+      this.categories.set(initialData.categories);
+    }
+
+    if (initialData?.paymentMethods) {
+      this.paymentMethods.set(initialData.paymentMethods);
+    }
+
+    this.loadDashboardData({
+      skipCategories: !!initialData?.categories,
+      skipPaymentMethods: !!initialData?.paymentMethods,
+      skipProfile: true,
+      trackHydration: true,
+      hydrationLabel: 'Preparing your dashboard...'
+    });
+  }
+
+  private beginDashboardHydration(requestCount: number, label?: string) {
+    this.hydrationRequestCount = requestCount;
+    this.dashboardHydrationLabel.set(label ?? 'Preparing your dashboard...');
+    this.isDashboardHydrating.set(true);
+  }
+
+  private completeHydrationRequest(trackHydration: boolean) {
+    if (!trackHydration || this.hydrationRequestCount <= 0) {
+      return;
+    }
+
+    this.hydrationRequestCount -= 1;
+
+    if (this.hydrationRequestCount === 0) {
+      this.isDashboardHydrating.set(false);
+      this.isSubmitting.set(false);
+      this.statusMessage.set('Dashboard is ready.');
+    }
   }
 
   private startReceiptPolling(receiptId: string) {
