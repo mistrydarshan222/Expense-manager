@@ -51,6 +51,7 @@ const receiptQueue: string[] = [];
 let activeProcessingCount = 0;
 const MAX_CONCURRENT_RECEIPTS = 3;
 const MAX_STORED_AMOUNT = 99_999_999.99;
+const RECEIPT_AI_TIMEOUT_MS = 90_000;
 const AI_SUPPORTED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]);
 let aiReceiptScannerPromise: Promise<AiReceiptScanner | null> | null = null;
 let aiReceiptScannerInitError: string | null = null;
@@ -80,7 +81,7 @@ async function getAiReceiptScanner() {
           model: env.receiptAiModel,
           temperature: 0,
           strictValidation: false,
-          timeoutMs: 30_000,
+          timeoutMs: RECEIPT_AI_TIMEOUT_MS,
         }) as AiReceiptScanner;
       })
       .catch((error) => {
@@ -618,6 +619,10 @@ function parseAiReceiptResult(data: ReceiptData): ParsedReceiptWithRawText {
   };
 }
 
+function shouldRetryAiScan(errorMessage: string) {
+  return /aborted|timeout|timed out|network|socket hang up|fetch failed/i.test(errorMessage);
+}
+
 async function readReceiptWithAi(filePath: string, mimeType: string): Promise<AiReceiptReadResult> {
   if (!AI_SUPPORTED_MIME_TYPES.has(mimeType)) {
     return {
@@ -638,15 +643,32 @@ async function readReceiptWithAi(filePath: string, mimeType: string): Promise<Ai
       };
     }
 
-    const result = await aiReceiptScanner.scan(filePath, {
+    const scanOptions = {
       userPrompt:
         "This receipt is for personal expense tracking. Prioritize the merchant name, subtotal, taxes, total, date, currency, and any card last four digits.",
-    });
-
-    return {
-      parsed: parseAiReceiptResult(result.data),
-      error: null,
     };
+
+    try {
+      const result = await aiReceiptScanner.scan(filePath, scanOptions);
+
+      return {
+        parsed: parseAiReceiptResult(result.data),
+        error: null,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Receipt AI scanner failed to extract receipt data.";
+
+      if (!shouldRetryAiScan(message)) {
+        throw error;
+      }
+
+      const retryResult = await aiReceiptScanner.scan(filePath, scanOptions);
+
+      return {
+        parsed: parseAiReceiptResult(retryResult.data),
+        error: null,
+      };
+    }
   } catch (error) {
     return {
       parsed: null,
