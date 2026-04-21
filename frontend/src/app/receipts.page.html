@@ -80,7 +80,7 @@
 
         @if (receipt.status === 'queued' || receipt.status === 'processing') {
           <div class="mobile-receipt-banner mobile-receipt-banner-processing">
-            We are scanning your receipt now. Your review fields are being prepared automatically and will update as soon as extraction finishes.
+            We are scanning your receipt now. {{ processingCountdownNote(receipt) }}
           </div>
 
           <div class="mobile-receipt-processing-grid">
@@ -93,8 +93,8 @@
               <strong>{{ receipt.status === 'queued' ? 'Queued' : 'Processing' }}</strong>
             </div>
             <div class="mobile-receipt-result-card mobile-receipt-result-card-loading">
-              <span>Elapsed time</span>
-              <strong>{{ processingElapsedLabel(receipt) }}</strong>
+              <span>Est. remaining</span>
+              <strong>{{ processingCountdownLabel(receipt) }}</strong>
             </div>
             <div class="mobile-receipt-result-card mobile-receipt-result-card-loading">
               <span>Refresh</span>
@@ -346,7 +346,7 @@
 
         @if (receipt.status === 'queued' || receipt.status === 'processing') {
           <div class="receipt-info-banner">
-            We are scanning your receipt now. The review details below are kept ready and will fill in automatically as soon as extraction finishes.
+            We are scanning your receipt now. {{ processingCountdownNote(receipt) }}
           </div>
 
           <div class="receipt-result-grid receipt-result-grid-processing">
@@ -359,8 +359,8 @@
               <strong>{{ receipt.status === 'queued' ? 'Queued' : 'Processing' }}</strong>
             </div>
             <div class="receipt-result-card receipt-result-card-loading">
-              <span>Elapsed time</span>
-              <strong>{{ processingElapsedLabel(receipt) }}</strong>
+              <span>Est. remaining</span>
+              <strong>{{ processingCountdownLabel(receipt) }}</strong>
             </div>
             <div class="receipt-result-card receipt-result-card-loading">
               <span>Confidence</span>

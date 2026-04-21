@@ -13,6 +13,7 @@ import { AppStore } from './app.store';
   styleUrl: './receipts.page.scss'
 })
 export class ReceiptsPageComponent {
+  private readonly estimatedProcessingSeconds = 20;
   protected readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
@@ -223,31 +224,41 @@ export class ReceiptsPageComponent {
     return pending?.notes || 'We will keep your selected details ready while extraction finishes.';
   }
 
-  protected processingElapsedLabel(receipt: Receipt) {
+  protected processingCountdownLabel(receipt: Receipt) {
     this.processingNow();
 
     const startedAt = new Date(receipt.createdAt).getTime();
     if (!Number.isFinite(startedAt)) {
-      return 'Calculating...';
+      return '~20s';
     }
 
     const elapsedMs = Math.max(0, Date.now() - startedAt);
-    const totalSeconds = Math.floor(elapsedMs / 1000);
+    const elapsedSeconds = Math.floor(elapsedMs / 1000);
+    const remainingSeconds = Math.max(0, this.estimatedProcessingSeconds - elapsedSeconds);
 
-    if (totalSeconds < 60) {
-      return `${totalSeconds}s`;
+    if (remainingSeconds > 0) {
+      return `~${remainingSeconds}s`;
     }
 
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+    return 'Finalizing...';
+  }
 
-    if (minutes < 60) {
-      return `${minutes}m ${seconds}s`;
+  protected processingCountdownNote(receipt: Receipt) {
+    this.processingNow();
+
+    const startedAt = new Date(receipt.createdAt).getTime();
+    if (!Number.isFinite(startedAt)) {
+      return 'We are preparing your receipt review.';
     }
 
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return `${hours}h ${remainingMinutes}m`;
+    const elapsedMs = Math.max(0, Date.now() - startedAt);
+    const elapsedSeconds = Math.floor(elapsedMs / 1000);
+
+    if (elapsedSeconds < this.estimatedProcessingSeconds) {
+      return `Usually ready in about ${this.estimatedProcessingSeconds} seconds.`;
+    }
+
+    return 'This one is taking a little longer than usual, but we are still processing it.';
   }
 
   protected receiptDisplayName(receipt: Receipt) {
