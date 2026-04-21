@@ -301,7 +301,41 @@ export class ExpensesPageComponent {
   }
 
   protected expenseAvatar(expense: Expense) {
-    return (expense.merchantName || expense.title || 'E').slice(0, 1).toUpperCase();
+    const category = (expense.category?.name || '').trim().toLowerCase();
+
+    if (category.includes('food') || category.includes('restaurant') || category.includes('grocery')) {
+      return '🍽';
+    }
+
+    if (category.includes('bill') || category.includes('utility')) {
+      return '🧾';
+    }
+
+    if (category.includes('entertainment') || category.includes('movie') || category.includes('game')) {
+      return '🎬';
+    }
+
+    if (category.includes('health') || category.includes('medical') || category.includes('pharmacy')) {
+      return '💊';
+    }
+
+    if (category.includes('shopping') || category.includes('retail')) {
+      return '🛍';
+    }
+
+    if (category.includes('travel') || category.includes('trip') || category.includes('transport')) {
+      return '✈';
+    }
+
+    if (category.includes('education') || category.includes('school') || category.includes('book')) {
+      return '📚';
+    }
+
+    if (category.includes('salary') || category.includes('income')) {
+      return '💼';
+    }
+
+    return '💳';
   }
 
   private labelForTimeRange(timeRange: TimeRange) {
