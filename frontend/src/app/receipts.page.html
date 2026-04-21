@@ -54,11 +54,13 @@
             <div class="mobile-receipt-thumb" [ngClass]="categoryIconClass(categoryNameById(receipt.categoryId))">
               {{ categoryIcon(categoryNameById(receipt.categoryId)) }}
             </div>
-            <div class="mobile-receipt-recent-copy">
-              <strong>{{ receiptDisplayName(receipt) }}</strong>
+            <div class="mobile-receipt-recent-body">
+              <div class="mobile-receipt-recent-top">
+                <strong>{{ receiptDisplayName(receipt) }}</strong>
+                <span class="mobile-receipt-check" [attr.data-status]="receipt.status">✓</span>
+              </div>
               <span>{{ receipt.createdAt | date:'MMM d · h:mm a' }}</span>
             </div>
-            <span class="mobile-receipt-check" [attr.data-status]="receipt.status">✓</span>
           </button>
         } @empty {
           <div class="mobile-receipt-empty">No uploads yet</div>

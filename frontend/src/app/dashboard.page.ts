@@ -117,6 +117,7 @@ export class DashboardPageComponent implements AfterViewInit {
 
   protected readonly recentExpensePreview = computed(() => this.filteredExpenses().slice(0, 5));
   protected readonly desktopRecentExpenses = computed(() => this.store.expenses().slice(0, 6));
+  protected readonly mobileQuickExpenses = computed(() => this.store.expenses().slice(0, 4));
   protected readonly mobileMonthSpent = computed(() => {
     const now = new Date();
 
@@ -401,6 +402,27 @@ export class DashboardPageComponent implements AfterViewInit {
 
   protected monthlyBarHeight(amount: number) {
     return Math.max(18, amount / 20);
+  }
+
+  protected mobileQuickTitle(title: string | null | undefined) {
+    const words = (title ?? '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (words.length <= 2) {
+      return words.join(' ');
+    }
+
+    return words.slice(0, 2).join(' ');
+  }
+
+  protected mobileQuickIcon(expense: Expense) {
+    return this.categoryIcon(expense.category?.name || 'Uncategorized');
+  }
+
+  protected mobileQuickIconClass(expense: Expense) {
+    return this.categoryIconClass(expense.category?.name || 'Uncategorized');
   }
 
   protected categoryIcon(categoryName: string | null | undefined) {

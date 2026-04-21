@@ -107,13 +107,15 @@
               (touchend)="endMobileSwipe(expense)"
               (touchcancel)="endMobileSwipe(expense)">
               <div class="mobile-history-avatar" [ngClass]="expenseAvatarClass(expense)">{{ expenseAvatar(expense) }}</div>
-              <div class="mobile-history-copy">
-                <strong>{{ expense.title }}</strong>
-                <span>{{ expense.category?.name || 'Uncategorized' }}</span>
-              </div>
-              <div class="mobile-history-meta">
-                <strong>{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
-                <span>{{ expense.expenseDate | date:'MMM d' }}</span>
+              <div class="mobile-history-body">
+                <div class="mobile-history-top">
+                  <strong>{{ mobileExpenseTitle(expense.title) }}</strong>
+                  <strong class="mobile-history-amount">{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
+                </div>
+                <div class="mobile-history-bottom">
+                  <span>{{ expense.category?.name || 'Uncategorized' }}</span>
+                  <span>{{ expense.expenseDate | date:'MMM d' }}</span>
+                </div>
               </div>
             </article>
           </div>

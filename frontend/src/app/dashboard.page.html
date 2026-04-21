@@ -289,19 +289,17 @@
         </div>
 
         <div class="mobile-quick-list">
-          @for (item of mobileCategoryBreakdown(); track item.name) {
+          @for (expense of mobileQuickExpenses(); track expense.id) {
             <div class="mobile-quick-item">
-              <div class="mobile-quick-copy">
-                <span class="category-inline-copy">
-                  <span class="category-icon-badge category-icon-badge-small" [ngClass]="categoryIconClass(item.name)">{{ categoryIcon(item.name) }}</span>
-                  <strong>{{ item.name }}</strong>
-                </span>
-                <span>{{ item.expenseDate | date:'MMM d' }}</span>
-              </div>
-              <div class="mobile-quick-meta">
-                <strong>{{ store.formatCurrency(item.amount, store.preferredCurrency()) }}</strong>
-                <div class="mobile-quick-track">
-                  <span [style.width.%]="item.ratio * 100" [style.background]="item.color"></span>
+              <span class="category-icon-badge mobile-quick-icon" [ngClass]="mobileQuickIconClass(expense)">{{ mobileQuickIcon(expense) }}</span>
+              <div class="mobile-quick-body">
+                <div class="mobile-quick-top">
+                  <strong>{{ mobileQuickTitle(expense.title) }}</strong>
+                  <strong class="mobile-quick-amount">{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
+                </div>
+                <div class="mobile-quick-bottom">
+                  <span>{{ expense.category?.name || 'Uncategorized' }}</span>
+                  <span>{{ expense.expenseDate | date:'MMM d' }}</span>
                 </div>
               </div>
             </div>

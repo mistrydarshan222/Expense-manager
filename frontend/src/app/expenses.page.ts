@@ -376,6 +376,19 @@ export class ExpensesPageComponent {
     return 'mobile-history-avatar-default';
   }
 
+  protected mobileExpenseTitle(title: string | null | undefined) {
+    const words = (title ?? '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (words.length <= 2) {
+      return words.join(' ');
+    }
+
+    return words.slice(0, 2).join(' ');
+  }
+
   private labelForTimeRange(timeRange: TimeRange) {
     switch (timeRange) {
       case 'today':

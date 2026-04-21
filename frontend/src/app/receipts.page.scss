@@ -278,8 +278,8 @@
     width: 100%;
     padding: 12px 14px;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
     gap: 12px;
     border-radius: 16px;
     background: #ffffff;
@@ -300,20 +300,30 @@
     line-height: 1;
   }
 
-  .mobile-receipt-recent-copy {
+  .mobile-receipt-recent-body {
     display: grid;
-    gap: 4px;
+    gap: 6px;
     text-align: left;
+    min-width: 0;
   }
 
-  .mobile-receipt-recent-copy strong {
+  .mobile-receipt-recent-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .mobile-receipt-recent-top strong {
     font-size: 1rem;
     color: var(--text-primary);
     line-height: 1.25;
     overflow-wrap: anywhere;
+    min-width: 0;
   }
 
-  .mobile-receipt-recent-copy span {
+  .mobile-receipt-recent-body > span {
     font-size: 0.78rem;
     color: var(--text-secondary);
   }
@@ -323,6 +333,7 @@
     height: 22px;
     display: grid;
     place-items: center;
+    flex: 0 0 auto;
     border-radius: 999px;
     background: #eaf8f4;
     color: #1b7f6b;
@@ -394,12 +405,10 @@
 
   .mobile-receipt-recent-item {
     grid-template-columns: auto 1fr;
-    align-items: start;
   }
 
-  .mobile-receipt-check {
-    justify-self: end;
-    align-self: center;
+  .mobile-receipt-recent-top {
+    gap: 8px;
   }
 }
 
