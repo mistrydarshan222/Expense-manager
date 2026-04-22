@@ -125,7 +125,7 @@
 @media (max-width: 640px) {
   .mobile-profile-view {
     display: grid;
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 12px;
   }
 
@@ -141,10 +141,10 @@
 
   .mobile-profile-hero-card,
   .mobile-profile-settings-card {
-    margin: 8px 12px;
-    padding: 20px 18px;
+    margin: 0;
+    padding: 18px 16px;
     border: 1px solid var(--border-soft);
-    border-radius: 20px;
+    border-radius: 18px;
     background: #ffffff;
     box-shadow: 0 10px 24px rgba(31, 41, 55, 0.05);
   }
@@ -223,7 +223,7 @@
   .mobile-profile-logout-wrap {
     display: block;
     width: calc(100% - 24px);
-    margin: 8px auto calc(88px + env(safe-area-inset-bottom, 0px));
+    margin: 2px auto calc(88px + env(safe-area-inset-bottom, 0px));
   }
 
   .mobile-profile-logout-button {

@@ -712,7 +712,7 @@
 
   .mobile-dashboard-view {
     display: grid;
-    gap: 16px;
+    gap: 14px;
   }
 
   .dashboard-skeleton-card-tall,
@@ -769,11 +769,11 @@
   }
 
   .mobile-dashboard-card {
-    padding: 20px;
-    border-radius: 20px;
+    padding: 18px;
+    border-radius: 18px;
     background: #ffffff;
     border: 1px solid var(--border-strong);
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 10px 22px rgba(31, 41, 55, 0.05);
   }
 
   .mobile-dashboard-head {
@@ -1033,13 +1033,14 @@
   }
 
   .auth-form-panel {
-    gap: 18px;
-    padding: 18px;
-    border-radius: 22px;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 20px;
   }
 
   .auth-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .auth-panel-mobile-hidden {
@@ -1086,10 +1087,24 @@
   }
 
   .auth-form-grid input {
-    min-height: 52px;
-    padding: 14px 15px;
+    min-height: 50px;
+    padding: 13px 14px;
     border-radius: 14px;
     font-size: 0.98rem;
+  }
+
+  .auth-panel-meta {
+    gap: 8px;
+  }
+
+  .auth-panel-meta span {
+    padding: 8px 12px;
+    font-size: 0.72rem;
+  }
+
+  .auth-google-overlay {
+    padding: 14px;
+    border-radius: 16px;
   }
 
   .auth-form-actions {
@@ -1108,7 +1123,7 @@
 
 @media (max-width: 420px) {
   .auth-form-panel {
-    padding: 16px;
+    padding: 14px;
   }
 
   .auth-status-card strong {

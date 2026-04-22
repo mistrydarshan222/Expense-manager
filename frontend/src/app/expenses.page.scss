@@ -182,12 +182,14 @@
   .mobile-history-view {
     display: grid;
     gap: 14px;
+    width: calc(100% - 24px);
+    margin-inline: auto;
   }
 
   .mobile-history-actions {
     display: grid;
     gap: 12px;
-    margin: 4px 10px 0;
+    margin: 2px 0 0;
   }
 
   .mobile-history-actions-copy {
@@ -268,7 +270,7 @@
 
   .mobile-history-swipe-row {
     position: relative;
-    margin: 2px 10px;
+    margin: 0;
     overflow: hidden;
     border-radius: 18px;
     background: #ffffff;
@@ -424,22 +426,28 @@
     position: fixed;
     inset: 0;
     z-index: 45;
-    padding: 24px 12px 110px;
+    padding:
+      max(16px, env(safe-area-inset-top, 0px) + 8px)
+      12px
+      calc(96px + env(safe-area-inset-bottom, 0px));
     display: grid;
-    align-items: end;
+    align-items: center;
     background: rgba(15, 23, 42, 0.34);
     backdrop-filter: blur(8px);
+    overflow-y: auto;
   }
 
   .mobile-expense-modal {
     width: 100%;
-    max-height: min(82vh, 760px);
+    max-width: 560px;
+    max-height: min(88dvh, 760px);
     overflow-y: auto;
     padding: 18px;
     border: 1px solid var(--border-strong);
-    border-radius: 24px 24px 20px 20px;
+    border-radius: 24px;
     background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
     box-shadow: 0 20px 36px rgba(15, 23, 42, 0.16);
+    overscroll-behavior: contain;
   }
 
   .mobile-expense-modal-head {
@@ -447,6 +455,14 @@
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: flex-start;
     gap: 12px;
+    position: sticky;
+    top: -18px;
+    z-index: 1;
+    margin: -18px -18px 0;
+    padding: 18px 18px 12px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 250, 247, 0.96) 100%);
+    backdrop-filter: blur(8px);
+    border-radius: 24px 24px 0 0;
   }
 
   .mobile-expense-modal-head > div {
@@ -457,10 +473,13 @@
     padding: 10px 14px;
     border-radius: 14px;
     white-space: nowrap;
+    width: auto;
+    min-width: 88px;
+    justify-self: end;
   }
 
   .mobile-expense-modal-form {
-    margin-top: 16px;
+    margin-top: 14px;
     grid-template-columns: 1fr;
   }
 
@@ -500,6 +519,10 @@
     margin-inline: 0;
   }
 
+  .mobile-history-view {
+    width: calc(100% - 16px);
+  }
+
   .mobile-history-filter-row {
     grid-template-columns: 1fr;
   }
@@ -519,19 +542,27 @@
   }
 
   .mobile-expense-modal-backdrop {
-    padding: 16px 8px 100px;
+    padding:
+      max(12px, env(safe-area-inset-top, 0px) + 4px)
+      8px
+      calc(92px + env(safe-area-inset-bottom, 0px));
   }
 
   .mobile-expense-modal {
     padding: 16px;
+    max-height: min(90dvh, 760px);
   }
 
   .mobile-expense-modal-head {
-    grid-template-columns: 1fr;
+    top: -16px;
+    margin: -16px -16px 0;
+    padding: 16px 16px 10px;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .mobile-expense-modal-close {
-    width: 100%;
+    width: auto;
+    min-width: 84px;
     justify-content: center;
     text-align: center;
   }
