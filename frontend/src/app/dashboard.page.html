@@ -274,27 +274,28 @@
           <button type="button" class="ghost-button mobile-dashboard-action-button" (click)="openAddExpensePage()">
             <span class="mobile-dashboard-action-icon" aria-hidden="true">+</span>
             <span>Add Expense</span>
-          </button>
-          <a class="ghost-button mobile-dashboard-action-button" routerLink="/receipts">
-            <span class="mobile-dashboard-action-icon mobile-dashboard-action-icon-upload" aria-hidden="true"></span>
+            </button>
+            <a class="ghost-button mobile-dashboard-action-button" routerLink="/receipts">
+            <span class="mobile-dashboard-action-icon mobile-dashboard-action-icon-upload" aria-hidden="true">↑</span>
             <span>Upload Receipt</span>
-          </a>
-        </div>
-      </article>
+            </a>
+          </div>
+        </article>
 
       <article class="mobile-dashboard-card">
-        <div class="mobile-dashboard-head">
+        <div class="mobile-dashboard-head mobile-dashboard-head-compact">
           <p>Quick Access</p>
           <a routerLink="/expenses">View All</a>
         </div>
 
         <div class="mobile-quick-list">
           @for (expense of mobileQuickExpenses(); track expense.id) {
-            <div class="mobile-quick-item">
-              <span class="category-icon-badge mobile-quick-icon" [ngClass]="mobileQuickIconClass(expense)">{{ mobileQuickIcon(expense) }}</span>
+            <article class="mobile-quick-item">
               <div class="mobile-quick-body">
                 <div class="mobile-quick-top">
-                  <strong>{{ mobileQuickTitle(expense.title) }}</strong>
+                  <div class="mobile-quick-title-wrap">
+                    <strong>{{ mobileQuickTitle(expense.title) }}</strong>
+                  </div>
                   <strong class="mobile-quick-amount">{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
                 </div>
                 <div class="mobile-quick-bottom">
@@ -302,7 +303,7 @@
                   <span>{{ expense.expenseDate | date:'MMM d' }}</span>
                 </div>
               </div>
-            </div>
+            </article>
           }
         </div>
       </article>
