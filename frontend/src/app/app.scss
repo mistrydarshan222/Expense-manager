@@ -942,6 +942,7 @@ label {
 input,
 select,
 textarea {
+  box-sizing: border-box;
   width: 100%;
   border: 1px solid #d9d2c7;
   border-radius: 18px;
@@ -1690,7 +1691,15 @@ button:hover {
   }
 }
 
-  @media (max-width: 640px) {
+@media (max-width: 640px) {
+  button,
+  .secondary-button,
+  .ghost-button,
+  .danger-button,
+  .topbar-auth-button {
+    border-radius: 16px;
+  }
+
   .app-auth-shell {
     width: 100%;
     margin: 0;

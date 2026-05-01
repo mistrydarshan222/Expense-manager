@@ -156,6 +156,11 @@
     gap: 8px;
   }
 
+  .mobile-profile-hero-card-loading {
+    min-height: 176px;
+    align-content: center;
+  }
+
   .mobile-profile-avatar {
     width: 68px;
     height: 68px;
@@ -166,6 +171,10 @@
     color: var(--accent-strong);
     font-size: 1.55rem;
     font-weight: 800;
+  }
+
+  .mobile-profile-avatar-loading {
+    color: var(--text-muted);
   }
 
   .mobile-profile-hero-card strong {
@@ -188,24 +197,23 @@
 
   .mobile-profile-row {
     width: 100%;
-    padding: 14px 0;
+    padding: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-radius: 0;
-    background: transparent;
+    border-radius: 16px;
+    background: #ffffff;
     color: var(--text-primary);
     box-shadow: none;
-    border-bottom: 1px solid var(--border-soft);
+    border: 1px solid var(--border-soft);
   }
 
-  .mobile-profile-row:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
+  .mobile-profile-row + .mobile-profile-row {
+    margin-top: 10px;
   }
 
   .mobile-profile-row:first-of-type {
-    padding-top: 0;
+    padding-top: 14px;
   }
 
   .mobile-profile-row span {

@@ -6,11 +6,19 @@
   </section>
 } @else {
   <section class="mobile-profile-view">
-    <article class="mobile-profile-hero-card">
-      <div class="mobile-profile-avatar">{{ userInitials() }}</div>
-      <strong>{{ store.currentUser()?.name || 'John Doe' }}</strong>
-      <span>{{ store.currentUser()?.email || 'john@example.com' }}</span>
-    </article>
+    @if (store.currentUser(); as user) {
+      <article class="mobile-profile-hero-card">
+        <div class="mobile-profile-avatar">{{ userInitials() }}</div>
+        <strong>{{ user.name }}</strong>
+        <span>{{ user.email }}</span>
+      </article>
+    } @else {
+      <article class="mobile-profile-hero-card mobile-profile-hero-card-loading">
+        <div class="mobile-profile-avatar mobile-profile-avatar-loading">...</div>
+        <strong>Loading profile...</strong>
+        <span>Please wait while we refresh your account details.</span>
+      </article>
+    }
 
     <article class="mobile-profile-settings-card">
       <h3>Account Settings</h3>
@@ -39,11 +47,11 @@
       <div class="profile-summary-strip">
         <article class="profile-summary-card">
           <span>Account name</span>
-          <strong>{{ store.currentUser()?.name || 'Your account' }}</strong>
+          <strong>{{ store.currentUser()?.name || 'Loading profile...' }}</strong>
         </article>
         <article class="profile-summary-card">
           <span>Primary email</span>
-          <strong>{{ store.currentUser()?.email || 'your@email.com' }}</strong>
+          <strong>{{ store.currentUser()?.email || 'Loading profile...' }}</strong>
         </article>
         <article class="profile-summary-card">
           <span>Preferred currency</span>
