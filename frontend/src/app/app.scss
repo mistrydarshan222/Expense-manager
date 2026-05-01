@@ -994,7 +994,9 @@ button {
 
 .ghost-button {
   padding: 12px 18px;
+  border-radius: 14px;
   border: 1px solid #000000;
+  text-decoration: none;
 }
 
 .secondary-button:hover,
@@ -1521,7 +1523,11 @@ button:hover {
     margin-bottom: 28px;
     padding: 14px 16px;
     grid-template-columns: minmax(0, 1fr) auto;
-    border-radius: 28px;
+    border-radius: 0;
+  }
+
+  .app-auth-content {
+    padding-inline: 16px;
   }
 
   .app-auth-shell .brand-logo,
@@ -1534,6 +1540,10 @@ button:hover {
 
   .app-auth-shell .brand-logo {
     display: block;
+  }
+
+  .shell.shell-authenticated {
+    padding: 0 0 16px;
   }
 
   .shell {
@@ -1705,7 +1715,7 @@ button:hover {
     --accent-secondary-soft: #dbeafe;
   }
 
-    .shell {
+    .shell.shell-authenticated {
       padding: 0 0 96px;
       background:
         radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 28%),
@@ -2441,8 +2451,12 @@ button:hover {
 }
 
   @media (max-width: 420px) {
-    .shell {
+    .shell.shell-authenticated {
       padding: 0 0 92px;
+    }
+
+    .app-auth-content {
+      padding-inline: 8px;
     }
 
     .topbar-logged-out {
