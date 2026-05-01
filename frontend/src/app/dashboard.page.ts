@@ -235,6 +235,12 @@ export class DashboardPageComponent implements AfterViewInit {
 
   protected setActiveTab(tab: 'login' | 'register') {
     this.activeTab.set(tab);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { auth: tab },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
     this.store.statusMessage.set(
       tab === 'login'
         ? 'Login with your account to load categories and expenses.'
@@ -544,7 +550,7 @@ export class DashboardPageComponent implements AfterViewInit {
           size: 'large',
           shape: 'pill',
           text: 'continue_with',
-          width: Math.min(container.clientWidth || 320, 360),
+          width: Math.max(220, Math.min(Math.floor(container.getBoundingClientRect().width || 0) - 2, 320)),
           logo_alignment: 'left'
         });
       }

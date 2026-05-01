@@ -1,4 +1,4 @@
-<main class="shell" [class.shell-authenticated]="!!store.token()">
+<main class="shell" [class.shell-authenticated]="!!store.token()" [class.shell-auth-screen]="!store.token()">
   @if (!isOnline()) {
     <section class="offline-banner" aria-live="polite">
       <strong>You’re offline.</strong>
@@ -128,7 +128,7 @@
           routerLink="/"
           fragment="auth-access"
           [queryParams]="{ auth: 'login' }">
-          Login
+          Sign in
         </a>
         <a
           class="topbar-auth-button topbar-auth-button-primary"
@@ -136,7 +136,7 @@
           routerLink="/"
           fragment="auth-access"
           [queryParams]="{ auth: 'register' }">
-          Register
+          Sign up
         </a>
       </div>
     </header>

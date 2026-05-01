@@ -1,8 +1,42 @@
 @if (!store.token()) {
   <section class="auth-grid" id="auth-access">
+    <section class="auth-mobile-hero" aria-hidden="true">
+      <div class="auth-mobile-brand">
+        <img class="auth-mobile-brand-logo" src="transparent-logo.svg" alt="ExpenseFlow logo" />
+        <strong>Expense<span>Flow</span></strong>
+      </div>
+
+      <div class="auth-mobile-hero-copy">
+        <h2>Your expenses. <span>Under control.</span></h2>
+        <p>Track, organize, and understand your expenses in one place.</p>
+      </div>
+
+      <div class="auth-mobile-hero-preview">
+        <div class="auth-mobile-preview-card auth-mobile-preview-card-summary">
+          <small>Monthly Overview</small>
+          <strong>$2,458.75</strong>
+          <span>+ 12.5% vs last month</span>
+          <div class="auth-mobile-preview-donut"></div>
+        </div>
+        <div class="auth-mobile-preview-card auth-mobile-preview-card-receipt">
+          <small>Receipt</small>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="auth-mobile-preview-card auth-mobile-preview-card-chip auth-mobile-preview-card-chip-left">$</div>
+        <div class="auth-mobile-preview-card auth-mobile-preview-card-chip auth-mobile-preview-card-chip-right">|||</div>
+      </div>
+    </section>
+
     <article
       class="panel auth-panel auth-form-panel auth-form-panel-login"
       [class.auth-panel-mobile-hidden]="activeTab() !== 'login'">
+      <div class="auth-mobile-tabs" role="tablist" aria-label="Authentication mode">
+        <button type="button" [class.active]="activeTab() === 'login'" (click)="setActiveTab('login')">Sign in</button>
+        <button type="button" [class.active]="activeTab() === 'register'" (click)="setActiveTab('register')">Sign up</button>
+      </div>
+
       <div class="auth-panel-head">
         <div>
           <p class="eyebrow">Welcome back</p>
@@ -18,17 +52,41 @@
         <span>Fast login</span>
       </div>
 
+      <p class="auth-panel-note">Pick up right where you left off with your latest expenses, receipts, and summaries.</p>
+
         <form [formGroup]="loginForm" (ngSubmit)="login()" class="form-grid auth-form-grid">
-          <label class="full-width">
+          <label class="full-width auth-input-field">
             <span>Email address</span>
-            <input type="email" formControlName="email" placeholder="name@company.com" [disabled]="store.isSubmitting()" />
+            <div class="auth-input-shell">
+              <span class="auth-input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M4 7H20V17H4V7Z" />
+                  <path d="M4 8L12 13L20 8" />
+                </svg>
+              </span>
+              <input type="email" formControlName="email" placeholder="Email address" [disabled]="store.isSubmitting()" />
+            </div>
           </label>
-          <label class="full-width">
+          <label class="full-width auth-input-field">
             <span>Password</span>
-            <input type="password" formControlName="password" placeholder="Enter your password" [disabled]="store.isSubmitting()" />
+            <div class="auth-input-shell">
+              <span class="auth-input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M8 11V8.75C8 6.68 9.68 5 11.75 5C13.82 5 15.5 6.68 15.5 8.75V11" />
+                  <rect x="6" y="11" width="12" height="9" rx="2.5" />
+                </svg>
+              </span>
+              <input type="password" formControlName="password" placeholder="Password" [disabled]="store.isSubmitting()" />
+              <span class="auth-input-trailing" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M2.5 12C4.6 8.45 8.02 6.5 12 6.5C15.98 6.5 19.4 8.45 21.5 12C19.4 15.55 15.98 17.5 12 17.5C8.02 17.5 4.6 15.55 2.5 12Z" />
+                  <circle cx="12" cy="12" r="2.5" />
+                </svg>
+              </span>
+            </div>
           </label>
           <div class="auth-form-actions full-width">
-            <button type="submit" [disabled]="store.isSubmitting()">{{ store.isSubmitting() ? 'Signing in...' : 'Login' }}</button>
+            <button type="submit" [disabled]="store.isSubmitting()">{{ store.isSubmitting() ? 'Signing in...' : 'Log in' }}</button>
             <p class="auth-form-footnote">Use your registered email and password to continue.</p>
           </div>
         </form>
@@ -46,40 +104,84 @@
         </div>
       }
 
-      <div class="auth-status-card" aria-live="polite">
-        <span>Status</span>
-        <strong>{{ store.statusMessage() }}</strong>
+      <div class="auth-switch-copy">
+        <span>Don't have an account?</span>
+        <button type="button" (click)="setActiveTab('register')">Sign up</button>
       </div>
+
     </article>
 
     <article
       class="panel auth-panel auth-form-panel auth-form-panel-register"
       [class.auth-panel-mobile-hidden]="activeTab() !== 'register'">
+      <div class="auth-mobile-tabs" role="tablist" aria-label="Authentication mode">
+        <button type="button" [class.active]="activeTab() === 'login'" (click)="setActiveTab('login')">Sign in</button>
+        <button type="button" [class.active]="activeTab() === 'register'" (click)="setActiveTab('register')">Sign up</button>
+      </div>
+
       <div class="auth-panel-head">
         <div>
           <p class="eyebrow">New here</p>
-          <h3>Create your account</h3>
+          <h3>Create your workspace</h3>
         </div>
         <p class="auth-panel-copy">
           Set up your workspace and start tracking expenses with your own account.
         </p>
       </div>
 
+      <div class="auth-panel-meta">
+        <span>Quick setup</span>
+        <span>Own your data</span>
+      </div>
+
+      <p class="auth-panel-note">Create your account in a minute and start organizing spending with your own categories.</p>
+
         <form [formGroup]="registerForm" (ngSubmit)="register()" class="form-grid auth-form-grid">
-          <label class="full-width">
+          <label class="full-width auth-input-field">
             <span>Full name</span>
-            <input type="text" formControlName="name" placeholder="Enter your full name" [disabled]="store.isSubmitting()" />
+            <div class="auth-input-shell">
+              <span class="auth-input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="8" r="3.25" />
+                  <path d="M5 19C6.3 15.9 8.8 14.5 12 14.5C15.2 14.5 17.7 15.9 19 19" />
+                </svg>
+              </span>
+              <input type="text" formControlName="name" placeholder="Full name" [disabled]="store.isSubmitting()" />
+            </div>
           </label>
-          <label class="full-width">
+          <label class="full-width auth-input-field">
             <span>Email address</span>
-            <input type="email" formControlName="email" placeholder="name@company.com" [disabled]="store.isSubmitting()" />
+            <div class="auth-input-shell">
+              <span class="auth-input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M4 7H20V17H4V7Z" />
+                  <path d="M4 8L12 13L20 8" />
+                </svg>
+              </span>
+              <input type="email" formControlName="email" placeholder="Email address" [disabled]="store.isSubmitting()" />
+            </div>
           </label>
-          <label class="full-width">
+          <label class="full-width auth-input-field">
             <span>Password</span>
-            <input type="password" formControlName="password" placeholder="Use at least 6 characters" [disabled]="store.isSubmitting()" />
+            <div class="auth-input-shell">
+              <span class="auth-input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M8 11V8.75C8 6.68 9.68 5 11.75 5C13.82 5 15.5 6.68 15.5 8.75V11" />
+                  <rect x="6" y="11" width="12" height="9" rx="2.5" />
+                </svg>
+              </span>
+              <input type="password" formControlName="password" placeholder="Create a password" [disabled]="store.isSubmitting()" />
+              <span class="auth-input-trailing" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M2.5 12C4.6 8.45 8.02 6.5 12 6.5C15.98 6.5 19.4 8.45 21.5 12C19.4 15.55 15.98 17.5 12 17.5C8.02 17.5 4.6 15.55 2.5 12Z" />
+                  <circle cx="12" cy="12" r="2.5" />
+                </svg>
+              </span>
+            </div>
           </label>
           <div class="auth-form-actions full-width">
             <button type="submit" [disabled]="store.isSubmitting()">{{ store.isSubmitting() ? 'Creating account...' : 'Create account' }}</button>
+            <p class="auth-form-footnote">Use your email to create a secure ExpenseFlow account.</p>
           </div>
         </form>
 
@@ -95,6 +197,11 @@
           }
         </div>
       }
+
+      <div class="auth-switch-copy">
+        <span>Already have an account?</span>
+        <button type="button" (click)="setActiveTab('login')">Sign in</button>
+      </div>
     </article>
   </section>
 } @else {
