@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { ApiService } from './api.service';
 import { Category, CurrentUser, Expense, PaymentMethod, Receipt } from './api.types';
@@ -69,6 +70,7 @@ function getCurrencyOptions(): CurrencyOption[] {
 })
 export class AppStore {
   private readonly api = inject(ApiService);
+  private readonly router = inject(Router);
 
   readonly currencyOptions: CurrencyOption[] = getCurrencyOptions();
 
@@ -558,6 +560,10 @@ export class AppStore {
     this.isDashboardHydrating.set(false);
     this.dashboardHydrationLabel.set('Preparing your dashboard...');
     this.showFeedback('Logged out. You can sign in again anytime.', 'success');
+    void this.router.navigate(['/'], {
+      queryParams: { auth: 'login' },
+      fragment: 'auth-access'
+    });
   }
 
   dismissActionFeedback() {
