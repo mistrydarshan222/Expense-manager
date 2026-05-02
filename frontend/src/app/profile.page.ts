@@ -105,6 +105,10 @@ export class ProfilePageComponent {
   }
 
   protected deletePaymentMethod(id: string) {
+    if (this.editingPaymentMethodId() === id) {
+      this.resetPaymentMethodForm();
+    }
+
     this.store.deletePaymentMethod(id);
   }
 

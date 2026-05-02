@@ -23,7 +23,6 @@ export class ExpensesPageComponent {
   protected readonly swipingExpenseId = signal<string | null>(null);
   protected readonly swipeOffset = signal(0);
   protected readonly isEditingExpense = computed(() => this.editingExpenseId() !== null);
-  protected readonly isMobileEditModalOpen = computed(() => this.isEditingExpense());
   private touchStartX = 0;
   private touchCurrentX = 0;
   private touchMoved = false;
@@ -147,6 +146,10 @@ export class ExpensesPageComponent {
     this.store.statusMessage.set(`Editing "${expense.title}". Update any field and save.`);
 
     if (typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches) {
+      queueMicrotask(() => {
+        const editCard = this.document.getElementById(`mobile-expense-editor-${expense.id}`);
+        editCard?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
       return;
     }
 
@@ -233,10 +236,6 @@ export class ExpensesPageComponent {
 
   protected currentSwipeOffset(expenseId: string) {
     return this.swipingExpenseId() === expenseId ? this.swipeOffset() : 0;
-  }
-
-  protected closeMobileEditModal() {
-    this.cancelEditExpense();
   }
 
   protected async downloadStatementPdf() {

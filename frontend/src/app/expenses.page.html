@@ -95,92 +95,92 @@
 
       <div class="mobile-history-list">
         @for (expense of filteredExpenses(); track expense.id) {
-          <div class="mobile-history-swipe-row">
-            <div class="mobile-history-delete-slot">
-              <strong>Delete</strong>
-            </div>
-            <article
-              class="mobile-history-item"
-              [style.transform]="'translateX(' + currentSwipeOffset(expense.id) + 'px)'"
-              (touchstart)="beginMobileSwipe($event, expense.id)"
-              (touchmove)="updateMobileSwipe($event)"
-              (touchend)="endMobileSwipe(expense)"
-              (touchcancel)="endMobileSwipe(expense)">
-              <div class="mobile-history-avatar" [ngClass]="expenseAvatarClass(expense)">{{ expenseAvatar(expense) }}</div>
-              <div class="mobile-history-body">
-                <div class="mobile-history-top">
-                  <strong>{{ mobileExpenseTitle(expense.title) }}</strong>
-                  <strong class="mobile-history-amount">{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
-                </div>
-                <div class="mobile-history-bottom">
-                  <span>{{ expense.category?.name || 'Uncategorized' }}</span>
-                  <span>{{ expense.expenseDate | date:'MMM d' }}</span>
-                </div>
+          <div class="mobile-history-entry" [class.mobile-history-entry-editing]="editingExpenseId() === expense.id">
+            <div class="mobile-history-swipe-row">
+              <div class="mobile-history-delete-slot">
+                <strong>Delete</strong>
               </div>
-            </article>
+              <article
+                class="mobile-history-item"
+                [style.transform]="'translateX(' + currentSwipeOffset(expense.id) + 'px)'"
+                (touchstart)="beginMobileSwipe($event, expense.id)"
+                (touchmove)="updateMobileSwipe($event)"
+                (touchend)="endMobileSwipe(expense)"
+                (touchcancel)="endMobileSwipe(expense)">
+                <div class="mobile-history-avatar" [ngClass]="expenseAvatarClass(expense)">{{ expenseAvatar(expense) }}</div>
+                <div class="mobile-history-body">
+                  <div class="mobile-history-top">
+                    <strong>{{ mobileExpenseTitle(expense.title) }}</strong>
+                    <strong class="mobile-history-amount">{{ store.formatCurrency(expense.finalAmount, expense.currency) }}</strong>
+                  </div>
+                  <div class="mobile-history-bottom">
+                    <span>{{ expense.category?.name || 'Uncategorized' }}</span>
+                    <span>{{ expense.expenseDate | date:'MMM d' }}</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            @if (editingExpenseId() === expense.id) {
+              <section class="mobile-inline-expense-editor" [attr.id]="'mobile-expense-editor-' + expense.id">
+                <div class="mobile-inline-expense-editor-head">
+                  <div>
+                    <p class="eyebrow">Expense Entry</p>
+                    <h3>Edit expense</h3>
+                  </div>
+                  <button type="button" class="ghost-button mobile-inline-expense-editor-close" (click)="cancelEditExpense()">Close</button>
+                </div>
+
+                <form [formGroup]="expenseForm" (ngSubmit)="saveExpense()" class="form-grid mobile-inline-expense-editor-form">
+                  <label>
+                    <span>Title</span>
+                    <input type="text" formControlName="title" />
+                  </label>
+                  <label>
+                    <span>Category</span>
+                    <select formControlName="categoryId">
+                      <option value="" disabled>Select a category</option>
+                      @for (category of store.categories(); track category.id) {
+                        <option [value]="category.id">{{ category.name }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label>
+                    <span>Date</span>
+                    <input type="date" formControlName="expenseDate" />
+                  </label>
+                  <label>
+                    <span>Total amount</span>
+                    <input type="number" step="0.01" formControlName="finalAmount" />
+                  </label>
+                  <label>
+                    <span>Merchant</span>
+                    <input type="text" formControlName="merchantName" />
+                  </label>
+                  <label>
+                    <span>Payment method</span>
+                    <select formControlName="paymentMethod">
+                      <option value="" disabled>Select a payment method</option>
+                      @for (method of store.paymentMethods(); track method.id) {
+                        <option [value]="method.name">{{ method.name }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label class="full-width">
+                    <span>Notes</span>
+                    <textarea rows="4" formControlName="notes" placeholder="Optional note"></textarea>
+                  </label>
+                  <div class="form-actions full-width">
+                    <button type="submit">Update expense</button>
+                    <button type="button" class="ghost-button" (click)="cancelEditExpense()">Cancel</button>
+                  </div>
+                </form>
+              </section>
+            }
           </div>
         }
       </div>
     </section>
-
-    @if (isMobileEditModalOpen()) {
-      <section class="mobile-expense-modal-backdrop" (click)="closeMobileEditModal()">
-        <article class="mobile-expense-modal" (click)="$event.stopPropagation()">
-          <div class="mobile-expense-modal-head">
-            <div>
-              <p class="eyebrow">Expense Entry</p>
-              <h3>Edit expense</h3>
-            </div>
-            <button type="button" class="ghost-button mobile-expense-modal-close" (click)="closeMobileEditModal()">Close</button>
-          </div>
-
-          <form [formGroup]="expenseForm" (ngSubmit)="saveExpense()" class="form-grid mobile-expense-modal-form">
-            <label>
-              <span>Title</span>
-              <input type="text" formControlName="title" />
-            </label>
-            <label>
-              <span>Category</span>
-              <select formControlName="categoryId">
-                <option value="" disabled>Select a category</option>
-                @for (category of store.categories(); track category.id) {
-                  <option [value]="category.id">{{ category.name }}</option>
-                }
-              </select>
-            </label>
-            <label>
-              <span>Date</span>
-              <input type="date" formControlName="expenseDate" />
-            </label>
-            <label>
-              <span>Total amount</span>
-              <input type="number" step="0.01" formControlName="finalAmount" />
-            </label>
-            <label>
-              <span>Merchant</span>
-              <input type="text" formControlName="merchantName" />
-            </label>
-            <label>
-              <span>Payment method</span>
-              <select formControlName="paymentMethod">
-                <option value="" disabled>Select a payment method</option>
-                @for (method of store.paymentMethods(); track method.id) {
-                  <option [value]="method.name">{{ method.name }}</option>
-                }
-              </select>
-            </label>
-            <label class="full-width">
-              <span>Notes</span>
-              <textarea rows="4" formControlName="notes" placeholder="Optional note"></textarea>
-            </label>
-            <div class="form-actions full-width">
-              <button type="submit">Update expense</button>
-              <button type="button" class="ghost-button" (click)="closeMobileEditModal()">Cancel</button>
-            </div>
-          </form>
-        </article>
-      </section>
-    }
 
     @if (isEditingExpense()) {
       <section class="panel form-panel" id="expense-editor">

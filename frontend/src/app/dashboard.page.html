@@ -95,12 +95,6 @@
         <div class="auth-divider"><span>or continue with</span></div>
         <div class="auth-google-block" [class.auth-google-block-disabled]="store.isSubmitting()">
           <div id="google-login-button" class="auth-google-button-host"></div>
-          @if (store.isSubmitting()) {
-            <div class="auth-google-overlay" aria-live="polite">
-              <strong>Please wait...</strong>
-              <span>{{ store.statusMessage() }}</span>
-            </div>
-          }
         </div>
       }
 
@@ -189,12 +183,6 @@
         <div class="auth-divider"><span>or continue with</span></div>
         <div class="auth-google-block" [class.auth-google-block-disabled]="store.isSubmitting()">
           <div id="google-register-button" class="auth-google-button-host"></div>
-          @if (store.isSubmitting()) {
-            <div class="auth-google-overlay" aria-live="polite">
-              <strong>Please wait...</strong>
-              <span>{{ store.statusMessage() }}</span>
-            </div>
-          }
         </div>
       }
 

@@ -98,8 +98,40 @@
   margin-top: 22px;
 }
 
+.payment-method-empty-state {
+  padding: 20px 22px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
+}
+
+.payment-method-empty-state strong {
+  display: block;
+  color: var(--text-primary);
+}
+
+.payment-method-empty-state p {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
 .payment-method-card {
   align-items: center;
+}
+
+.payment-method-card-desktop {
+  display: flex;
+}
+
+.payment-method-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.payment-method-edit-button {
+  min-width: 88px;
 }
 
 .payment-method-swipe-row,
@@ -386,6 +418,10 @@
     overflow: hidden;
     border-radius: 18px;
     background: #ffffff;
+  }
+
+  .payment-method-card-desktop {
+    display: none;
   }
 
   .payment-method-swipe-row + .payment-method-swipe-row {
